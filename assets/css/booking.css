@@ -229,104 +229,201 @@
 /* ==========================================================================
    4. SHORTCODE [confirm_booking] (Khớp 100% Ảnh 1)
    ========================================================================== */
+.memora-confirm-wrapper {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 18px 12px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
 .memora-confirm-card {
-    background: #edf5fb;
-    border: 1.5px solid var(--memora-blue-border);
-    border-radius: 24px;
-    padding: 24px 20px 28px 20px;
+    background: #eaf2f8;
+    border: 1.5px solid #cfe2f0;
+    border-radius: 28px;
+    padding: 26px 26px 28px 26px;
     text-align: center;
     position: relative;
-    box-shadow: 0 4px 14px rgba(203, 227, 243, 0.4);
+    box-sizing: border-box;
+    box-shadow: 0 4px 16px rgba(185, 213, 232, 0.25);
 }
 
 .memora-star-decor {
     position: absolute;
-    top: -14px;
+    top: 0;
     left: 50%;
-    transform: translateX(-50%);
-    width: 28px;
-    height: 28px;
-    background: #ffffff;
-    border: 1px solid var(--memora-blue-border);
-    border-radius: 50%;
-    display: flex;
+    transform: translate(-50%, -50%);
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #9ac2e0;
-    font-size: 16px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    color: #a2c7e2;
+    font-size: 28px;
+    line-height: 1;
+    z-index: 2;
+    pointer-events: none;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.memora-star-decor svg {
+    display: block;
+    width: 28px;
+    height: 28px;
 }
 
 .memora-confirm-title {
     font-family: var(--memora-font-serif);
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 700;
-    color: var(--memora-brown);
-    margin: 8px 0 2px 0;
+    color: #5c3520;
+    margin: 4px 0 2px 0;
+    line-height: 1.25;
 }
 
 .memora-confirm-subtitle {
     font-family: var(--memora-font-serif);
-    font-size: 14px;
-    color: #8c5a3a;
+    font-size: 16px;
+    color: #8f6952;
     font-style: italic;
-    margin: 0 0 20px 0;
+    font-weight: 400;
+    margin: 0 0 22px 0;
+    line-height: 1.3;
 }
 
 .memora-confirm-pills {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 24px;
+    gap: 18px;
+    margin: 0;
 }
 
 .memora-pill-item {
-    background: var(--memora-cream);
-    border: 1.5px solid var(--memora-brown);
-    border-radius: 30px;
-    padding: 8px 12px;
+    background: #fffaf4;
+    border: 2.5px solid #5c3520;
+    border-radius: 9999px;
+    padding: 10px 16px;
     font-family: var(--memora-font-sans);
-    font-size: 17px;
+    font-size: 30px;
     font-weight: 700;
-    color: var(--memora-brown-text);
+    color: #5c3520;
     text-align: center;
-    min-height: 44px;
+    height: 68px;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
     flex: 1;
+    min-width: 0;
+    line-height: 1;
+    letter-spacing: 0.5px;
+    box-shadow: none;
 }
 
 .memora-pill-item--center {
-    flex: 1.4;
-    border-color: #9254de;
-    /* Viền tím nhạt theo đúng khung tím ở Ảnh 1 */
-    box-shadow: 0 0 0 1px #9254de;
+    flex: 1.5;
+    border-color: #5c3520;
+    box-shadow: none;
+}
+
+.memora-confirm-action {
+    margin-top: 28px;
+    text-align: center;
 }
 
 .memora-btn-brown {
-    background: var(--memora-brown);
+    background: #5c3520;
     color: #ffffff;
     border: none;
-    border-radius: 35px;
-    padding: 12px 36px;
+    border-radius: 9999px;
+    padding: 13px 44px;
     font-family: var(--memora-font-serif);
-    font-size: 17px;
+    font-size: 19px;
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(115, 62, 28, 0.3);
-    transition: all 0.2s ease;
-    display: inline-block;
+    box-shadow: 0 4px 12px rgba(92, 53, 32, 0.2);
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     text-decoration: none;
+    line-height: 1.3;
+    text-transform: uppercase;
 }
 
 .memora-btn-brown:hover {
-    background: var(--memora-brown-dark);
+    background: #472614;
     transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(115, 62, 28, 0.4);
+    box-shadow: 0 6px 16px rgba(92, 53, 32, 0.3);
     color: #ffffff;
+}
+
+.memora-btn-brown:active {
+    transform: translateY(0);
+}
+
+/* Fallback nếu nút nằm bên trong card */
+.memora-confirm-card > .memora-btn-confirm-pay {
+    margin-top: 26px;
+}
+
+/* Responsive hiển thị mượt mà trên di động */
+@media (max-width: 640px) {
+    .memora-confirm-wrapper {
+        padding: 12px 8px;
+    }
+
+    .memora-confirm-card {
+        padding: 22px 14px 24px 14px;
+        border-radius: 20px;
+    }
+
+    .memora-confirm-title {
+        font-size: 22px;
+    }
+
+    .memora-confirm-subtitle {
+        font-size: 14px;
+        margin-bottom: 16px;
+    }
+
+    .memora-confirm-pills {
+        gap: 10px;
+    }
+
+    .memora-pill-item {
+        font-size: 20px;
+        height: 52px;
+        border-width: 2px;
+        padding: 6px 8px;
+    }
+
+    .memora-confirm-action {
+        margin-top: 22px;
+    }
+
+    .memora-btn-brown {
+        font-size: 16px;
+        padding: 11px 34px;
+    }
+}
+
+@media (max-width: 420px) {
+    .memora-confirm-title {
+        font-size: 19px;
+    }
+
+    .memora-confirm-pills {
+        gap: 6px;
+    }
+
+    .memora-pill-item {
+        font-size: 16px;
+        height: 46px;
+        padding: 4px 6px;
+    }
 }
 
 /* ==========================================================================

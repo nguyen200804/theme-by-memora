@@ -132,9 +132,13 @@ function memora_shortcode_confirm_booking( $atts ) {
 
     ob_start();
     ?>
-    <div class="memora-booking-container">
+    <div class="memora-booking-container memora-confirm-wrapper">
         <div class="memora-confirm-card">
-            <div class="memora-star-decor">★</div>
+            <div class="memora-star-decor">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="#a2c7e2" stroke="#a2c7e2" stroke-width="1.2" stroke-linejoin="round">
+                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                </svg>
+            </div>
             <h2 class="memora-confirm-title">Xác nhận lịch của bạn</h2>
             <div class="memora-confirm-subtitle">Confirm your booking</div>
 
@@ -143,7 +147,9 @@ function memora_shortcode_confirm_booking( $atts ) {
                 <div class="memora-pill-item memora-pill-item--center memora-pill-date">04/09/2026</div>
                 <div class="memora-pill-item memora-pill-pkg">5p</div>
             </div>
+        </div>
 
+        <div class="memora-confirm-action">
             <button type="button" class="memora-btn-brown memora-btn-confirm-pay" data-checkout-url="<?php echo esc_url( $atts['checkout_url'] ); ?>">
                 THANH TOÁN
             </button>
