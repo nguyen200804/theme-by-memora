@@ -365,7 +365,7 @@
 }
 
 /* Fallback nếu nút nằm bên trong card */
-.memora-confirm-card > .memora-btn-confirm-pay {
+.memora-confirm-card>.memora-btn-confirm-pay {
     margin-top: 26px;
 }
 
@@ -467,6 +467,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.memora-input-icon svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+    flex-shrink: 0;
 }
 
 .memora-input-text {
@@ -613,11 +620,12 @@
 .memora-thankyou-wrap {
     padding: 15px 0;
     text-align: center;
+    font-size: 4px;
 }
 
 .memora-thankyou-title {
     font-family: var(--memora-font-script);
-    font-size: 38px;
+    font-size: 19.3em;
     font-weight: 700;
     color: var(--memora-brown);
     margin: 0;
@@ -626,7 +634,7 @@
 
 .memora-thankyou-subtitle {
     font-family: var(--memora-font-serif);
-    font-size: 16px;
+    font-size: 7.9em;
     font-weight: 600;
     color: var(--memora-brown-text);
     margin: 2px 0 24px 0;
