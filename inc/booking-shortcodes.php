@@ -326,7 +326,7 @@ function memora_render_thankyou_html( $code = '' ) {
                
             </div>
             <div class="memora-code-brown-card">
-                 <span class="memora-code-yellow-badge">random 4 số</span>
+                <span class="memora-code-yellow-badge">random 4 số</span>
                 <div class="memora-code-digits"><?php echo esc_html( $display_code ); ?></div>
             </div>
             <div class="memora-code-notice">**Quý khách vui lòng lưu lại code chụp để tra cứu</div>
@@ -385,7 +385,8 @@ function memora_shortcode_lookup_booking( $atts ) {
     ?>
     <div class="memora-booking-container memora-lookup-wrap">
         <div class="memora-lookup-header-pill">
-            <span>🔍</span> Tra cứu đơn đặt lịch
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="17" zoomAndPan="magnify" viewBox="0 0 12.75 11.999999" height="16" preserveAspectRatio="xMidYMid meet" version="1.0"><defs><clipPath id="8c8b3aa6fe"><path d="M 0 0.117188 L 11.769531 0.117188 L 11.769531 11.148438 L 0 11.148438 Z M 0 0.117188 " clip-rule="nonzero"/></clipPath></defs><g clip-path="url(#8c8b3aa6fe)"><path fill="#733e1c" d="M 11.59375 10.589844 L 9.03125 8.027344 C 9.628906 7.203125 9.980469 6.191406 9.980469 5.101562 C 9.980469 2.351562 7.746094 0.117188 4.996094 0.117188 C 2.246094 0.117188 0.0117188 2.351562 0.0117188 5.101562 C 0.0117188 7.847656 2.246094 10.085938 4.996094 10.085938 C 6.328125 10.085938 7.542969 9.558594 8.4375 8.703125 L 10.960938 11.226562 C 11.046875 11.3125 11.164062 11.355469 11.277344 11.355469 C 11.390625 11.355469 11.507812 11.3125 11.59375 11.226562 C 11.769531 11.050781 11.769531 10.765625 11.59375 10.589844 Z M 4.996094 9.1875 C 2.742188 9.1875 0.910156 7.355469 0.910156 5.101562 C 0.910156 2.847656 2.742188 1.011719 4.996094 1.011719 C 7.25 1.011719 9.082031 2.847656 9.082031 5.101562 C 9.082031 7.355469 7.25 9.1875 4.996094 9.1875 Z M 4.996094 9.1875 " fill-opacity="1" fill-rule="nonzero"/></g></svg>
+            <span>Tra cứu đơn đặt lịch</span>
         </div>
 
         <form id="memora_lookup_form">

@@ -903,18 +903,19 @@
    ========================================================================== */
 .memora-lookup-wrap {
     padding: 10px 0;
+    font-size: 4px;
     text-align: center;
 }
 
 .memora-lookup-header-pill {
     background: var(--memora-blue-light);
-    border-radius: 30px;
-    padding: 10px 24px;
+    border-radius: 2000px;
+    padding: 0.2em 2em;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5em;
     font-family: var(--memora-font-serif);
-    font-size: 20px;
+    font-size: 13.3em;
     font-weight: 700;
     color: var(--memora-brown-text);
     margin-bottom: 28px;
@@ -928,30 +929,31 @@
 }
 
 .memora-lookup-field {
-    flex: 1;
+    /* flex: 1; */
     text-align: center;
 }
 
 .memora-lookup-field label {
     display: block;
-    font-family: var(--memora-font-serif);
-    font-size: 16px;
+    font-family: 'Montserrat';
+    font-size: 12em;
     color: var(--memora-brown-text);
     margin-bottom: 8px;
 }
 
 .memora-lookup-input {
-    width: 100%;
-    border: none;
-    border-bottom: 1.5px solid var(--memora-brown);
+    width: fit-content !important;
+    border: none !important;
+    border-bottom: 0.05em solid var(--memora-brown) !important;
+    border-radius: 0 !important;
     background: transparent;
-    outline: none;
+    outline: none !important;
     font-family: var(--memora-font-sans);
-    font-size: 16px;
+    font-size: 11em;
     font-weight: 600;
     color: var(--memora-brown-text);
     text-align: center;
-    padding: 4px 0;
+    /* padding: 4px 0; */
 }
 
 .memora-lookup-result-box {

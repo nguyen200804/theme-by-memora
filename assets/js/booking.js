@@ -455,9 +455,10 @@
                             <div class="memora-code-section">
                                 <div class="memora-code-label-row">
                                     <span class="memora-code-label">Code :</span>
-                                    <span class="memora-code-yellow-badge">random 4 số</span>
+                                    
                                 </div>
                                 <div class="memora-code-brown-card">
+                                <span class="memora-code-yellow-badge">random 4 số</span>
                                     <div class="memora-code-digits">${d.code}</div>
                                 </div>
                                 <div class="memora-code-notice">**Quý khách vui lòng lưu lại code chụp để tra cứu</div>
