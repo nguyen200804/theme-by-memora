@@ -38,3 +38,8 @@ if ( file_exists( get_stylesheet_directory() . '/menu-header.php' ) ) {
 if ( file_exists( get_stylesheet_directory() . '/inc/booking-system.php' ) ) {
     require_once get_stylesheet_directory() . '/inc/booking-system.php';
 }
+
+// Nạp Shortcode [gallery_swiper] – Slider ảnh với pagination ngôi sao
+if ( file_exists( get_stylesheet_directory() . '/inc/gallery-swiper-shortcode.php' ) ) {
+    require_once get_stylesheet_directory() . '/inc/gallery-swiper-shortcode.php';
+}
