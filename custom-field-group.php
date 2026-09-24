@@ -216,6 +216,43 @@ function memora_register_marquee_field_group() {
                 'default_value'=> '',
                 'wrapper'      => array( 'width' => '34' ),
             ),
+            array(
+                'key'           => 'field_marquee_font_family',
+                'label'         => 'Font chữ',
+                'name'          => 'marquee_font_family',
+                'type'          => 'select',
+                'instructions'  => 'Chọn font chữ hiển thị hoặc tự nhập tên font tùy ý.',
+                'choices'       => array(
+                    'inherit'                              => 'Mặc định (Kế thừa từ Theme)',
+                    "'Playfair Display', Georgia, serif"   => 'Playfair Display (Serif cổ điển sang trọng)',
+                    "'Cormorant Garamond', Georgia, serif" => 'Cormorant Garamond (Serif thanh lịch quý phái)',
+                    "'Plus Jakarta Sans', sans-serif"      => 'Plus Jakarta Sans (Sans-serif hiện đại)',
+                    "'Montserrat', sans-serif"             => 'Montserrat (Hiện đại tối giản)',
+                    "'Dancing Script', cursive"            => 'Dancing Script (Chữ viết tay nghệ thuật)',
+                    "'Playball', cursive"                  => 'Playball (Chữ viết tay cổ điển)',
+                    "Arial, sans-serif"                    => 'Arial (Không chân cơ bản)',
+                    "'Times New Roman', serif"             => 'Times New Roman (Có chân chuẩn mực)',
+                ),
+                'default_value' => 'inherit',
+                'allow_null'    => 0,
+                'multiple'      => 0,
+                'ui'            => 1,
+                'allow_custom'  => 1,
+                'wrapper'       => array( 'width' => '50' ),
+            ),
+            array(
+                'key'           => 'field_marquee_font_size',
+                'label'         => 'Kích thước chữ (px)',
+                'name'          => 'marquee_font_size',
+                'type'          => 'number',
+                'instructions'  => 'Cỡ chữ cho nội dung văn bản. Mặc định: 16px',
+                'default_value' => 16,
+                'min'           => 10,
+                'max'           => 100,
+                'step'          => 1,
+                'append'        => 'px',
+                'wrapper'       => array( 'width' => '50' ),
+            ),
         ),
         'location'              => array(
             array(
@@ -248,6 +285,14 @@ function memora_register_marquee_field_group() {
 //====================================
 add_action( 'wp_enqueue_scripts', 'memora_marquee_enqueue_assets' );
 function memora_marquee_enqueue_assets() {
+    // Tải Google Fonts hỗ trợ các font chữ nghệ thuật/sang trọng
+    wp_enqueue_style(
+        'memora-marquee-google-fonts',
+        'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Dancing+Script:wght@600;700&family=Montserrat:wght@400;500;600;700&family=Playball&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap',
+        array(),
+        null
+    );
+
     $css = '
     .memora-marquee-wrap {
         overflow: hidden;
@@ -256,6 +301,7 @@ function memora_marquee_enqueue_assets() {
         padding: 14px 0;
         box-sizing: border-box;
         line-height: normal;
+        font-family: inherit;
     }
     .memora-marquee-track {
         display: flex;
@@ -304,9 +350,10 @@ function memora_marquee_enqueue_assets() {
     .memora-marquee-text {
         font-weight: 500;
         white-space: nowrap;
-        font-size: 1rem;
+        font-size: var(--marquee-font-size, 1rem);
         line-height: 1.5;
         letter-spacing: 0.02em;
+        font-family: inherit;
     }
     @keyframes memora-scroll-left {
         from { transform: translateX(0); }
@@ -375,15 +422,19 @@ function memora_render_marquee( $atts = array() ) {
     }
 
     $atts = shortcode_atts( array(
-        'id'        => 0,
-        'source'    => '',
-        'speed'     => '',
-        'direction' => '',
-        'gap'       => '',
-        'pause'     => '',
-        'bg'        => '',
-        'color'     => '',
-        'class'     => '',
+        'id'          => 0,
+        'source'      => '',
+        'speed'       => '',
+        'direction'   => '',
+        'gap'         => '',
+        'pause'       => '',
+        'bg'          => '',
+        'color'       => '',
+        'font'        => '',
+        'font_family' => '',
+        'size'        => '',
+        'font_size'   => '',
+        'class'       => '',
     ), $atts, 'marquee' );
 
     // Nguồn dữ liệu: Mặc định lấy từ trang "Chỉnh sửa chung" ('option')
@@ -429,6 +480,10 @@ function memora_render_marquee( $atts = array() ) {
     $bg_color   = ! empty( $atts['bg'] ) ? sanitize_text_field( $atts['bg'] ) : get_field( 'marquee_bg_color', $data_source );
     $text_color = ! empty( $atts['color'] ) ? sanitize_text_field( $atts['color'] ) : get_field( 'marquee_text_color', $data_source );
 
+    // Font chữ và Kích thước chữ
+    $font_input = ! empty( $atts['font'] ) ? $atts['font'] : ( ! empty( $atts['font_family'] ) ? $atts['font_family'] : get_field( 'marquee_font_family', $data_source ) );
+    $size_input = ( $atts['size'] !== '' ) ? $atts['size'] : ( ( $atts['font_size'] !== '' ) ? $atts['font_size'] : get_field( 'marquee_font_size', $data_source ) );
+
     $unique_id = 'memora-marquee-' . wp_rand( 1000, 9999 );
 
     // Inline CSS variables & styles
@@ -438,6 +493,14 @@ function memora_render_marquee( $atts = array() ) {
     }
     if ( ! empty( $text_color ) ) {
         $container_styles[] = 'color: ' . esc_attr( $text_color );
+    }
+    if ( ! empty( $font_input ) && $font_input !== 'inherit' ) {
+        $container_styles[] = 'font-family: ' . esc_attr( $font_input );
+    }
+    if ( ! empty( $size_input ) ) {
+        $size_val = is_numeric( $size_input ) ? ( intval( $size_input ) . 'px' ) : esc_attr( $size_input );
+        $container_styles[] = '--marquee-font-size: ' . $size_val;
+        $container_styles[] = 'font-size: ' . $size_val;
     }
     $container_styles[] = '--marquee-speed: ' . esc_attr( $speed ) . 's';
     $container_styles[] = '--marquee-gap: ' . esc_attr( $gap ) . 'px';

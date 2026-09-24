@@ -66,6 +66,8 @@ Code chức năng 2
     * Hướng chạy: Phải sang Trái (mặc định) hoặc Trái sang Phải.
     * Tự động dừng khi di chuột qua (Hover pause).
     * Tùy chỉnh màu nền và màu chữ.
+    * Tùy chỉnh Font chữ (Playfair Display, Cormorant Garamond, Plus Jakarta Sans, Montserrat, Dancing Script, Playball... hoặc tự nhập).
+    * Tùy chỉnh Kích thước chữ (px).
 
 ### 3.2. Cách hiển thị ra giao diện
 
@@ -81,6 +83,8 @@ Code chức năng 2
 * `[memora_marquee direction="right"]`: Đổi hướng chạy từ Trái sang Phải.
 * `[memora_marquee bg="#e8eef5"]`: Đổi màu nền dải marquee.
 * `[memora_marquee color="#733e1c"]`: Đổi màu chữ.
+* `[memora_marquee font="Playfair Display"]`: Tùy chỉnh font chữ cho dải chạy.
+* `[memora_marquee size="18"]`: Đổi kích thước chữ thành 18px (hoặc `font_size="18"`).
 * `[memora_marquee pause="false"]`: Tắt tính năng tạm dừng khi rê chuột.
 * `[memora_marquee class="custom-marquee-class"]`: Bổ sung thêm CSS class tùy biến.
 * *Cơ chế tự động:* Khi danh sách có ít phần tử (ví dụ chỉ có 1 text `"memora film"`), hệ thống tự động nhân bản lặp lại liên tục để phủ kín 100% màn hình và cuộn vô tận mượt mà (không bị trống màn hình hay giật hình).
