@@ -48,3 +48,8 @@ if ( file_exists( get_stylesheet_directory() . '/inc/gallery-swiper-shortcode.ph
 if ( file_exists( get_stylesheet_directory() . '/inc/dia-chi-noi-bat-shortcode.php' ) ) {
     require_once get_stylesheet_directory() . '/inc/dia-chi-noi-bat-shortcode.php';
 }
+
+// Nạp Shortcode [danh_sach_phong] – Danh sách phòng chụp ảnh của địa chỉ
+if ( file_exists( get_stylesheet_directory() . '/inc/danh-sach-phong-shortcode.php' ) ) {
+    require_once get_stylesheet_directory() . '/inc/danh-sach-phong-shortcode.php';
+}
