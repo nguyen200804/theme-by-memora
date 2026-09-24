@@ -696,12 +696,18 @@
     margin-bottom: 22px;
 }
 
+.memora-lookup-wrap .memora-banner-pill {
+    background: #fff9f3;
+    border-radius: 2000px;
+}
+
+
 .memora-info-3cols {
     display: flex;
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 23em;
-    margin-top: 38em;
+    margin-top: 30em;
 }
 
 .memora-info-col {
@@ -795,6 +801,10 @@
     margin-top: 28em;
     margin-bottom: 31em;
     text-align: center;
+}
+
+.memora-lookup-wrap .memora-note-card {
+    margin-bottom: 0;
 }
 
 .memora-note-tag {
@@ -958,6 +968,9 @@
 
 .memora-lookup-result-box {
     margin-top: 30px;
+    background: #693c214d;
+    border-radius: 14em;
+    padding: 20em;
 }
 
 /* THÔNG BÁO LỖI / THÀNH CÔNG */
