@@ -65,11 +65,17 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
     ---------------------------------------------------------- */
     $slide_ids = [];
     $gallery   = get_field( 'cac-hinh-anh-cua-dia-chi', $dc_id );
+    if ( empty( $gallery ) ) {
+        $gallery = get_field( 'cac_hinh_anh_cua_dia_chi', $dc_id );
+    }
 
     if ( ! empty( $gallery ) && is_array( $gallery ) ) {
         foreach ( $gallery as $img ) {
-            if ( is_array( $img ) && ! empty( $img['ID'] ) ) {
-                $slide_ids[] = (int) $img['ID'];
+            if ( is_array( $img ) ) {
+                $img_id = ! empty( $img['ID'] ) ? (int) $img['ID'] : ( ! empty( $img['id'] ) ? (int) $img['id'] : 0 );
+                if ( $img_id ) {
+                    $slide_ids[] = $img_id;
+                }
             } elseif ( is_numeric( $img ) ) {
                 $slide_ids[] = (int) $img;
             }
