@@ -53,3 +53,51 @@ if ( file_exists( get_stylesheet_directory() . '/inc/dia-chi-noi-bat-shortcode.p
 if ( file_exists( get_stylesheet_directory() . '/inc/danh-sach-phong-shortcode.php' ) ) {
     require_once get_stylesheet_directory() . '/inc/danh-sach-phong-shortcode.php';
 }
+
+// Force desktop layout on all devices by setting viewport width to 1200px on small screens, and standard viewport on large screens
+function tocfl_force_desktop_viewport( $html ) {
+    if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+        return $html;
+    }
+    if ( isset( $_GET['elementor-preview'] ) || ( isset( $_GET['action'] ) && $_GET['action'] === 'elementor' ) ) {
+        return $html;
+    }
+
+    // Remove all existing viewport meta tags to avoid duplicates or overrides
+    $html = preg_replace( '/<meta\s+name=["\']viewport["\'][^>]*>/i', '', $html );
+    
+    $target_width = 1200;
+    if ( isset( $_SERVER['REQUEST_URI'] ) ) {
+        $path = strtok( $_SERVER['REQUEST_URI'], '?' );
+        if ( preg_match( '#^/paper_download/?$#', $path ) ) {
+            $target_width = 980;
+        }
+    }
+    
+    // Insert the dynamic desktop viewport script right after <head>
+    $dynamic_viewport_script = '
+<script type="text/javascript">
+(function() {
+    var screenWidth = window.screen.width;
+    var content = (screenWidth < ' . $target_width . ') ? "width=' . $target_width . '" : "width=device-width, initial-scale=1.0";
+    document.write(\'<meta name="viewport" content="\' + content + \'">\');
+})();
+</script>
+';
+    if ( stripos( $html, '<head>' ) !== false ) {
+        $html = str_ireplace( '<head>', '<head>' . $dynamic_viewport_script, $html );
+    } elseif ( stripos( $html, '<head' ) !== false ) {
+        $html = preg_replace( '/(<head[^>]*>)/i', '$1' . $dynamic_viewport_script, $html, 1 );
+    }
+    return $html;
+}
+
+add_action( 'template_redirect', function() {
+    if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+        return;
+    }
+    if ( isset( $_GET['elementor-preview'] ) || ( isset( $_GET['action'] ) && $_GET['action'] === 'elementor' ) ) {
+        return;
+    }
+    ob_start( 'tocfl_force_desktop_viewport' );
+} );
