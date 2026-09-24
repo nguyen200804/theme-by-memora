@@ -262,29 +262,66 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         ];
     }
 
-    // Tách thành 2 nhóm: Compact (hàng trên) và Wide (hàng dưới)
+    // Tách thành 2 nhóm: Compact (hàng trên 2 cột) và Wide (hàng dưới full-width)
     $compact_rooms = [];
     $wide_rooms    = [];
 
     if ( $atts['layout'] === 'auto' ) {
+        $total_rooms = count( $rooms_data );
+
+        // 1. Lọc các phòng Selfbooth
+        $self_rooms  = [];
+        $other_rooms = [];
         foreach ( $rooms_data as $rm ) {
-            if ( $rm['is_compact'] ) {
-                $compact_rooms[] = $rm;
+            if ( stripos( $rm['title'], 'self' ) !== false ) {
+                $self_rooms[] = $rm;
             } else {
-                $wide_rooms[] = $rm;
+                $other_rooms[] = $rm;
             }
         }
-        // Nếu số compact_rooms lẻ (tạo ô trống), chuyển phòng cuối sang wide để tránh bỏ trống
-        if ( count( $compact_rooms ) === 1 ) {
-            // Chỉ 1 phòng compact → hiển thị dạng wide thay vì grid 2 cột trống 1 ô
-            $wide_rooms    = array_merge( $compact_rooms, $wide_rooms );
+
+        // Trường hợp 1: Có từ 2 phòng Selfbooth trở lên
+        if ( count( $self_rooms ) >= 2 ) {
+            // Lấy theo từng cặp chẵn (2, 4...) lên lưới 2 cột
+            $even_pairs     = floor( count( $self_rooms ) / 2 ) * 2;
+            $compact_rooms  = array_slice( $self_rooms, 0, $even_pairs );
+            $remaining_self = array_slice( $self_rooms, $even_pairs );
+            $wide_rooms     = array_merge( $remaining_self, $other_rooms );
+        }
+        // Trường hợp 2: Chỉ có 1 phòng Selfbooth (hoặc không có) và có từ 2 phòng trở lên
+        // => Đưa 2 phòng đầu tiên lên hàng trên để lấp đầy 2 cột, TUYỆT ĐỐI KHÔNG ĐỂ BỎ TRỐNG 1 Ô!
+        elseif ( $total_rooms >= 2 ) {
+            $compact_rooms = array_slice( $rooms_data, 0, 2 );
+            $wide_rooms    = array_slice( $rooms_data, 2 );
+        }
+        // Trường hợp 3: Chỉ có đúng 1 phòng duy nhất
+        else {
             $compact_rooms = [];
+            $wide_rooms    = $rooms_data;
         }
     } elseif ( $atts['layout'] === 'grid' ) {
         $compact_rooms = $rooms_data;
     } else {
         $wide_rooms = $rooms_data;
     }
+
+    // Đánh số thứ tự hiển thị chuẩn xác (Room 1, Room 2, Room 3...) theo đúng vị trí trên màn hình
+    $display_index = 0;
+    foreach ( $compact_rooms as &$c_rm ) {
+        $display_index++;
+        $c_rm['room_number'] = 'Room ' . $display_index;
+    }
+    unset( $c_rm );
+
+    foreach ( $wide_rooms as &$w_rm ) {
+        $display_index++;
+        $w_rm['room_number'] = 'Room ' . $display_index;
+        // Cập nhật mô tả mẫu theo số thứ tự hiển thị nếu chưa có
+        if ( empty( get_field( 'mieu_ta_concept', $w_rm['id'] ) ) && empty( get_field( 'concept', $w_rm['id'] ) ) && empty( get_field( 'mo_ta', $w_rm['id'] ) ) ) {
+            $w_rm['desc'] = 'Miêu tả về concept phòng ' . str_pad( $display_index, 2, '0', STR_PAD_LEFT );
+        }
+    }
+    unset( $w_rm );
 
     /* ----------------------------------------------------------
        4. Render HTML giao diện
@@ -448,7 +485,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         ------------------------------------------- */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-grid {
             display: grid;
-            grid-template-columns: repeat(<?php echo min( 2, count( $compact_rooms ) ); ?>, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 28px;
             margin-bottom: 40px;
             width: 100%;
@@ -462,6 +499,13 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             min-width: 0;
             max-width: 100%;
             position: relative;
+        }
+
+        /* Safeguard: Nếu có trường hợp chỉ có 1 thẻ duy nhất trong grid, tự động căn giữa */
+        #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-card:only-child {
+            grid-column: 1 / -1;
+            max-width: 560px;
+            margin: 0 auto;
         }
 
         /* Khung ảnh poster 1:1 không bo góc */
