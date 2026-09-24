@@ -282,8 +282,14 @@ function memora_shortcode_thankyou_booking( $atts ) {
     ob_start();
     ?>
     <div class="memora-booking-container memora-thankyou-wrap">
-        <h2 class="memora-thankyou-title">Thank You!</h2>
-        <div class="memora-thankyou-subtitle">Thanh Toán Thành Công ✨</div>
+        <div class="memora-header">
+            <div class="memora-header-content">
+                <h2 class="memora-thankyou-title">Thank You!</h2>
+                <div class="memora-thankyou-subtitle">Thanh Toán Thành Công </div>
+            </div>
+            <img src="/wp-content/uploads/2026/09/all-star.png">
+
+        </div>
 
         <div class="memora-success-icon-wrap">
             <div class="memora-success-check-circle">
