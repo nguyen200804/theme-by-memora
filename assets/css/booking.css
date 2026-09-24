@@ -632,6 +632,11 @@
     margin: 0 auto;
 }
 
+.memora-header {
+    display: flex;
+    margin-bottom: 36em;
+}
+
 .memora-thankyou-title {
     font-family: var(--memora-font-script);
     font-size: 19.3em;
