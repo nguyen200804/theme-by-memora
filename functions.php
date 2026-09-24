@@ -54,6 +54,12 @@ if ( file_exists( get_stylesheet_directory() . '/inc/danh-sach-phong-shortcode.p
     require_once get_stylesheet_directory() . '/inc/danh-sach-phong-shortcode.php';
 }
 
+// Nạp Shortcode [thong_tin_phong_swiper] – Slider ảnh phòng chụp kèm mô tả WYSIWYG
+if ( file_exists( get_stylesheet_directory() . '/inc/thong-tin-phong-swiper-shortcode.php' ) ) {
+    require_once get_stylesheet_directory() . '/inc/thong-tin-phong-swiper-shortcode.php';
+}
+
+
 // Force desktop layout on all devices by setting viewport width to 1200px on small screens, and standard viewport on large screens
 function tocfl_force_desktop_viewport( $html ) {
     if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
