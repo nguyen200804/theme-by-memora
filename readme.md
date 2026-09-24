@@ -182,13 +182,13 @@ Hệ thống đặt lịch tự động hoàn chỉnh, bám sát thiết kế nh
 Nút liên hệ cố định ở góc dưới bên phải màn hình website:
 - **Trạng thái đóng:** Nút dạng viên thuốc bo tròn (Pill) chữ "Liên hệ" màu nâu `#733e1c` trên nền kem sáng `#fbf7f4`, phong cách typography Serif sang trọng.
 - **Trạng thái mở:** Khi nhấp chuột vào nút "Liên hệ", 3 icon mạng xã hội hình tròn xuất hiện theo hàng ngang kèm nút Đóng '✕':
-  1. **Icon Điện thoại:** Bấm để gọi trực tiếp (`tel:...`).
-  2. **Icon Zalo:** Bấm để mở chat Zalo (`https://zalo.me/...`).
-  3. **Icon Instagram:** Bấm để mở trang cá nhân Instagram.
-  4. **Nút Đóng (✕):** Bấm để thu gọn lại thành nút "Liên hệ" ban đầu.
+  1. **Icon Điện thoại:** Ảnh `/wp-content/uploads/2026/09/icon-phone.png` (bấm gọi trực tiếp `tel:...`).
+  2. **Icon Zalo:** Ảnh `/wp-content/uploads/2026/09/icon-zalo.png` (bấm mở chat Zalo `https://zalo.me/...`).
+  3. **Icon Instagram:** Ảnh `/wp-content/uploads/2026/09/icon-instagram.png` (bấm mở trang cá nhân Instagram).
+  4. **Nút Đóng (✕):** Ảnh `/wp-content/uploads/2026/09/icon-close.png` (bấm thu gọn lại nút "Liên hệ").
 - **Cơ chế tiện ích:**
   - Tự động hiển thị toàn trang thông qua hook `wp_footer`.
   - Tự động đóng khi người dùng nhấp ra ngoài hoặc bấm phím `ESC`.
-  - Quản lý & chỉnh sửa thông tin trong **WP Admin > Chỉnh sửa chung**: Bật/Tắt, Chữ nút, Số điện thoại, Link Zalo, Link Instagram.
+  - Quản lý & chỉnh sửa thông tin trong **WP Admin > Chỉnh sửa chung**: Bật/Tắt, Chữ nút, Số điện thoại, Link Zalo, Link Instagram, và tùy chọn tải lên ảnh icon riêng cho từng nút.
   - Hỗ trợ Shortcode: `[nut_lien_he]` hoặc `[nut_lien_he phone="0901234567" zalo="0901234567" instagram="https://instagram.com/memora"]`.
  
