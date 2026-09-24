@@ -239,24 +239,10 @@ function memora_register_marquee_field_group() {
                 'key'           => 'field_marquee_font_family',
                 'label'         => 'Font chữ',
                 'name'          => 'marquee_font_family',
-                'type'          => 'select',
-                'instructions'  => 'Chọn font chữ hiển thị hoặc tự nhập tên font tùy ý.',
-                'choices'       => array(
-                    'inherit'                              => 'Mặc định (Kế thừa từ Theme)',
-                    "'Playfair Display', Georgia, serif"   => 'Playfair Display (Serif cổ điển sang trọng)',
-                    "'Cormorant Garamond', Georgia, serif" => 'Cormorant Garamond (Serif thanh lịch quý phái)',
-                    "'Plus Jakarta Sans', sans-serif"      => 'Plus Jakarta Sans (Sans-serif hiện đại)',
-                    "'Montserrat', sans-serif"             => 'Montserrat (Hiện đại tối giản)',
-                    "'Dancing Script', cursive"            => 'Dancing Script (Chữ viết tay nghệ thuật)',
-                    "'Playball', cursive"                  => 'Playball (Chữ viết tay cổ điển)',
-                    "Arial, sans-serif"                    => 'Arial (Không chân cơ bản)',
-                    "'Times New Roman', serif"             => 'Times New Roman (Có chân chuẩn mực)',
-                ),
-                'default_value' => 'inherit',
-                'allow_null'    => 0,
-                'multiple'      => 0,
-                'ui'            => 1,
-                'allow_custom'  => 1,
+                'type'          => 'text',
+                'instructions'  => 'Nhập tên font chữ (ví dụ: Playfair Display, Cormorant Garamond, Montserrat, Dancing Script... hoặc để trống để dùng mặc định của theme).',
+                'default_value' => '',
+                'placeholder'   => 'Ví dụ: Playfair Display',
                 'wrapper'       => array( 'width' => '33' ),
             ),
             array(
@@ -532,8 +518,21 @@ function memora_render_marquee( $atts = array() ) {
     if ( ! empty( $text_color ) ) {
         $container_styles[] = 'color: ' . esc_attr( $text_color );
     }
-    if ( ! empty( $font_input ) && $font_input !== 'inherit' ) {
-        $container_styles[] = 'font-family: ' . esc_attr( $font_input );
+    if ( ! empty( $font_input ) && strtolower( trim( $font_input ) ) !== 'inherit' ) {
+        $clean_font = trim( $font_input );
+        $quoted_font = ( strpos( $clean_font, ' ' ) !== false && strpos( $clean_font, '"' ) === false && strpos( $clean_font, "'" ) === false && strpos( $clean_font, ',' ) === false ) ? ( "'" . $clean_font . "', sans-serif" ) : $clean_font;
+        $container_styles[] = 'font-family: ' . esc_attr( $quoted_font );
+
+        // Tự động nạp Google Font nếu người dùng nhập tên font từ Google Fonts
+        $first_font = trim( explode( ',', $clean_font )[0], " '\"" );
+        $system_fonts = array( 'inherit', 'initial', 'unset', 'arial', 'helvetica', 'times new roman', 'times', 'georgia', 'courier new', 'courier', 'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy' );
+        if ( ! empty( $first_font ) && ! in_array( strtolower( $first_font ), $system_fonts, true ) ) {
+            $font_handle = 'memora-custom-gf-' . sanitize_title( $first_font );
+            if ( ! wp_style_is( $font_handle, 'enqueued' ) ) {
+                $gf_url = 'https://fonts.googleapis.com/css2?family=' . urlencode( $first_font ) . ':ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap';
+                wp_enqueue_style( $font_handle, $gf_url, array(), null );
+            }
+        }
     }
     if ( ! empty( $size_input ) ) {
         $size_val = is_numeric( $size_input ) ? ( intval( $size_input ) . 'px' ) : esc_attr( $size_input );

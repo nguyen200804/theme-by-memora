@@ -66,7 +66,7 @@ Code chức năng 2
     * Hướng chạy: Phải sang Trái (mặc định) hoặc Trái sang Phải.
     * Tự động dừng khi di chuột qua (Hover pause).
     * Tùy chỉnh màu nền và màu chữ.
-    * Tùy chỉnh Font chữ (Playfair Display, Cormorant Garamond, Plus Jakarta Sans, Montserrat, Dancing Script, Playball... hoặc tự nhập).
+    * Tùy chỉnh Font chữ (Ô nhập text tự do: gõ bất kỳ tên font như Playfair Display, Montserrat, Dancing Script, Cormorant Garamond... hệ thống tự động nạp font tương ứng).
     * Tùy chỉnh Kích thước chữ (px).
     * Tùy chỉnh Kích thước hình ảnh/logo (px) (mặc định: 44px, có hỗ trợ tùy chỉnh chiều cao riêng cho từng ảnh).
 
