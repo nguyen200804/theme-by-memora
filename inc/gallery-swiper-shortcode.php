@@ -26,84 +26,107 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /* ------------------------------------------------------------------
-   0. Hàm hỗ trợ tìm đúng Post ID (đặc biệt khi đang sửa Elementor Template)
+   0. Hàm hỗ trợ tìm đúng Post ID (chuẩn xác cho cả trang Chi tiết và Elementor Editor)
 ------------------------------------------------------------------ */
 if ( ! function_exists( 'memora_resolve_gallery_post_id' ) ) {
     function memora_resolve_gallery_post_id( $post_id = 0, $field_candidates = [] ) {
-        $resolved_id = ! empty( $post_id ) ? (int) $post_id : 0;
+        // 1. Nếu shortcode được truyền post_id cụ thể (VD: post_id="267")
+        if ( ! empty( $post_id ) ) {
+            return (int) $post_id;
+        }
 
-        // 1. Kiểm tra Elementor Preview post nếu đang trong editor hoặc preview
-        if ( ! $resolved_id && class_exists( '\Elementor\Plugin' ) ) {
-            // Elementor Pro Theme Builder Preview
+        $is_elementor_editor = class_exists( '\Elementor\Plugin' ) && (
+            ( isset( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) ||
+            ( isset( \Elementor\Plugin::$instance->preview ) && \Elementor\Plugin::$instance->preview->is_preview_mode() ) ||
+            isset( $_GET['elementor-preview'] ) ||
+            ( isset( $_GET['action'] ) && $_GET['action'] === 'elementor' )
+        );
+
+        // 2. NẾU ĐANG Ở FRONTEND (Xem trang chi tiết post-type=dia-chi ngoài website):
+        // get_queried_object_id() luôn là ID chuẩn xác của bài viết đang xem trong URL!
+        if ( ! $is_elementor_editor ) {
+            $q_id = get_queried_object_id();
+            if ( $q_id > 0 && get_post_type( $q_id ) !== 'elementor_library' ) {
+                return (int) $q_id;
+            }
+
+            global $post;
+            if ( ! empty( $post->ID ) && get_post_type( $post->ID ) !== 'elementor_library' ) {
+                return (int) $post->ID;
+            }
+
+            $the_id = get_the_ID();
+            if ( $the_id > 0 && get_post_type( $the_id ) !== 'elementor_library' ) {
+                return (int) $the_id;
+            }
+        }
+
+        // 3. NẾU ĐANG Ở TRONG ELEMENTOR EDITOR / THEME BUILDER PREVIEW:
+        $target_id = 0;
+        if ( class_exists( '\Elementor\Plugin' ) ) {
             if ( class_exists( '\ElementorPro\Modules\ThemeBuilder\Module' ) ) {
                 try {
                     $tb_preview = \ElementorPro\Modules\ThemeBuilder\Module::instance()->get_preview();
                     if ( $tb_preview && method_exists( $tb_preview, 'get_preview_id' ) ) {
                         $pid = (int) $tb_preview->get_preview_id();
-                        if ( $pid > 0 ) {
-                            $resolved_id = $pid;
+                        if ( $pid > 0 && get_post_type( $pid ) !== 'elementor_library' ) {
+                            $target_id = $pid;
                         }
                     }
                 } catch ( \Throwable $e ) {}
             }
 
-            // Elementor Document Preview ID
-            if ( ! $resolved_id && isset( \Elementor\Plugin::$instance->documents ) ) {
+            if ( ! $target_id && isset( \Elementor\Plugin::$instance->documents ) ) {
                 $doc = \Elementor\Plugin::$instance->documents->get_current();
                 if ( $doc ) {
                     $pid = (int) $doc->get_settings( 'preview_id' );
-                    if ( $pid > 0 ) {
-                        $resolved_id = $pid;
+                    if ( $pid > 0 && get_post_type( $pid ) !== 'elementor_library' ) {
+                        $target_id = $pid;
                     }
                 }
             }
         }
 
-        // 2. Lấy post hiện tại từ WordPress
-        if ( ! $resolved_id ) {
-            $resolved_id = get_the_ID();
+        if ( ! $target_id ) {
+            $q_id = get_queried_object_id();
+            if ( $q_id > 0 && get_post_type( $q_id ) !== 'elementor_library' ) {
+                $target_id = $q_id;
+            }
         }
-        if ( ! $resolved_id ) {
-            $resolved_id = get_queried_object_id();
+
+        if ( ! $target_id ) {
+            $the_id = get_the_ID();
+            if ( $the_id > 0 && get_post_type( $the_id ) !== 'elementor_library' ) {
+                $target_id = $the_id;
+            }
         }
 
-        // 3. Nếu post_id là Elementor Library Template (ví dụ post 130),
-        // hoặc nếu post_id hiện tại không có dữ liệu field ACF trong môi trường editor/admin,
-        // tự động fallback sang bài viết mới nhất của post type 'dia-chi' để preview trực quan!
-        $is_elementor_editor = class_exists( '\Elementor\Plugin' ) && (
-            \Elementor\Plugin::$instance->editor->is_edit_mode() ||
-            \Elementor\Plugin::$instance->preview->is_preview_mode() ||
-            isset( $_GET['elementor-preview'] ) ||
-            ( isset( $_GET['action'] ) && $_GET['action'] === 'elementor' )
-        );
+        // 4. Fallback khi ở trong Elementor editor và chưa chọn Preview:
+        // Quét danh sách bài viết 'dia-chi' có chứa ảnh để hiển thị mẫu trực quan
+        if ( ! $target_id || get_post_type( $target_id ) === 'elementor_library' ) {
+            $dia_chi_posts = get_posts( [
+                'post_type'      => 'dia-chi',
+                'posts_per_page' => 10,
+                'post_status'    => 'publish',
+                'fields'         => 'ids',
+            ] );
 
-        $is_template = $resolved_id && get_post_type( $resolved_id ) === 'elementor_library';
-
-        if ( $is_template || $is_elementor_editor ) {
-            $has_field = false;
-            if ( $resolved_id && function_exists( 'get_field' ) && ! empty( $field_candidates ) ) {
-                foreach ( $field_candidates as $f ) {
-                    if ( ! empty( get_field( $f, $resolved_id ) ) ) {
-                        $has_field = true;
-                        break;
+            if ( ! empty( $dia_chi_posts ) ) {
+                $target_id = (int) $dia_chi_posts[0];
+                foreach ( $dia_chi_posts as $p_id ) {
+                    if ( ! empty( $field_candidates ) && function_exists( 'get_field' ) ) {
+                        foreach ( $field_candidates as $fc ) {
+                            if ( ! empty( get_field( $fc, $p_id ) ) ) {
+                                $target_id = (int) $p_id;
+                                break 2;
+                            }
+                        }
                     }
                 }
             }
-
-            if ( ! $has_field ) {
-                $sample_posts = get_posts( [
-                    'post_type'      => 'dia-chi',
-                    'posts_per_page' => 1,
-                    'post_status'    => 'any',
-                    'fields'         => 'ids',
-                ] );
-                if ( ! empty( $sample_posts ) ) {
-                    $resolved_id = (int) $sample_posts[0];
-                }
-            }
         }
 
-        return (int) $resolved_id;
+        return (int) $target_id;
     }
 }
 
@@ -131,19 +154,21 @@ function memora_gallery_swiper_shortcode( $atts ) {
     $slides_data = []; // Mỗi phần tử: ['src' => '...', 'alt' => '...']
 
     if ( ! empty( $atts['acf_gallery'] ) ) {
+        $raw_field = trim( $atts['acf_gallery'] );
+        // Thử cả các dạng biến thể tên field
+        $field_candidates = array_unique( array_filter( [
+            $raw_field,
+            str_replace( '-', '_', $raw_field ),
+            str_replace( '_', '-', $raw_field ),
+            sanitize_key( $raw_field ),
+        ] ) );
+
+        $post_id = memora_resolve_gallery_post_id( $atts['post_id'], $field_candidates );
+
+        $acf_images = null;
+
+        // TẦNG 1: Thử get_field() từ ACF
         if ( function_exists( 'get_field' ) ) {
-            $raw_field = trim( $atts['acf_gallery'] );
-            // Thử cả 2 dạng: có gạch ngang và có gạch dưới
-            $field_candidates = array_unique( array_filter( [
-                $raw_field,
-                str_replace( '-', '_', $raw_field ),
-                str_replace( '_', '-', $raw_field ),
-                sanitize_key( $raw_field ),
-            ] ) );
-
-            $post_id = memora_resolve_gallery_post_id( $atts['post_id'], $field_candidates );
-
-            $acf_images = null;
             foreach ( $field_candidates as $candidate ) {
                 $val = get_field( $candidate, $post_id );
                 if ( ! empty( $val ) ) {
@@ -152,40 +177,115 @@ function memora_gallery_swiper_shortcode( $atts ) {
                 }
             }
 
-            if ( ! empty( $acf_images ) ) {
-                if ( is_array( $acf_images ) ) {
-                    foreach ( $acf_images as $img ) {
-                        if ( is_array( $img ) ) {
-                            // ACF Return Format = Image Array
-                            $img_id = ! empty( $img['ID'] ) ? (int) $img['ID'] : ( ! empty( $img['id'] ) ? (int) $img['id'] : 0 );
-                            $src    = ! empty( $img['url'] ) ? $img['url'] : '';
-                            $alt    = ! empty( $img['alt'] ) ? $img['alt'] : ( ! empty( $img['title'] ) ? $img['title'] : '' );
+            // TẦNG 2: Nếu get_field() rỗng, quét get_field_objects() tìm field gallery
+            if ( empty( $acf_images ) && function_exists( 'get_field_objects' ) ) {
+                $f_objects = get_field_objects( $post_id );
+                if ( ! empty( $f_objects ) && is_array( $f_objects ) ) {
+                    // Ưu tiên field có kiểu 'gallery'
+                    foreach ( $f_objects as $f_obj ) {
+                        if ( isset( $f_obj['type'] ) && $f_obj['type'] === 'gallery' && ! empty( $f_obj['value'] ) ) {
+                            $acf_images = $f_obj['value'];
+                            break;
+                        }
+                    }
+                    // Nếu vẫn chưa thấy, tìm field có nhãn hoặc tên liên quan
+                    if ( empty( $acf_images ) ) {
+                        foreach ( $f_objects as $f_obj ) {
+                            $fn = ! empty( $f_obj['name'] ) ? $f_obj['name'] : '';
+                            $fl = ! empty( $f_obj['label'] ) ? $f_obj['label'] : '';
+                            if ( ( stripos( $fn, 'anh' ) !== false || stripos( $fn, 'gallery' ) !== false || stripos( $fl, 'ảnh' ) !== false ) && ! empty( $f_obj['value'] ) ) {
+                                $acf_images = $f_obj['value'];
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-                            if ( ! $src && $img_id ) {
-                                $src = wp_get_attachment_image_url( $img_id, 'full' );
-                            }
-                            if ( $src ) {
-                                $slides_data[] = [ 'src' => $src, 'alt' => $alt ];
-                            }
-                        } elseif ( is_numeric( $img ) ) {
-                            // ACF Return Format = Image ID
-                            $img_id = (int) $img;
-                            $src    = wp_get_attachment_image_url( $img_id, 'full' );
-                            $alt    = (string) get_post_meta( $img_id, '_wp_attachment_image_alt', true );
-                            if ( $src ) {
-                                $slides_data[] = [ 'src' => $src, 'alt' => $alt ];
-                            }
-                        } elseif ( is_string( $img ) && ! empty( $img ) ) {
-                            // ACF Return Format = Image URL
+        // TẦNG 3: Nếu ACF get_field rỗng, đọc trực tiếp từ wp_postmeta
+        if ( empty( $acf_images ) && $post_id ) {
+            foreach ( $field_candidates as $candidate ) {
+                $meta_val = get_post_meta( $post_id, $candidate, true );
+                if ( ! empty( $meta_val ) ) {
+                    $acf_images = maybe_unserialize( $meta_val );
+                    break;
+                }
+            }
+        }
+
+        // TẦNG 4: Quét toàn bộ meta keys của bài viết này xem có meta nào lưu mảng ID ảnh
+        if ( empty( $acf_images ) && $post_id ) {
+            $all_meta = get_post_meta( $post_id );
+            if ( ! empty( $all_meta ) && is_array( $all_meta ) ) {
+                foreach ( $all_meta as $mk => $mv ) {
+                    if ( strpos( $mk, '_' ) === 0 ) continue;
+                    if ( stripos( $mk, 'anh' ) !== false || stripos( $mk, 'gallery' ) !== false || stripos( $mk, 'hinh' ) !== false ) {
+                        $val = maybe_unserialize( $mv[0] );
+                        if ( ! empty( $val ) && ( is_array( $val ) || is_numeric( $val ) ) ) {
+                            $acf_images = $val;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Chuyển đổi dữ liệu ảnh thành slides
+        if ( ! empty( $acf_images ) ) {
+            if ( is_array( $acf_images ) ) {
+                foreach ( $acf_images as $img ) {
+                    if ( is_array( $img ) ) {
+                        // ACF Return Format = Image Array
+                        $img_id = ! empty( $img['ID'] ) ? (int) $img['ID'] : ( ! empty( $img['id'] ) ? (int) $img['id'] : 0 );
+                        $src    = ! empty( $img['url'] ) ? $img['url'] : '';
+                        $alt    = ! empty( $img['alt'] ) ? $img['alt'] : ( ! empty( $img['title'] ) ? $img['title'] : '' );
+
+                        if ( ! $src && $img_id ) {
+                            $src = wp_get_attachment_image_url( $img_id, 'full' ) ?: wp_get_attachment_url( $img_id );
+                        }
+                        if ( $src ) {
+                            $slides_data[] = [ 'src' => $src, 'alt' => $alt ];
+                        }
+                    } elseif ( is_numeric( $img ) ) {
+                        // ACF Return Format = Image ID
+                        $img_id = (int) $img;
+                        $src    = wp_get_attachment_image_url( $img_id, 'full' ) ?: wp_get_attachment_url( $img_id );
+                        $alt    = (string) get_post_meta( $img_id, '_wp_attachment_image_alt', true );
+                        if ( $src ) {
+                            $slides_data[] = [ 'src' => $src, 'alt' => $alt ];
+                        }
+                    } elseif ( is_string( $img ) && ! empty( $img ) ) {
+                        // Image URL hoặc chuỗi ID
+                        if ( is_numeric( trim( $img ) ) ) {
+                            $img_id = (int) trim( $img );
+                            $src    = wp_get_attachment_image_url( $img_id, 'full' ) ?: wp_get_attachment_url( $img_id );
+                            if ( $src ) $slides_data[] = [ 'src' => $src, 'alt' => '' ];
+                        } else {
                             $slides_data[] = [ 'src' => $img, 'alt' => '' ];
                         }
                     }
-                } elseif ( is_string( $acf_images ) && ! empty( $acf_images ) ) {
+                }
+            } elseif ( is_string( $acf_images ) && ! empty( $acf_images ) ) {
+                // Chuỗi ID phân cách bởi dấu phẩy
+                if ( strpos( $acf_images, ',' ) !== false ) {
+                    $parts = explode( ',', $acf_images );
+                    foreach ( $parts as $p ) {
+                        $p = trim( $p );
+                        if ( is_numeric( $p ) ) {
+                            $src = wp_get_attachment_image_url( (int) $p, 'full' ) ?: wp_get_attachment_url( (int) $p );
+                            if ( $src ) $slides_data[] = [ 'src' => $src, 'alt' => '' ];
+                        } elseif ( ! empty( $p ) ) {
+                            $slides_data[] = [ 'src' => $p, 'alt' => '' ];
+                        }
+                    }
+                } elseif ( is_numeric( trim( $acf_images ) ) ) {
+                    $src = wp_get_attachment_image_url( (int) trim( $acf_images ), 'full' ) ?: wp_get_attachment_url( (int) trim( $acf_images ) );
+                    if ( $src ) $slides_data[] = [ 'src' => $src, 'alt' => '' ];
+                } else {
                     $slides_data[] = [ 'src' => $acf_images, 'alt' => '' ];
                 }
             }
-        } else {
-            return '<p style="color:red; font-size:14px; padding:10px; background:#fff2f2; border:1px solid #fecaca; border-radius:4px;">[gallery_swiper] Plugin ACF chưa được kích hoạt.</p>';
         }
     }
 
@@ -195,7 +295,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
     if ( empty( $slides_data ) && ! empty( $atts['ids'] ) ) {
         $raw_ids = array_filter( array_map( 'intval', explode( ',', $atts['ids'] ) ) );
         foreach ( $raw_ids as $img_id ) {
-            $src = wp_get_attachment_image_url( $img_id, 'full' );
+            $src = wp_get_attachment_image_url( $img_id, 'full' ) ?: wp_get_attachment_url( $img_id );
             $alt = (string) get_post_meta( $img_id, '_wp_attachment_image_alt', true );
             if ( $src ) {
                 $slides_data[] = [ 'src' => $src, 'alt' => $alt ];
@@ -203,8 +303,30 @@ function memora_gallery_swiper_shortcode( $atts ) {
         }
     }
 
+    /* -------------------------------------------------------
+       Fallback ảnh đại diện (Featured Image) nếu bài viết có
+    ------------------------------------------------------- */
+    if ( empty( $slides_data ) && ! empty( $post_id ) ) {
+        $thumb_id = get_post_thumbnail_id( $post_id );
+        if ( $thumb_id ) {
+            $src = wp_get_attachment_image_url( $thumb_id, 'full' ) ?: wp_get_attachment_url( $thumb_id );
+            if ( $src ) {
+                $alt = (string) get_post_meta( $thumb_id, '_wp_attachment_image_alt', true );
+                $slides_data[] = [ 'src' => $src, 'alt' => $alt ?: get_the_title( $post_id ) ];
+            }
+        }
+    }
+
     if ( empty( $slides_data ) ) {
-        return '<p style="color:#d9534f; font-size:14px; padding:10px 14px; background:#fff2f2; border:1px solid #fecaca; border-radius:4px;">[gallery_swiper] Vui lòng truyền <code>acf_gallery</code> hoặc <code>ids</code> hợp lệ.</p>';
+        if ( current_user_can( 'edit_posts' ) ) {
+            return sprintf(
+                '<p style="color:#d9534f; font-size:14px; padding:10px 14px; background:#fff2f2; border:1px solid #fecaca; border-radius:4px;">[gallery_swiper] Không tìm thấy ảnh cho post ID #%d (Post type: %s). Vui lòng kiểm tra lại field <code>%s</code> đã được thêm ảnh chưa.</p>',
+                $post_id,
+                esc_html( get_post_type( $post_id ) ?: 'chưa rõ' ),
+                esc_html( ! empty( $atts['acf_gallery'] ) ? $atts['acf_gallery'] : 'acf_gallery' )
+            );
+        }
+        return '';
     }
 
     /* -- Tạo unique ID cho instance -- */

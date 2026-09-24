@@ -66,6 +66,16 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         }
     }
 
+    if ( empty( $raw_rooms ) && $post_id ) {
+        foreach ( $field_candidates as $f_name ) {
+            $meta_v = get_post_meta( $post_id, $f_name, true );
+            if ( ! empty( $meta_v ) ) {
+                $raw_rooms = maybe_unserialize( $meta_v );
+                break;
+            }
+        }
+    }
+
     // Nếu vẫn rỗng trong môi trường Elementor Preview, thử fallback sang bài địa chỉ mới nhất
     if ( empty( $raw_rooms ) ) {
         $is_elementor_editor = class_exists( '\Elementor\Plugin' ) && (
