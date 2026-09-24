@@ -148,6 +148,11 @@ function memora_gallery_swiper_shortcode( $atts ) {
         'slides_per_view' => 1,
     ], $atts, 'gallery_swiper' );
 
+    // Luon dam bao Swiper CSS/JS duoc enqueue
+    if ( function_exists( 'memora_gallery_swiper_assets' ) ) {
+        memora_gallery_swiper_assets();
+    }
+
     /* -------------------------------------------------------
        Lấy ảnh từ ACF Gallery field (hoặc ids)
     ------------------------------------------------------- */
@@ -370,8 +375,12 @@ function memora_gallery_swiper_shortcode( $atts ) {
             </div>
 
             <!-- Navigation arrows -->
-            <div class="swiper-button-prev"></div>
-            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev" title="Slide trước">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+            <div class="swiper-button-next" title="Slide tiếp theo">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </div>
 
             <!-- Star pagination -->
             <div class="swiper-pagination memora-star-pagination" id="<?php echo esc_attr( $uid ); ?>-pagination"></div>
@@ -404,25 +413,30 @@ function memora_gallery_swiper_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .swiper-button-prev,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-next {
             color: #fff;
-            background: rgba(115, 62, 28, 0.55);
-            width: 40px;
-            height: 40px;
+            background: rgba(115, 62, 28, 0.65);
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            transition: background 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.25s ease, transform 0.25s ease;
+            z-index: 10;
         }
         #<?php echo esc_attr( $uid ); ?> .swiper-button-prev:hover,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-next:hover {
-            background: rgba(115, 62, 28, 0.9);
+            background: rgba(115, 62, 28, 0.95);
+            transform: scale(1.08);
         }
         #<?php echo esc_attr( $uid ); ?> .swiper-button-prev::after,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-next::after {
-            font-size: 14px;
-            font-weight: 700;
+            display: none !important;
         }
 
         /* ===== Star Pagination ===== */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination {
             bottom: 14px;
+            z-index: 10;
         }
 
         /* Ẩn background tròn mặc định của Swiper bullet */
@@ -434,6 +448,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
             margin: 0 4px;
             border-radius: 0;
             position: relative;
+            cursor: pointer;
         }
 
         /* Hiển thị ngôi sao qua CSS mask */
@@ -459,36 +474,70 @@ function memora_gallery_swiper_shortcode( $atts ) {
         'use strict';
 
         var SWIPER_ID = '<?php echo esc_js( $uid ); ?>';
+        var retryCount = 0;
 
         function initGallerySwiper() {
             var el = document.getElementById(SWIPER_ID);
             if (!el) return;
             if (el.swiper) return;
 
-            if (typeof Swiper === 'undefined') {
-                setTimeout(initGallerySwiper, 250);
+            var SwiperClass = (typeof Swiper !== 'undefined') ? Swiper : (window.elementorFrontend && window.elementorFrontend.utils && window.elementorFrontend.utils.swiper ? window.elementorFrontend.utils.swiper : null);
+
+            if (!SwiperClass) {
+                retryCount++;
+                // Tu dong load Swiper tu CDN neu trang chua nap
+                if (!document.getElementById('memora-swiper-cdn-js')) {
+                    var s = document.createElement('script');
+                    s.id = 'memora-swiper-cdn-js';
+                    s.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
+                    s.onload = function() { initGallerySwiper(); };
+                    document.head.appendChild(s);
+                }
+                if (!document.getElementById('memora-swiper-cdn-css')) {
+                    var c = document.createElement('link');
+                    c.id = 'memora-swiper-cdn-css';
+                    c.rel = 'stylesheet';
+                    c.href = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css';
+                    document.head.appendChild(c);
+                }
+                if (retryCount < 20) {
+                    setTimeout(initGallerySwiper, 250);
+                }
                 return;
             }
 
-            new Swiper('#' + SWIPER_ID, {
-                effect    : '<?php echo $effect; ?>',
-                speed     : <?php echo $speed; ?>,
-                loop      : <?php echo $loop; ?>,
+            var swiperInstance = new SwiperClass('#' + SWIPER_ID, {
+                effect       : '<?php echo $effect; ?>',
+                speed        : <?php echo $speed; ?>,
+                loop         : <?php echo $loop; ?>,
                 slidesPerView: <?php echo $spv; ?>,
+                observer     : true,
+                observeParents: true,
+                observeSlideChildren: true,
+                resizeObserver: true,
+                watchOverflow: true,
+                grabCursor   : true,
                 <?php echo $autoplay_js; ?>
                 pagination: {
-                    el      : '#' + SWIPER_ID + '-pagination',
+                    el       : '#' + SWIPER_ID + '-pagination',
                     clickable: true,
                 },
                 navigation: {
-                    prevEl: '#' + SWIPER_ID + ' .swiper-button-prev',
-                    nextEl: '#' + SWIPER_ID + ' .swiper-button-next',
+                    prevEl: '#' + SWIPER_ID + ' .swiper-button-prev, #' + SWIPER_ID + '-wrap .swiper-button-prev',
+                    nextEl: '#' + SWIPER_ID + ' .swiper-button-next, #' + SWIPER_ID + '-wrap .swiper-button-next',
                 },
                 a11y: {
                     prevSlideMessage: 'Slide trước',
                     nextSlideMessage: 'Slide tiếp theo',
                 },
             });
+
+            // Cap nhat lai kich thuoc sau khi trinh duyet ve xong layout flexbox
+            setTimeout(function() {
+                if (swiperInstance && !swiperInstance.destroyed) {
+                    swiperInstance.update();
+                }
+            }, 300);
         }
 
         if (document.readyState === 'loading') {
@@ -499,7 +548,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
 
         if (window.elementorFrontend && window.elementorFrontend.hooks) {
             window.elementorFrontend.hooks.addAction('frontend/element_ready/global', function() {
-                setTimeout(initGallerySwiper, 100);
+                setTimeout(initGallerySwiper, 150);
             });
         }
     })();

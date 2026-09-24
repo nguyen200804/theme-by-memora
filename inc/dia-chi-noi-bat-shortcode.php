@@ -33,6 +33,11 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         return '<p style="color:red;">[dia_chi_noi_bat] Thieu file gallery-swiper-shortcode.php.</p>';
     }
 
+    // Luon bao dam assets duoc nạp
+    if ( function_exists( 'memora_gallery_swiper_assets' ) ) {
+        memora_gallery_swiper_assets();
+    }
+
     /* -- Nguon lay field -- */
     if ( $atts['post_id'] === 'option' || $atts['post_id'] === 'options' ) {
         $source_id = 'option';
@@ -57,35 +62,80 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
     $thumb_alt = $thumb_id ? (string) get_post_meta( $thumb_id, '_wp_attachment_image_alt', true ) : $dc_title;
 
     /* ----------------------------------------------------------
-       Lay gallery tu ACF, trich xuat IDs de truyen vao gallery_swiper.
-       Viec tu lay IDs truoc giup:
-         1. Dem duoc so luong anh => quyet dinh loop mode
-         2. Fallback sang featured image neu gallery trong
-         3. Tranh van de sanitize_key voi field name co dau ga
+       Lấy danh sách ảnh cho slider cơ sở nổi bật (đa tầng)
     ---------------------------------------------------------- */
     $slide_ids = [];
-    $gallery   = get_field( 'cac-hinh-anh-cua-dia-chi', $dc_id );
-    if ( empty( $gallery ) ) {
-        $gallery = get_field( 'cac_hinh_anh_cua_dia_chi', $dc_id );
+
+    // Danh sách tên field gallery có thể có
+    $gallery_candidates = [
+        'cac-hinh-anh-cua-dia-chi',
+        'cac_hinh_anh_cua_dia_chi',
+        'gallery',
+        'album',
+        'cac_hinh_anh',
+        'hinh_anh_dia_chi',
+    ];
+
+    foreach ( $gallery_candidates as $field_key ) {
+        $gallery = get_field( $field_key, $dc_id );
+        if ( ! empty( $gallery ) ) {
+            if ( is_array( $gallery ) ) {
+                foreach ( $gallery as $img ) {
+                    if ( is_array( $img ) ) {
+                        $img_id = ! empty( $img['ID'] ) ? (int) $img['ID'] : ( ! empty( $img['id'] ) ? (int) $img['id'] : 0 );
+                        if ( $img_id ) $slide_ids[] = $img_id;
+                    } elseif ( is_numeric( $img ) ) {
+                        $slide_ids[] = (int) $img;
+                    } elseif ( is_string( $img ) && is_numeric( trim( $img ) ) ) {
+                        $slide_ids[] = (int) trim( $img );
+                    }
+                }
+            } elseif ( is_string( $gallery ) && strpos( $gallery, ',' ) !== false ) {
+                foreach ( explode( ',', $gallery ) as $p ) {
+                    if ( is_numeric( trim( $p ) ) ) $slide_ids[] = (int) trim( $p );
+                }
+            }
+            if ( ! empty( $slide_ids ) ) break;
+        }
     }
 
-    if ( ! empty( $gallery ) && is_array( $gallery ) ) {
-        foreach ( $gallery as $img ) {
-            if ( is_array( $img ) ) {
-                $img_id = ! empty( $img['ID'] ) ? (int) $img['ID'] : ( ! empty( $img['id'] ) ? (int) $img['id'] : 0 );
-                if ( $img_id ) {
-                    $slide_ids[] = $img_id;
+    // Nếu get_field rỗng, thử quét postmeta
+    if ( empty( $slide_ids ) ) {
+        foreach ( $gallery_candidates as $field_key ) {
+            $meta_val = get_post_meta( $dc_id, $field_key, true );
+            if ( ! empty( $meta_val ) ) {
+                $meta_val = maybe_unserialize( $meta_val );
+                if ( is_array( $meta_val ) ) {
+                    foreach ( $meta_val as $m_item ) {
+                        if ( is_numeric( $m_item ) ) $slide_ids[] = (int) $m_item;
+                        elseif ( is_array( $m_item ) && ! empty( $m_item['ID'] ) ) $slide_ids[] = (int) $m_item['ID'];
+                    }
+                } elseif ( is_string( $meta_val ) && strpos( $meta_val, ',' ) !== false ) {
+                    foreach ( explode( ',', $meta_val ) as $p ) {
+                        if ( is_numeric( trim( $p ) ) ) $slide_ids[] = (int) trim( $p );
+                    }
                 }
-            } elseif ( is_numeric( $img ) ) {
-                $slide_ids[] = (int) $img;
+                if ( ! empty( $slide_ids ) ) break;
             }
         }
     }
 
-    /* Fallback: dung featured image neu gallery trong */
+    // Fallback: Lấy ảnh đính kèm vào bài viết nếu gallery rỗng
+    if ( empty( $slide_ids ) ) {
+        $attached = get_attached_media( 'image', $dc_id );
+        if ( ! empty( $attached ) ) {
+            foreach ( $attached as $att ) {
+                $slide_ids[] = (int) $att->ID;
+            }
+        }
+    }
+
+    // Fallback: Dùng featured image nếu vẫn chưa có
     if ( empty( $slide_ids ) && $thumb_id ) {
         $slide_ids[] = (int) $thumb_id;
     }
+
+    $slide_ids = array_values( array_unique( array_filter( $slide_ids ) ) );
 
     if ( empty( $slide_ids ) ) {
         return '<p style="color:red;">[dia_chi_noi_bat] Khong tim thay anh nao cho dia chi nay.</p>';
@@ -99,13 +149,15 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
     $dcnb_instance++;
     $wrap_uid = 'dcnb-wrap-' . $dcnb_instance;
 
-    /* -- Goi gallery_swiper voi IDs cu the -- */
+    /* -- Goi gallery_swiper voi IDs va ACF field -- */
     $slider_html = memora_gallery_swiper_shortcode( [
-        'ids'      => implode( ',', $slide_ids ),
-        'autoplay' => $atts['autoplay'],
-        'speed'    => $atts['speed'],
-        'loop'     => $loop_val,
-        'effect'   => 'slide',
+        'acf_gallery' => 'cac-hinh-anh-cua-dia-chi',
+        'post_id'     => (string) $dc_id,
+        'ids'         => implode( ',', $slide_ids ),
+        'autoplay'    => $atts['autoplay'],
+        'speed'       => $atts['speed'],
+        'loop'        => $loop_val,
+        'effect'      => 'slide',
     ] );
 
     ob_start();
@@ -231,6 +283,9 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             max-width: calc(100% * 2 / 3);
             min-width: 0;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         /*
@@ -239,17 +294,29 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
          * .dcnb-wrap co min-height:300px nen height:100% se resolve chinh xac.
          */
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .memora-gallery-swiper-wrap {
+            flex: 1 1 auto;
+            width: 100%;
             height: 100%;
             min-height: 300px;
             border-radius: 0;
             overflow: hidden;
+            position: relative;
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .memora-gallery-swiper {
+            width: 100%;
             height: 100%;
             min-height: 300px;
+            position: relative;
+        }
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .swiper-wrapper {
+            height: 100%;
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .swiper-slide {
             height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .swiper-slide img {
             width: 100%;
@@ -257,10 +324,26 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             object-fit: cover;
             display: block;
         }
-        /* An arrow cua gallery_swiper ben trong (khong can thiet) */
+
+        /* Nut mui ten dieu huong ro rang de nguoi dung thao tac tren desktop */
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .swiper-button-prev,
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .swiper-button-next {
-            display: none;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.85;
+            transition: opacity 0.25s ease, transform 0.25s ease, background 0.25s ease;
+            z-index: 10;
+        }
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col:hover .swiper-button-prev,
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col:hover .swiper-button-next {
+            opacity: 1;
+        }
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .swiper-button-prev {
+            left: 12px;
+        }
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .swiper-button-next {
+            right: 12px;
         }
 
         /* === Responsive === */
