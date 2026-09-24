@@ -5,10 +5,17 @@
  * Tạo slider ảnh dạng Swiper với pagination hình ngôi sao.
  *
  * Cách dùng:
- *   [gallery_swiper ids="10,11,12" speed="600" autoplay="3000" loop="true"]
+ *   Dùng ACF Gallery field:
+ *     [gallery_swiper acf_gallery="ten_field"]
+ *     [gallery_swiper acf_gallery="ten_field" post_id="42"]
+ *
+ *   Dùng attachment IDs thủ công:
+ *     [gallery_swiper ids="10,11,12" speed="600" autoplay="3000"]
  *
  * Tham số (attrs):
- *   ids             – Danh sách attachment ID cách nhau bởi dấu phẩy (bắt buộc)
+ *   acf_gallery     – Tên ACF Gallery field (ưu tiên hơn ids nếu cả hai được truyền)
+ *   post_id         – ID bài viết để lấy ACF field (mặc định: post hiện tại)
+ *   ids             – Danh sách attachment ID cách nhau bởi dấu phẩy
  *   speed           – Tốc độ chuyển slide (ms), mặc định 600
  *   autoplay        – Thời gian tự động chuyển (ms), mặc định 4000 (0 = tắt)
  *   loop            – true/false, mặc định true
@@ -26,6 +33,8 @@ add_shortcode( 'gallery_swiper', 'memora_gallery_swiper_shortcode' );
 function memora_gallery_swiper_shortcode( $atts ) {
 
     $atts = shortcode_atts( [
+        'acf_gallery'     => '',
+        'post_id'         => '',
         'ids'             => '',
         'speed'           => 600,
         'autoplay'        => 4000,
@@ -34,11 +43,42 @@ function memora_gallery_swiper_shortcode( $atts ) {
         'slides_per_view' => 1,
     ], $atts, 'gallery_swiper' );
 
-    /* -- Xử lý danh sách ảnh -- */
-    $ids = array_filter( array_map( 'trim', explode( ',', $atts['ids'] ) ) );
+    /* -- Xác định post ID dùng cho ACF -- */
+    $post_id = ! empty( $atts['post_id'] ) ? (int) $atts['post_id'] : get_the_ID();
+
+    /* -------------------------------------------------------
+       Lấy ảnh từ ACF Gallery field (ưu tiên hơn ids)
+    ------------------------------------------------------- */
+    $ids = [];
+
+    if ( ! empty( $atts['acf_gallery'] ) ) {
+        if ( function_exists( 'get_field' ) ) {
+            $acf_images = get_field( sanitize_key( $atts['acf_gallery'] ), $post_id );
+
+            if ( ! empty( $acf_images ) && is_array( $acf_images ) ) {
+                foreach ( $acf_images as $image ) {
+                    // ACF trả về array (return format = array) hoặc int (ID)
+                    if ( is_array( $image ) && isset( $image['ID'] ) ) {
+                        $ids[] = (int) $image['ID'];
+                    } elseif ( is_numeric( $image ) ) {
+                        $ids[] = (int) $image;
+                    }
+                }
+            }
+        } else {
+            return '<p style="color:red;">[gallery_swiper] Plugin ACF chưa được kích hoạt.</p>';
+        }
+    }
+
+    /* -------------------------------------------------------
+       Nếu acf_gallery rỗng hoặc không trả về ảnh → dùng ids
+    ------------------------------------------------------- */
+    if ( empty( $ids ) && ! empty( $atts['ids'] ) ) {
+        $ids = array_filter( array_map( 'intval', explode( ',', $atts['ids'] ) ) );
+    }
 
     if ( empty( $ids ) ) {
-        return '<p style="color:red;">[gallery_swiper] Vui lòng truyền thuộc tính <code>ids</code>.</p>';
+        return '<p style="color:red;">[gallery_swiper] Vui lòng truyền <code>acf_gallery</code> hoặc <code>ids</code>.</p>';
     }
 
     /* -- Tạo unique ID cho instance -- */
