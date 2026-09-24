@@ -52,14 +52,18 @@ if ( file_exists( $booking_inc_dir . 'booking-shortcodes.php' ) ) {
 //====================================
 add_action( 'wp_enqueue_scripts', 'memora_booking_enqueue_assets' );
 function memora_booking_enqueue_assets() {
+    $theme_dir = trailingslashit( get_stylesheet_directory() );
     $theme_uri = trailingslashit( get_stylesheet_directory_uri() );
+
+    $css_version = file_exists( $theme_dir . 'assets/css/booking.css' ) ? filemtime( $theme_dir . 'assets/css/booking.css' ) : '1.0.0';
+    $js_version  = file_exists( $theme_dir . 'assets/js/booking.js' ) ? filemtime( $theme_dir . 'assets/js/booking.js' ) : '1.0.0';
 
     // Enqueue Stylesheet
     wp_enqueue_style(
         'memora-booking-style',
         $theme_uri . 'assets/css/booking.css',
         array(),
-        '1.0.0'
+        $css_version
     );
 
     // Enqueue Script
@@ -67,7 +71,7 @@ function memora_booking_enqueue_assets() {
         'memora-booking-script',
         $theme_uri . 'assets/js/booking.js',
         array( 'jquery' ),
-        '1.0.0',
+        $js_version,
         true
     );
 

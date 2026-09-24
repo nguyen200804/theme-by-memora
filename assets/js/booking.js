@@ -406,7 +406,7 @@
                 <div class="memora-thankyou-subtitle">Thanh Toán Thành Công ✨</div>
                 <div class="memora-success-icon-wrap">
                     <div class="memora-success-check-circle">
-                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <img src="/wp-content/uploads/2026/09/checked.png">
                     </div>
                 </div>
                 <div class="memora-banner-pill">Thông tin đặt lịch của bạn:</div>
@@ -427,9 +427,9 @@
                 <div class="memora-code-section">
                     <div class="memora-code-label-row">
                         <span class="memora-code-label">Code :</span>
-                        <span class="memora-code-yellow-badge">random 4 số</span>
                     </div>
                     <div class="memora-code-brown-card">
+                        <span class="memora-code-yellow-badge">random 4 số</span>
                         <div class="memora-code-digits">${data.booking_code}</div>
                     </div>
                     <div class="memora-code-notice">**Quý khách vui lòng lưu lại code chụp để tra cứu</div>
