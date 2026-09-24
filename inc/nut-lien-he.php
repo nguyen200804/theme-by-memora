@@ -242,7 +242,7 @@ function memora_contact_button_scripts_styles() {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 0.3em 1em;
+        padding: 0.3em 1em !important;
         background-color: #fbf7f4 !important;
         color: #733e1c !important;
         font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif !important;
