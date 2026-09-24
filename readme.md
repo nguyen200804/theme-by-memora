@@ -189,6 +189,6 @@ Nút liên hệ cố định ở góc dưới bên phải màn hình website:
 - **Cơ chế tiện ích:**
   - Tự động hiển thị toàn trang thông qua hook `wp_footer`.
   - Tự động đóng khi người dùng nhấp ra ngoài hoặc bấm phím `ESC`.
-  - Quản lý & chỉnh sửa thông tin trong **WP Admin > Chỉnh sửa chung**: Bật/Tắt, Chữ nút, Số điện thoại, Link Zalo, Link Instagram, và tùy chọn tải lên ảnh icon riêng cho từng nút.
-  - Hỗ trợ Shortcode: `[nut_lien_he]` hoặc `[nut_lien_he phone="0901234567" zalo="0901234567" instagram="https://instagram.com/memora"]`.
+  - Quản lý & chỉnh sửa thông tin trong **WP Admin > Chỉnh sửa chung**: Bật/Tắt, Chữ nút, Số điện thoại, Link Zalo, Link Instagram, tải lên ảnh icon riêng cho từng nút, và tùy chỉnh **Kích thước icon liên hệ** (mặc định: `54px`), **Kích thước icon X** (mặc định: `44px`).
+  - Hỗ trợ Shortcode: `[nut_lien_he]` hoặc `[nut_lien_he phone="0901234567" zalo="0901234567" instagram="https://instagram.com/memora" icon_size="54" close_size="44"]`.
  

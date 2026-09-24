@@ -128,6 +128,32 @@ function memora_register_contact_button_field_group() {
                 'library'       => 'all',
                 'wrapper'       => array( 'width' => '25' ),
             ),
+            array(
+                'key'           => 'field_contact_icon_size',
+                'label'         => 'Kích thước icon liên hệ (px)',
+                'name'          => 'contact_icon_size',
+                'type'          => 'number',
+                'instructions'  => 'Kích thước đường kính cho 3 icon liên hệ (Điện thoại, Zalo, Instagram). Mặc định: 54px',
+                'default_value' => 54,
+                'min'           => 20,
+                'max'           => 150,
+                'step'          => 1,
+                'append'        => 'px',
+                'wrapper'       => array( 'width' => '50' ),
+            ),
+            array(
+                'key'           => 'field_contact_close_size',
+                'label'         => 'Kích thước icon X (px)',
+                'name'          => 'contact_close_size',
+                'type'          => 'number',
+                'instructions'  => 'Kích thước đường kính cho nút icon Đóng (✕). Mặc định: 44px',
+                'default_value' => 44,
+                'min'           => 15,
+                'max'           => 120,
+                'step'          => 1,
+                'append'        => 'px',
+                'wrapper'       => array( 'width' => '50' ),
+            ),
         ),
         'location'              => array(
             array(
@@ -259,8 +285,8 @@ function memora_contact_button_scripts_styles() {
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        width: 54px !important;
-        height: 54px !important;
+        width: var(--memora-contact-icon-size, 54px) !important;
+        height: var(--memora-contact-icon-size, 54px) !important;
         border-radius: 50% !important;
         background-color: #fbf7f4 !important;
         color: #733e1c !important;
@@ -295,10 +321,10 @@ function memora_contact_button_scripts_styles() {
         border-radius: 50%;
     }
 
-    /* Nút đóng tròn X (kích thước nhỏ hơn hài hòa) */
+    /* Nút đóng tròn X (kích thước riêng theo cấu hình) */
     .memora-contact-close {
-        width: 44px !important;
-        height: 44px !important;
+        width: var(--memora-contact-close-size, 44px) !important;
+        height: var(--memora-contact-close-size, 44px) !important;
         margin-left: 2px;
         background-color: #fbf7f4 !important;
     }
@@ -355,18 +381,15 @@ function memora_contact_button_scripts_styles() {
             font-size: 18px !important;
         }
         .memora-contact-circle {
-            width: 46px !important;
-            height: 46px !important;
+            width: calc(var(--memora-contact-icon-size, 54px) * 0.85) !important;
+            height: calc(var(--memora-contact-icon-size, 54px) * 0.85) !important;
         }
         .memora-contact-socials {
             gap: 10px;
         }
-        .memora-contact-zalo {
-            font-size: 16px !important;
-        }
         .memora-contact-close {
-            width: 34px !important;
-            height: 34px !important;
+            width: calc(var(--memora-contact-close-size, 44px) * 0.85) !important;
+            height: calc(var(--memora-contact-close-size, 44px) * 0.85) !important;
         }
     }
     ';
@@ -508,9 +531,16 @@ function memora_render_contact_button( $args = array() ) {
     $instagram_icon_url = $get_icon_url( 'contact_icon_instagram', '/wp-content/uploads/2026/09/icon-instagram.png' );
     $close_icon_url     = $get_icon_url( 'contact_icon_close', '/wp-content/uploads/2026/09/icon-close.png' );
 
+    // 7. Kích thước icon liên hệ và icon X
+    $acf_icon_size  = function_exists( 'get_field' ) ? get_field( 'contact_icon_size', 'option' ) : '';
+    $icon_size      = ! empty( $args['icon_size'] ) ? intval( $args['icon_size'] ) : ( ! empty( $acf_icon_size ) ? intval( $acf_icon_size ) : 54 );
+
+    $acf_close_size = function_exists( 'get_field' ) ? get_field( 'contact_close_size', 'option' ) : '';
+    $close_size     = ! empty( $args['close_size'] ) ? intval( $args['close_size'] ) : ( ! empty( $acf_close_size ) ? intval( $acf_close_size ) : 44 );
+
     ob_start();
     ?>
-    <div class="memora-contact-widget" id="memoraContactWidget">
+    <div class="memora-contact-widget" id="memoraContactWidget" style="--memora-contact-icon-size: <?php echo esc_attr( $icon_size ); ?>px; --memora-contact-close-size: <?php echo esc_attr( $close_size ); ?>px;">
         <div class="memora-contact-container">
             <!-- 1. Nút "Liên hệ" dạng viên thuốc (Collapsed state) -->
             <button type="button" class="memora-contact-pill" id="memoraContactTrigger" aria-label="<?php echo esc_attr( $label ); ?>">
@@ -521,22 +551,22 @@ function memora_render_contact_button( $args = array() ) {
             <div class="memora-contact-socials" id="memoraContactSocials">
                 <!-- Nút Gọi điện thoại -->
                 <a href="<?php echo esc_url( $phone_link ); ?>" class="memora-contact-circle memora-btn-phone" title="Gọi điện thoại: <?php echo esc_attr( $phone ); ?>" aria-label="Gọi điện thoại">
-                    <img src="<?php echo esc_url( $phone_icon_url ); ?>" width="54" height="54" alt="Điện thoại" class="memora-contact-icon-img" loading="eager" decoding="async" />
+                    <img src="<?php echo esc_url( $phone_icon_url ); ?>" width="<?php echo esc_attr( $icon_size ); ?>" height="<?php echo esc_attr( $icon_size ); ?>" alt="Điện thoại" class="memora-contact-icon-img" loading="eager" decoding="async" />
                 </a>
 
                 <!-- Nút Zalo -->
                 <a href="<?php echo esc_url( $zalo_link ); ?>" target="_blank" rel="noopener noreferrer" class="memora-contact-circle memora-btn-zalo" title="Liên hệ qua Zalo" aria-label="Liên hệ qua Zalo">
-                    <img src="<?php echo esc_url( $zalo_icon_url ); ?>" width="54" height="54" alt="Zalo" class="memora-contact-icon-img" loading="eager" decoding="async" />
+                    <img src="<?php echo esc_url( $zalo_icon_url ); ?>" width="<?php echo esc_attr( $icon_size ); ?>" height="<?php echo esc_attr( $icon_size ); ?>" alt="Zalo" class="memora-contact-icon-img" loading="eager" decoding="async" />
                 </a>
 
                 <!-- Nút Instagram -->
                 <a href="<?php echo esc_url( $instagram_link ); ?>" target="_blank" rel="noopener noreferrer" class="memora-contact-circle memora-btn-instagram" title="Xem Instagram" aria-label="Xem Instagram">
-                    <img src="<?php echo esc_url( $instagram_icon_url ); ?>" width="54" height="54" alt="Instagram" class="memora-contact-icon-img" loading="eager" decoding="async" />
+                    <img src="<?php echo esc_url( $instagram_icon_url ); ?>" width="<?php echo esc_attr( $icon_size ); ?>" height="<?php echo esc_attr( $icon_size ); ?>" alt="Instagram" class="memora-contact-icon-img" loading="eager" decoding="async" />
                 </a>
 
                 <!-- Nút Đóng (✕) -->
                 <button type="button" class="memora-contact-circle memora-contact-close" id="memoraContactClose" title="Đóng liên hệ" aria-label="Đóng liên hệ">
-                    <img src="<?php echo esc_url( $close_icon_url ); ?>" width="44" height="44" alt="Đóng" class="memora-contact-icon-img memora-contact-icon-close" loading="eager" decoding="async" />
+                    <img src="<?php echo esc_url( $close_icon_url ); ?>" width="<?php echo esc_attr( $close_size ); ?>" height="<?php echo esc_attr( $close_size ); ?>" alt="Đóng" class="memora-contact-icon-img memora-contact-icon-close" loading="eager" decoding="async" />
                 </button>
             </div>
         </div>
@@ -569,11 +599,13 @@ add_shortcode( 'nut_lien_he', 'memora_contact_button_shortcode' );
 add_shortcode( 'memora_contact_button', 'memora_contact_button_shortcode' );
 function memora_contact_button_shortcode( $atts ) {
     $atts = shortcode_atts( array(
-        'label'     => '',
-        'phone'     => '',
-        'zalo'      => '',
-        'instagram' => '',
-        'force'     => 1,
+        'label'      => '',
+        'phone'      => '',
+        'zalo'       => '',
+        'instagram'  => '',
+        'icon_size'  => '',
+        'close_size' => '',
+        'force'      => 1,
     ), $atts, 'nut_lien_he' );
 
     return memora_render_contact_button( $atts );
