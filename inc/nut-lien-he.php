@@ -242,11 +242,11 @@ function memora_contact_button_scripts_styles() {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 13px 34px;
+        padding: 0.3em 1em;
         background-color: #fbf7f4 !important;
         color: #733e1c !important;
         font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif !important;
-        font-size: 21px !important;
+        font-size: 27px !important;
         font-weight: 700 !important;
         letter-spacing: 0.2px;
         border-radius: 9999px !important;
@@ -377,8 +377,8 @@ function memora_contact_button_scripts_styles() {
             right: 20px;
         }
         .memora-contact-pill {
-            padding: 10px 24px !important;
-            font-size: 18px !important;
+            padding: 0.3em 1em !important;
+            font-size: 22px !important;
         }
         .memora-contact-circle {
             width: calc(var(--memora-contact-icon-size, 54px) * 0.85) !important;
