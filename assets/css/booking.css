@@ -454,15 +454,15 @@
     display: flex;
     align-items: center;
     border-bottom: 2px solid var(--memora-brown);
-    margin-bottom: 22px;
-    padding: 6px 0;
+    margin-bottom: 0;
+    padding: 6em 0;
 }
 
 .memora-input-icon {
-    font-size: 20px;
-    margin-right: 14px;
+    /* font-size: 20px; */
+    margin-right: 22em;
     color: var(--memora-brown);
-    width: 24px;
+    /* width: 24px; */
     text-align: center;
     display: flex;
     align-items: center;
@@ -470,8 +470,8 @@
 }
 
 .memora-input-icon svg {
-    width: 20px;
-    height: 20px;
+    width: 20em;
+    height: 20em;
     display: block;
     flex-shrink: 0;
 }
@@ -480,23 +480,25 @@
     flex: 1;
     border: none;
     background: transparent;
-    outline: none;
+    border: 0 !important;
+    outline: none !important;
     font-family: var(--memora-font-sans);
-    font-size: 15px;
+    font-size: 7em !important;
     color: var(--memora-brown-text);
-    padding: 6px 0;
+    padding: 0 !important;
 }
 
 .memora-input-text::placeholder {
-    color: #999999;
-    font-size: 14px;
+    color: #733e1c80;
+
 }
 
 .memora-checkout-pills {
     display: flex;
     justify-content: space-between;
     gap: 10px;
-    margin: 26px 0;
+    /* margin: 26px 0; */
+    margin: 25em 0 50em;
 }
 
 .memora-blue-pill {
@@ -511,14 +513,17 @@
 }
 
 .memora-pricing-table {
-    margin: 24px 0;
+    /* margin: 24px 0; */
+    display: flex;
+    flex-direction: column;
+    gap: 18em;
 }
 
 .memora-pricing-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 14px;
+    /* margin-bottom: 14px; */
 }
 
 .memora-pricing-label {
@@ -526,6 +531,8 @@
     font-weight: 500;
     text-align: left;
     font-size: 10em;
+    width: 8em !important;
+    display: inline-block;
 }
 
 .memora-pricing-value {
@@ -539,7 +546,7 @@
     font-size: 6.1em;
     color: #733e1c;
     line-height: 1.5;
-    margin: 24px 0 30px 0;
+    margin: 6em 0 5em;
     display: flex;
     align-items: flex-start;
     text-align: center;
@@ -564,8 +571,9 @@
 
 .memora-heart-btn {
     position: relative;
-    width: 30em;
-    height: 30em;
+    font-size: inherit !important;
+    width: 130em;
+    height: 130em;
     background: none !important;
     border: none;
     cursor: pointer;
@@ -606,7 +614,7 @@
     position: relative;
     z-index: 2;
     font-family: var(--memora-font-script);
-    font-size: 6em;
+    font-size: 19.2em;
     font-weight: 700;
     color: var(--memora-brown);
     line-height: 100%;
