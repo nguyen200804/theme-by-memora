@@ -127,6 +127,25 @@ function memora_register_marquee_field_group() {
                         ),
                     ),
                     array(
+                        'key'               => 'field_marquee_item_image_height',
+                        'label'             => 'Chiều cao riêng của ảnh (px)',
+                        'name'              => 'item_image_height',
+                        'type'              => 'number',
+                        'instructions'      => 'Tùy chọn: Đặt chiều cao riêng cho ảnh này (để trống nếu dùng kích thước chung).',
+                        'required'          => 0,
+                        'placeholder'       => 'Ví dụ: 44',
+                        'append'            => 'px',
+                        'conditional_logic' => array(
+                            array(
+                                array(
+                                    'field'    => 'field_marquee_item_type',
+                                    'operator' => '==',
+                                    'value'    => 'image',
+                                ),
+                            ),
+                        ),
+                    ),
+                    array(
                         'key'          => 'field_marquee_item_link',
                         'label'        => 'Đường dẫn liên kết (Tùy chọn)',
                         'name'         => 'item_link',
@@ -238,7 +257,7 @@ function memora_register_marquee_field_group() {
                 'multiple'      => 0,
                 'ui'            => 1,
                 'allow_custom'  => 1,
-                'wrapper'       => array( 'width' => '50' ),
+                'wrapper'       => array( 'width' => '33' ),
             ),
             array(
                 'key'           => 'field_marquee_font_size',
@@ -251,7 +270,20 @@ function memora_register_marquee_field_group() {
                 'max'           => 100,
                 'step'          => 1,
                 'append'        => 'px',
-                'wrapper'       => array( 'width' => '50' ),
+                'wrapper'       => array( 'width' => '33' ),
+            ),
+            array(
+                'key'           => 'field_marquee_image_height',
+                'label'         => 'Kích thước hình ảnh (px)',
+                'name'          => 'marquee_image_height',
+                'type'          => 'number',
+                'instructions'  => 'Chiều cao hiển thị của hình ảnh/logo. Mặc định: 44px',
+                'default_value' => 44,
+                'min'           => 15,
+                'max'           => 200,
+                'step'          => 1,
+                'append'        => 'px',
+                'wrapper'       => array( 'width' => '34' ),
             ),
         ),
         'location'              => array(
@@ -341,7 +373,8 @@ function memora_marquee_enqueue_assets() {
         opacity: 0.8;
     }
     .memora-marquee-img {
-        max-height: 44px;
+        height: var(--marquee-img-height, 44px);
+        max-height: var(--marquee-img-height, 44px);
         width: auto;
         object-fit: contain;
         display: block;
@@ -432,9 +465,12 @@ function memora_render_marquee( $atts = array() ) {
         'color'       => '',
         'font'        => '',
         'font_family' => '',
-        'size'        => '',
-        'font_size'   => '',
-        'class'       => '',
+        'size'         => '',
+        'font_size'    => '',
+        'img_size'     => '',
+        'img_height'   => '',
+        'image_height' => '',
+        'class'        => '',
     ), $atts, 'marquee' );
 
     // Nguồn dữ liệu: Mặc định lấy từ trang "Chỉnh sửa chung" ('option')
@@ -480,9 +516,11 @@ function memora_render_marquee( $atts = array() ) {
     $bg_color   = ! empty( $atts['bg'] ) ? sanitize_text_field( $atts['bg'] ) : get_field( 'marquee_bg_color', $data_source );
     $text_color = ! empty( $atts['color'] ) ? sanitize_text_field( $atts['color'] ) : get_field( 'marquee_text_color', $data_source );
 
-    // Font chữ và Kích thước chữ
-    $font_input = ! empty( $atts['font'] ) ? $atts['font'] : ( ! empty( $atts['font_family'] ) ? $atts['font_family'] : get_field( 'marquee_font_family', $data_source ) );
-    $size_input = ( $atts['size'] !== '' ) ? $atts['size'] : ( ( $atts['font_size'] !== '' ) ? $atts['font_size'] : get_field( 'marquee_font_size', $data_source ) );
+    // Font chữ, Kích thước chữ và Kích thước hình ảnh
+    $font_input  = ! empty( $atts['font'] ) ? $atts['font'] : ( ! empty( $atts['font_family'] ) ? $atts['font_family'] : get_field( 'marquee_font_family', $data_source ) );
+    $size_input  = ( $atts['size'] !== '' ) ? $atts['size'] : ( ( $atts['font_size'] !== '' ) ? $atts['font_size'] : get_field( 'marquee_font_size', $data_source ) );
+    $acf_img_h   = get_field( 'marquee_image_height', $data_source );
+    $img_h_input = ( $atts['img_height'] !== '' ) ? $atts['img_height'] : ( ( $atts['image_height'] !== '' ) ? $atts['image_height'] : ( ( $atts['img_size'] !== '' ) ? $atts['img_size'] : ( ! empty( $acf_img_h ) ? $acf_img_h : 44 ) ) );
 
     $unique_id = 'memora-marquee-' . wp_rand( 1000, 9999 );
 
@@ -501,6 +539,10 @@ function memora_render_marquee( $atts = array() ) {
         $size_val = is_numeric( $size_input ) ? ( intval( $size_input ) . 'px' ) : esc_attr( $size_input );
         $container_styles[] = '--marquee-font-size: ' . $size_val;
         $container_styles[] = 'font-size: ' . $size_val;
+    }
+    if ( ! empty( $img_h_input ) ) {
+        $img_h_val = is_numeric( $img_h_input ) ? ( intval( $img_h_input ) . 'px' ) : esc_attr( $img_h_input );
+        $container_styles[] = '--marquee-img-height: ' . $img_h_val;
     }
     $container_styles[] = '--marquee-speed: ' . esc_attr( $speed ) . 's';
     $container_styles[] = '--marquee-gap: ' . esc_attr( $gap ) . 'px';
@@ -546,8 +588,10 @@ function memora_render_marquee( $atts = array() ) {
                                 $img = $item['item_image'];
                                 $img_url = is_array( $img ) ? $img['url'] : $img;
                                 $img_alt = is_array( $img ) && ! empty( $img['alt'] ) ? $img['alt'] : 'Marquee Image';
+                                $item_h = ! empty( $item['item_image_height'] ) ? intval( $item['item_image_height'] ) . 'px' : '';
+                                $img_style = $item_h ? ' style="height:' . esc_attr( $item_h ) . '; max-height:' . esc_attr( $item_h ) . ';"' : '';
                                 ?>
-                                <img src="<?php echo esc_url( $img_url ); ?>" alt="<?php echo esc_attr( $img_alt ); ?>" class="memora-marquee-img" decoding="async" />
+                                <img src="<?php echo esc_url( $img_url ); ?>" alt="<?php echo esc_attr( $img_alt ); ?>" class="memora-marquee-img" decoding="async"<?php echo $img_style; ?> />
                             <?php elseif ( $type === 'text' && ! empty( $item['item_text'] ) ) : ?>
                                 <span class="memora-marquee-text"><?php echo esc_html( $item['item_text'] ); ?></span>
                             <?php endif; ?>

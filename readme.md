@@ -68,6 +68,7 @@ Code chức năng 2
     * Tùy chỉnh màu nền và màu chữ.
     * Tùy chỉnh Font chữ (Playfair Display, Cormorant Garamond, Plus Jakarta Sans, Montserrat, Dancing Script, Playball... hoặc tự nhập).
     * Tùy chỉnh Kích thước chữ (px).
+    * Tùy chỉnh Kích thước hình ảnh/logo (px) (mặc định: 44px, có hỗ trợ tùy chỉnh chiều cao riêng cho từng ảnh).
 
 ### 3.2. Cách hiển thị ra giao diện
 
@@ -85,6 +86,7 @@ Code chức năng 2
 * `[memora_marquee color="#733e1c"]`: Đổi màu chữ.
 * `[memora_marquee font="Playfair Display"]`: Tùy chỉnh font chữ cho dải chạy.
 * `[memora_marquee size="18"]`: Đổi kích thước chữ thành 18px (hoặc `font_size="18"`).
+* `[memora_marquee img_height="50"]`: Đổi kích thước chiều cao hình ảnh/logo thành 50px (hoặc `image_height="50"`).
 * `[memora_marquee pause="false"]`: Tắt tính năng tạm dừng khi rê chuột.
 * `[memora_marquee class="custom-marquee-class"]`: Bổ sung thêm CSS class tùy biến.
 * *Cơ chế tự động:* Khi danh sách có ít phần tử (ví dụ chỉ có 1 text `"memora film"`), hệ thống tự động nhân bản lặp lại liên tục để phủ kín 100% màn hình và cuộn vô tận mượt mà (không bị trống màn hình hay giật hình).
