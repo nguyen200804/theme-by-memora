@@ -707,7 +707,7 @@
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 23em;
-    margin-top: 30em;
+    margin-top: 25em;
 }
 
 .memora-info-col {
@@ -767,7 +767,7 @@
 }
 
 .memora-code-brown-card {
-    background: var(--memora-brown-card);
+    background: #733e1c;
     border-radius: 12em;
     padding: 10em;
     text-align: center;
@@ -915,6 +915,8 @@
     padding: 10px 0;
     font-size: 4px;
     text-align: center;
+    width: 282em;
+    margin: 0 auto;
 }
 
 .memora-lookup-header-pill {
@@ -928,14 +930,19 @@
     font-size: 13.3em;
     font-weight: 700;
     color: var(--memora-brown-text);
-    margin-bottom: 28px;
+    margin-bottom: 1.5em;
+}
+
+.memora-lookup-header-pill svg {
+    width: 0.8em;
+    height: 0.8em;
 }
 
 .memora-lookup-inputs-row {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     gap: 20px;
-    margin-bottom: 26px;
+    margin-bottom: 20em;
 }
 
 .memora-lookup-field {
@@ -967,7 +974,7 @@
 }
 
 .memora-lookup-result-box {
-    margin-top: 30px;
+    margin-top: 20em;
     background: #693c214d;
     border-radius: 14em;
     padding: 20em;
