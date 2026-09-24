@@ -244,10 +244,10 @@ function memora_register_marquee_field_group() {
 
 
 //====================================
-// START - ENQUEUE CSS MARQUEE
+// START - ENQUEUE CSS VÀ JS MARQUEE
 //====================================
-add_action( 'wp_enqueue_scripts', 'memora_marquee_enqueue_styles' );
-function memora_marquee_enqueue_styles() {
+add_action( 'wp_enqueue_scripts', 'memora_marquee_enqueue_assets' );
+function memora_marquee_enqueue_assets() {
     $css = '
     .memora-marquee-wrap {
         overflow: hidden;
@@ -255,11 +255,14 @@ function memora_marquee_enqueue_styles() {
         position: relative;
         padding: 14px 0;
         box-sizing: border-box;
+        line-height: normal;
     }
     .memora-marquee-track {
         display: flex;
+        align-items: center;
         width: max-content;
         will-change: transform;
+        user-select: none;
     }
     .memora-marquee-content {
         display: flex;
@@ -279,6 +282,7 @@ function memora_marquee_enqueue_styles() {
         display: inline-flex;
         align-items: center;
         flex-shrink: 0;
+        white-space: nowrap;
     }
     .memora-marquee-link {
         display: inline-flex;
@@ -295,12 +299,14 @@ function memora_marquee_enqueue_styles() {
         width: auto;
         object-fit: contain;
         display: block;
+        vertical-align: middle;
     }
     .memora-marquee-text {
         font-weight: 500;
         white-space: nowrap;
         font-size: 1rem;
         line-height: 1.5;
+        letter-spacing: 0.02em;
     }
     @keyframes memora-scroll-left {
         from { transform: translateX(0); }
@@ -314,9 +320,46 @@ function memora_marquee_enqueue_styles() {
     wp_register_style( 'memora-marquee-style', false );
     wp_enqueue_style( 'memora-marquee-style' );
     wp_add_inline_style( 'memora-marquee-style', $css );
+
+    // Script hỗ trợ tự động clone nếu màn hình quá rộng (màn hình 2K, 4K)
+    $js = "
+    (function() {
+        function checkAndFillMarquees() {
+            var marquees = document.querySelectorAll('.memora-marquee-wrap');
+            marquees.forEach(function(wrap) {
+                var contents = wrap.querySelectorAll('.memora-marquee-content');
+                if (contents.length < 2) return;
+                var content1 = contents[0];
+                var content2 = contents[1];
+                var wrapWidth = wrap.clientWidth || window.innerWidth;
+                if (wrapWidth > 0 && content1.offsetWidth < wrapWidth * 1.2) {
+                    var times = Math.ceil((wrapWidth * 1.5) / (content1.offsetWidth || 1));
+                    if (times > 1) {
+                        var originalItems = Array.from(content1.children);
+                        for (var i = 1; i < times; i++) {
+                            originalItems.forEach(function(item) {
+                                content1.appendChild(item.cloneNode(true));
+                                content2.appendChild(item.cloneNode(true));
+                            });
+                        }
+                    }
+                }
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', checkAndFillMarquees);
+        } else {
+            checkAndFillMarquees();
+        }
+        window.addEventListener('resize', checkAndFillMarquees);
+    })();
+    ";
+    wp_register_script( 'memora-marquee-script', '', array(), false, true );
+    wp_enqueue_script( 'memora-marquee-script' );
+    wp_add_inline_script( 'memora-marquee-script', $js );
 }
 //====================================
-// END - ENQUEUE CSS MARQUEE
+// END - ENQUEUE CSS VÀ JS MARQUEE
 //====================================
 
 
@@ -337,6 +380,9 @@ function memora_render_marquee( $atts = array() ) {
         'speed'     => '',
         'direction' => '',
         'gap'       => '',
+        'pause'     => '',
+        'bg'        => '',
+        'color'     => '',
         'class'     => '',
     ), $atts, 'marquee' );
 
@@ -355,17 +401,33 @@ function memora_render_marquee( $atts = array() ) {
     }
 
     if ( empty( $items ) || ! is_array( $items ) ) {
+        if ( is_user_logged_in() && current_user_can( 'edit_posts' ) && isset( $_GET['elementor-preview'] ) ) {
+            return '<div style="padding: 12px; background: #fff3cd; color: #856404; font-size: 13px; text-align: center; border: 1px dashed #ffeeba;">[memora_marquee]: Chưa có phần tử nào. Vui lòng thêm phần tử trong WP Admin &gt; Chỉnh sửa chung &gt; Marquee.</div>';
+        }
         return '';
     }
 
-    // Các thiết lập hiển thị
-    $speed       = ! empty( $atts['speed'] ) ? intval( $atts['speed'] ) : intval( get_field( 'marquee_speed', $data_source ) ?: 25 );
-    $gap         = ! empty( $atts['gap'] ) ? intval( $atts['gap'] ) : intval( get_field( 'marquee_gap', $data_source ) ?: 40 );
-    $direction   = ! empty( $atts['direction'] ) ? sanitize_text_field( $atts['direction'] ) : ( get_field( 'marquee_direction', $data_source ) ?: 'left' );
-    $pause_hover = get_field( 'marquee_pause_hover', $data_source );
-    $pause_class = ( $pause_hover !== false && $pause_hover != 0 ) ? 'has-pause-hover' : '';
-    $bg_color    = get_field( 'marquee_bg_color', $data_source );
-    $text_color  = get_field( 'marquee_text_color', $data_source );
+    // Các thiết lập hiển thị (ưu tiên shortcode atts > ACF option > giá trị mặc định)
+    $acf_speed = get_field( 'marquee_speed', $data_source );
+    $speed     = ! empty( $atts['speed'] ) ? intval( $atts['speed'] ) : ( ! empty( $acf_speed ) ? intval( $acf_speed ) : 25 );
+
+    $acf_gap   = get_field( 'marquee_gap', $data_source );
+    $gap       = ( $atts['gap'] !== '' ) ? intval( $atts['gap'] ) : ( ( $acf_gap !== '' && $acf_gap !== false && $acf_gap !== null ) ? intval( $acf_gap ) : 40 );
+
+    $acf_dir   = get_field( 'marquee_direction', $data_source );
+    $direction = ! empty( $atts['direction'] ) ? sanitize_text_field( $atts['direction'] ) : ( ! empty( $acf_dir ) ? $acf_dir : 'left' );
+
+    // Pause on hover
+    $acf_pause = get_field( 'marquee_pause_hover', $data_source );
+    $should_pause = ( $acf_pause === null || $acf_pause === '' || $acf_pause == 1 || $acf_pause === true );
+    if ( $atts['pause'] !== '' ) {
+        $should_pause = ! in_array( strtolower( $atts['pause'] ), array( '0', 'false', 'no' ), true );
+    }
+    $pause_class = $should_pause ? 'has-pause-hover' : '';
+
+    // Màu nền và màu chữ
+    $bg_color   = ! empty( $atts['bg'] ) ? sanitize_text_field( $atts['bg'] ) : get_field( 'marquee_bg_color', $data_source );
+    $text_color = ! empty( $atts['color'] ) ? sanitize_text_field( $atts['color'] ) : get_field( 'marquee_text_color', $data_source );
 
     $unique_id = 'memora-marquee-' . wp_rand( 1000, 9999 );
 
@@ -383,6 +445,22 @@ function memora_render_marquee( $atts = array() ) {
 
     $direction_class = ( $direction === 'right' ) ? 'direction-right' : 'direction-left';
 
+    // ĐẢM BẢO ĐỦ SỐ LƯỢNG PHẦN TỬ ĐỂ LẤP ĐẦY MÀN HÌNH VÀ CUỘN VÔ TẬN MƯỢT MÀ:
+    // Nếu ít hơn 16 items (ví dụ người dùng chỉ nhập 1 hoặc vài phần tử ngắn),
+    // tự động lặp lại danh sách để mỗi khối content có tối thiểu 16 items (độ rộng >= 2000px).
+    $min_target_items = 16;
+    $count            = count( $items );
+    $render_items     = $items;
+    if ( $count > 0 && $count < $min_target_items ) {
+        $multiplier   = (int) ceil( $min_target_items / $count );
+        $render_items = array();
+        for ( $m = 0; $m < $multiplier; $m++ ) {
+            foreach ( $items as $it ) {
+                $render_items[] = $it;
+            }
+        }
+    }
+
     ob_start();
     ?>
     <div id="<?php echo esc_attr( $unique_id ); ?>" class="memora-marquee-wrap <?php echo esc_attr( $direction_class . ' ' . $pause_class . ' ' . $atts['class'] ); ?>"<?php echo $container_style_attr; ?>>
@@ -393,7 +471,7 @@ function memora_render_marquee( $atts = array() ) {
                 $aria_hidden = ( $loop === 1 ) ? ' aria-hidden="true"' : '';
                 ?>
                 <div class="memora-marquee-content"<?php echo $aria_hidden; ?>>
-                    <?php foreach ( $items as $item ) :
+                    <?php foreach ( $render_items as $item ) :
                         $type   = isset( $item['item_type'] ) ? $item['item_type'] : 'text';
                         $link   = ! empty( $item['item_link'] ) ? esc_url( $item['item_link'] ) : '';
                         $target = ! empty( $item['item_target'] ) ? ' target="_blank" rel="noopener noreferrer"' : '';
@@ -406,7 +484,7 @@ function memora_render_marquee( $atts = array() ) {
                                 $img_url = is_array( $img ) ? $img['url'] : $img;
                                 $img_alt = is_array( $img ) && ! empty( $img['alt'] ) ? $img['alt'] : 'Marquee Image';
                                 ?>
-                                <img src="<?php echo esc_url( $img_url ); ?>" alt="<?php echo esc_attr( $img_alt ); ?>" class="memora-marquee-img" loading="lazy" />
+                                <img src="<?php echo esc_url( $img_url ); ?>" alt="<?php echo esc_attr( $img_alt ); ?>" class="memora-marquee-img" decoding="async" />
                             <?php elseif ( $type === 'text' && ! empty( $item['item_text'] ) ) : ?>
                                 <span class="memora-marquee-text"><?php echo esc_html( $item['item_text'] ); ?></span>
                             <?php endif; ?>

@@ -71,14 +71,19 @@ Code chức năng 2
 
 #### Cách 1: Sử dụng Shortcode (Elementor / Gutenberg / Widgets)
 ```text
-[marquee]
+[memora_marquee]
+<!-- Hoặc shortcode rút gọn: [marquee] -->
 ```
 
 **Các tham số tùy chọn ghi đè (Attributes):**
-* `[marquee speed="15"]`: Thay đổi tốc độ chạy thành 15 giây.
-* `[marquee gap="60"]`: Khoảng cách giữa các phần tử là 60px.
-* `[marquee direction="right"]`: Đổi hướng chạy từ Trái sang Phải.
-* `[marquee class="custom-marquee-class"]`: Bổ sung thêm CSS class tùy biến.
+* `[memora_marquee speed="15"]`: Thay đổi tốc độ chạy thành 15 giây.
+* `[memora_marquee gap="60"]`: Khoảng cách giữa các phần tử là 60px.
+* `[memora_marquee direction="right"]`: Đổi hướng chạy từ Trái sang Phải.
+* `[memora_marquee bg="#e8eef5"]`: Đổi màu nền dải marquee.
+* `[memora_marquee color="#733e1c"]`: Đổi màu chữ.
+* `[memora_marquee pause="false"]`: Tắt tính năng tạm dừng khi rê chuột.
+* `[memora_marquee class="custom-marquee-class"]`: Bổ sung thêm CSS class tùy biến.
+* *Cơ chế tự động:* Khi danh sách có ít phần tử (ví dụ chỉ có 1 text `"memora film"`), hệ thống tự động nhân bản lặp lại liên tục để phủ kín 100% màn hình và cuộn vô tận mượt mà (không bị trống màn hình hay giật hình).
 
 #### Cách 2: Gọi trong Template PHP
 ```php
