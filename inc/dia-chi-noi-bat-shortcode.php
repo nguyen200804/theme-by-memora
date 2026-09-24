@@ -2,9 +2,9 @@
 /**
  * Shortcode [dia_chi_noi_bat]
  *
- * Layout 2 cot:
- *   - Cot trai : featured image + nhan "Memora" + ten co so (post title)
- *   - Cot phai : [gallery_swiper] (goi truc tiep ham PHP)
+ * Layout 2 cot (1/3 - 2/3):
+ *   - Cot trai (1/3): featured image + nhan "Memora" + ten co so (post title)
+ *   - Cot phai (2/3): [gallery_swiper] (goi truc tiep ham PHP)
  *
  * ACF Post Object field "dia_chi_co_so_noi_bat" -> post type "dia-chi"
  *
@@ -141,6 +141,12 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
     </div>
 
     <style>
+        /* === Reset Box Sizing === */
+        #<?php echo esc_attr( $wrap_uid ); ?>.dcnb-wrap,
+        #<?php echo esc_attr( $wrap_uid ); ?>.dcnb-wrap * {
+            box-sizing: border-box;
+        }
+
         /* === Wrapper === */
         #<?php echo esc_attr( $wrap_uid ); ?>.dcnb-wrap {
             display: flex;
@@ -153,16 +159,17 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             box-shadow: 0 4px 24px rgba(0,0,0,.08);
         }
 
-        /* === Cot trai === */
+        /* === Cot trai (1/3) === */
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-info {
-            flex: 0 0 200px;
-            width: 200px;
+            flex: 0 0 calc(100% / 3);
+            width: calc(100% / 3);
+            max-width: calc(100% / 3);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 14px;
-            padding: 28px 16px;
+            padding: 28px 20px;
             background: #fff;
         }
 
@@ -180,8 +187,8 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         }
 
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-thumbnail {
-            width: 110px;
-            height: 110px;
+            width: 120px;
+            height: 120px;
             border-radius: 8px;
             overflow: hidden;
             flex-shrink: 0;
@@ -197,10 +204,11 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             display: flex;
             align-items: flex-start;
             gap: 5px;
-            font-size: 0.82rem;
+            font-size: 0.85rem;
             color: #555;
             line-height: 1.45;
             text-decoration: none;
+            text-align: center;
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-address:hover {
             color: #733e1c;
@@ -216,9 +224,11 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             color: #733e1c;
         }
 
-        /* === Cot phai === */
+        /* === Cot phai (2/3) === */
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col {
-            flex: 1 1 0;
+            flex: 0 0 calc(100% * 2 / 3);
+            width: calc(100% * 2 / 3);
+            max-width: calc(100% * 2 / 3);
             min-width: 0;
             position: relative;
         }
@@ -254,7 +264,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         }
 
         /* === Responsive === */
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             #<?php echo esc_attr( $wrap_uid ); ?>.dcnb-wrap {
                 flex-direction: column;
                 min-height: auto;
@@ -262,10 +272,15 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-info {
                 flex: none;
                 width: 100%;
-                flex-direction: row;
-                flex-wrap: wrap;
+                max-width: 100%;
+                flex-direction: column;
                 justify-content: center;
-                padding: 16px;
+                padding: 20px 16px;
+            }
+            #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col {
+                flex: none;
+                width: 100%;
+                max-width: 100%;
             }
             #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .memora-gallery-swiper-wrap,
             #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .memora-gallery-swiper {
