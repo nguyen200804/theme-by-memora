@@ -205,10 +205,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             align-items: stretch;
             width: 100%;
             min-height: 300px;    /* dam bao chieu cao toi thieu cho height:100% chain */
-            background: #fff;
             overflow: hidden;
-            border-radius: 12px;
-            box-shadow: 0 4px 24px rgba(0,0,0,.08);
         }
 
         /* === Cot trai (1/3) === */

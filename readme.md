@@ -45,6 +45,7 @@ Code chức năng 2
 | `functions.php` | File khởi tạo của Child Theme, nạp stylesheet cha/con, `custom-field-group.php` và `menu-header.php`. |
 | `custom-field-group.php` | Định nghĩa các Field Group (ACF), trang Options, CSS hiệu ứng và Shortcode hiển thị. |
 | `menu-header.php` | Định nghĩa Shortcode `[menu__header]` xuất menu đa tầng (drill-down) dạng thẻ kính mờ (Frosted Glass). |
+| `inc/nut-lien-he.php` | Nút liên hệ nổi ở góc dưới bên phải, click mở 3 icon mạng xã hội (Điện thoại, Zalo, Instagram) và nút Đóng. |
 | `style.css` | Khai báo thông tin Child Theme Hello Elementor và các CSS ghi đè. |
 | `readme.md` | Tài liệu hướng dẫn sử dụng và quy chuẩn kỹ thuật của dự án. |
 
@@ -161,4 +162,22 @@ Hệ thống đặt lịch tự động hoàn chỉnh, bám sát thiết kế nh
 - **Tính năng:**
   - Danh sách trực quan: Mã Code (4 số), Tên KH + SĐT + Instagram, Lịch chụp, Gói chụp, Giá cọc 50%, Huy hiệu Trạng thái (`Chờ xác nhận`, `Đã cọc 50%`, `Hoàn tất`, `Đã hủy`).
   - Meta Box chi tiết: Xem toàn bộ thông tin đơn, cập nhật trạng thái đơn hàng, ghi chú nội bộ của admin.
-  - Tự động chống trùng lịch (Double-booking Prevention): Khi có khách đặt một khung giờ trong ngày, khung giờ đó sẽ lập tức được khóa lại."# theme-by-memora" 
+  - Tự động chống trùng lịch (Double-booking Prevention): Khi có khách đặt một khung giờ trong ngày, khung giờ đó sẽ lập tức được khóa lại.
+
+---
+
+## 6. Tính năng Nút liên hệ nổi (`[nut_lien_he]`)
+
+Nút liên hệ cố định ở góc dưới bên phải màn hình website:
+- **Trạng thái đóng:** Nút dạng viên thuốc bo tròn (Pill) chữ "Liên hệ" màu nâu `#733e1c` trên nền kem sáng `#fbf7f4`, phong cách typography Serif sang trọng.
+- **Trạng thái mở:** Khi nhấp chuột vào nút "Liên hệ", 3 icon mạng xã hội hình tròn xuất hiện theo hàng ngang kèm nút Đóng '✕':
+  1. **Icon Điện thoại:** Bấm để gọi trực tiếp (`tel:...`).
+  2. **Icon Zalo:** Bấm để mở chat Zalo (`https://zalo.me/...`).
+  3. **Icon Instagram:** Bấm để mở trang cá nhân Instagram.
+  4. **Nút Đóng (✕):** Bấm để thu gọn lại thành nút "Liên hệ" ban đầu.
+- **Cơ chế tiện ích:**
+  - Tự động hiển thị toàn trang thông qua hook `wp_footer`.
+  - Tự động đóng khi người dùng nhấp ra ngoài hoặc bấm phím `ESC`.
+  - Quản lý & chỉnh sửa thông tin trong **WP Admin > Chỉnh sửa chung**: Bật/Tắt, Chữ nút, Số điện thoại, Link Zalo, Link Instagram.
+  - Hỗ trợ Shortcode: `[nut_lien_he]` hoặc `[nut_lien_he phone="0901234567" zalo="0901234567" instagram="https://instagram.com/memora"]`.
+ 

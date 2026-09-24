@@ -59,6 +59,12 @@ if ( file_exists( get_stylesheet_directory() . '/inc/thong-tin-phong-swiper-shor
     require_once get_stylesheet_directory() . '/inc/thong-tin-phong-swiper-shortcode.php';
 }
 
+// Nạp tính năng Nút liên hệ nổi ở góc dưới bên phải [nut_lien_he]
+if ( file_exists( get_stylesheet_directory() . '/inc/nut-lien-he.php' ) ) {
+    require_once get_stylesheet_directory() . '/inc/nut-lien-he.php';
+}
+
+
 
 // Force desktop layout on all devices by setting viewport width to 1200px on small screens, and standard viewport on large screens
 function tocfl_force_desktop_viewport( $html ) {
