@@ -274,8 +274,12 @@ function memora_danh_sach_phong_shortcode( $atts ) {
                 $wide_rooms[] = $rm;
             }
         }
-        // Nếu không có phòng nào compact nhưng có >= 2 phòng và không phòng nào có 'self',
-        // giữ nguyên phân bổ tự nhiên hoặc wide rooms
+        // Nếu số compact_rooms lẻ (tạo ô trống), chuyển phòng cuối sang wide để tránh bỏ trống
+        if ( count( $compact_rooms ) === 1 ) {
+            // Chỉ 1 phòng compact → hiển thị dạng wide thay vì grid 2 cột trống 1 ô
+            $wide_rooms    = array_merge( $compact_rooms, $wide_rooms );
+            $compact_rooms = [];
+        }
     } elseif ( $atts['layout'] === 'grid' ) {
         $compact_rooms = $rooms_data;
     } else {
@@ -444,7 +448,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         ------------------------------------------- */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(<?php echo min( 2, count( $compact_rooms ) ); ?>, minmax(0, 1fr));
             gap: 28px;
             margin-bottom: 40px;
             width: 100%;
