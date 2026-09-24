@@ -434,20 +434,26 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         ------------------------------------------- */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 28px;
             margin-bottom: 40px;
+            width: 100%;
+            max-width: 100%;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-card {
             display: flex;
             flex-direction: column;
             width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            position: relative;
         }
 
         /* Khung ảnh poster 1:1 có bo tròn */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster {
             width: 100%;
+            max-width: 100%;
             aspect-ratio: 1 / 1;
             border-radius: 18px;
             overflow: hidden;
@@ -461,14 +467,28 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             box-shadow: 0 8px 24px rgba(115, 62, 28, 0.12);
         }
 
+        /* Swiper tách khỏi flow bình thường bằng absolute để không gây loop tính toán chiều cao */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster .swiper {
+            position: absolute;
+            inset: 0;
             width: 100%;
             height: 100%;
+            overflow: hidden;
+        }
+
+        #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster .swiper-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster .swiper-slide {
             width: 100%;
             height: 100%;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster .swiper-slide a {
@@ -512,6 +532,8 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             display: flex;
             flex-direction: column;
             gap: 36px;
+            width: 100%;
+            max-width: 100%;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-card {
@@ -519,11 +541,14 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             align-items: center;
             gap: 40px;
             width: 100%;
+            min-width: 0;
+            max-width: 100%;
         }
 
         /* Cột thông tin bên trái */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-info {
             flex: 0 0 320px;
+            min-width: 0;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -600,6 +625,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-slider-wrap {
             flex: 1 1 0;
             min-width: 0;
+            max-width: 100%;
             aspect-ratio: 16 / 9.5;
             border-radius: 18px;
             overflow: hidden;
@@ -609,13 +635,26 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-slider-wrap .swiper {
+            position: absolute;
+            inset: 0;
             width: 100%;
             height: 100%;
+            overflow: hidden;
+        }
+
+        #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-slider-wrap .swiper-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-slider-wrap .swiper-slide {
             width: 100%;
             height: 100%;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-slider-wrap .swiper-slide a {
@@ -723,7 +762,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
         @media (max-width: 540px) {
             #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: minmax(0, 1fr);
             }
         }
     </style>
