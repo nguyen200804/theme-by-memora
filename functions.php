@@ -43,3 +43,8 @@ if ( file_exists( get_stylesheet_directory() . '/inc/booking-system.php' ) ) {
 if ( file_exists( get_stylesheet_directory() . '/inc/gallery-swiper-shortcode.php' ) ) {
     require_once get_stylesheet_directory() . '/inc/gallery-swiper-shortcode.php';
 }
+
+// Nạp Shortcode [dia_chi_noi_bat] – Giới thiệu địa chỉ nổi bật
+if ( file_exists( get_stylesheet_directory() . '/inc/dia-chi-noi-bat-shortcode.php' ) ) {
+    require_once get_stylesheet_directory() . '/inc/dia-chi-noi-bat-shortcode.php';
+}
