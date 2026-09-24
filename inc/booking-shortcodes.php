@@ -251,10 +251,16 @@ function memora_shortcode_checkout_booking( $atts ) {
 //====================================
 // START - SHORTCODE 6: [thankyou_booking]
 //====================================
-add_shortcode( 'thankyou_booking', 'memora_shortcode_thankyou_booking' );
-function memora_shortcode_thankyou_booking( $atts ) {
-    $code = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '';
-    
+/**
+ * Render giao diện HTML trang cảm ơn / thanh toán thành công
+ * Hàm này dùng chung cho cả:
+ * 1. Shortcode [thankyou_booking] khi chuyển hướng trang
+ * 2. Phản hồi AJAX khi khách đặt lịch thành công ngay trên form checkout
+ *
+ * @param string $code Mã đặt lịch (4 số)
+ * @return string Mã HTML hoàn chỉnh
+ */
+function memora_render_thankyou_html( $code = '' ) {
     $booking = null;
     if ( ! empty( $code ) ) {
         $posts = get_posts( array(
@@ -353,6 +359,12 @@ function memora_shortcode_thankyou_booking( $atts ) {
     </div>
     <?php
     return ob_get_clean();
+}
+
+add_shortcode( 'thankyou_booking', 'memora_shortcode_thankyou_booking' );
+function memora_shortcode_thankyou_booking( $atts ) {
+    $code = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '';
+    return memora_render_thankyou_html( $code );
 }
 //====================================
 // END - SHORTCODE 6: [thankyou_booking]

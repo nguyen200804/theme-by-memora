@@ -380,9 +380,13 @@
                         if (thankyouUrl) {
                             var redirectUrl = thankyouUrl + (thankyouUrl.indexOf('?') !== -1 ? '&' : '?') + 'code=' + bookingData.booking_code;
                             window.location.href = redirectUrl;
-                        } else {
-                            // Hiển thị trực tiếp trang Thank You trên trang hiện tại
-                            renderThankYouView(bookingData);
+                        } else if (response.data && response.data.html) {
+                            // Hiển thị trực tiếp trang Thank You từ HTML của máy chủ PHP trả về (Single Source of Truth)
+                            var $checkout = $('.memora-checkout-wrap').closest('.memora-booking-container');
+                            if ($checkout.length) {
+                                $checkout.replaceWith(response.data.html);
+                                $('html, body').animate({ scrollTop: 0 }, 500);
+                            }
                         }
                     } else {
                         var errMsg = (response.data && response.data.message) ? response.data.message : 'Có lỗi xảy ra, vui lòng thử lại!';
@@ -397,82 +401,6 @@
                 }
             });
         });
-
-        // Hàm render giao diện thành công nếu không cấu hình redirect URL riêng
-        function renderThankYouView(data) {
-            var html = `
-            <div class="memora-booking-container memora-thankyou-wrap">
-                <div class="memora-header">
-                    <div class="memora-header-content">
-                        <h2 class="memora-thankyou-title">Thank You!</h2>
-                        <div class="memora-thankyou-subtitle">Thanh Toán Thành Công </div>
-                    </div>
-                    <img src="/wp-content/uploads/2026/09/all-star.png">
-                </div>
-
-                <div class="memora-success-icon-wrap">
-                    <div class="memora-success-check-circle">
-                        <img src="/wp-content/uploads/2026/09/checked.png">
-                    </div>
-                </div>
-
-                <div class="memora-banner-pill">Thông tin đặt lịch của bạn:</div>
-
-                <div class="memora-info-3cols">
-                    <div class="memora-info-col">
-                        <div class="memora-info-label">Ngày</div>
-                        <div class="memora-info-box">${data.date}</div>
-                    </div>
-                    <div class="memora-info-col">
-                        <div class="memora-info-label">Giờ</div>
-                        <div class="memora-info-box">${data.time}</div>
-                    </div>
-                    <div class="memora-info-col">
-                        <div class="memora-info-label">Gói chụp</div>
-                        <div class="memora-info-box">${data.package_name}</div>
-                    </div>
-                </div>
-
-                <div class="memora-code-section">
-                    <div class="memora-code-label-row">
-                        <span class="memora-code-label">Code :</span>
-                    </div>
-                    <div class="memora-code-brown-card">
-                        <span class="memora-code-yellow-badge">random 4 số</span>
-                        <div class="memora-code-digits">${data.booking_code}</div>
-                    </div>
-                    <div class="memora-code-notice">**Quý khách vui lòng lưu lại code chụp để tra cứu</div>
-                </div>
-
-                <div class="memora-note-card">
-                    <div class="memora-note-tag"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#91c8f4"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span>Note</span></div>
-                    <p class="memora-note-p1">
-                        Một lưu ý nhỏ là bạn iu hãy <strong>đến sớm trước 15 phút</strong> so với lịch đã đặt để có thời gian chỉnh lại Makeup và chọn phụ kiện xinh nhaaa
-                    </p>
-                    <div class="memora-note-cursive">See you at Memora!</div>
-                    <p class="memora-note-p2">
-                        Memora cảm ơn và hẹn gặp bạn iu, <strong>nếu có câu hỏi hoặc thắc mắc nào</strong>, đừng ngại liên hệ chúng tớ qua <strong>IG : Memora.film</strong> nhé
-                    </p>
-                </div>
-
-                <div class="memora-home-btn-wrap">
-                    <a href="/" class="memora-home-btn">
-                        <span class="memora-home-icon"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" zoomAndPan="magnify" viewBox="0 0 21.75 19.5" preserveAspectRatio="xMidYMid meet" version="1.0"><defs><clipPath id="1b4a3eb4e0"><path d="M 0.148438 0 L 21.355469 0 L 21.355469 18.28125 L 0.148438 18.28125 Z M 0.148438 0 " clip-rule="nonzero"/></clipPath></defs><g clip-path="url(#1b4a3eb4e0)"><path fill="#bbd6ec" d="M 10.648438 0 C 4.835938 0 0.148438 4.683594 0.148438 10.5 C 0.148438 16.316406 4.835938 21 10.648438 21 C 16.464844 21 21.152344 16.316406 21.152344 10.5 C 21.152344 4.683594 16.464844 0 10.648438 0 Z M 10.648438 0 " fill-opacity="1" fill-rule="nonzero"/></g><path fill="#ffffff" d="M 16.304688 10.460938 L 10.648438 5.492188 L 5.035156 10.460938 L 5.035156 17.566406 C 5.035156 17.769531 5.199219 17.890625 5.359375 17.890625 L 8.875 17.890625 L 8.875 14.78125 C 8.875 14.578125 9.035156 14.457031 9.195312 14.457031 L 12.105469 14.457031 C 12.304688 14.457031 12.425781 14.621094 12.425781 14.78125 L 12.425781 17.890625 L 15.941406 17.890625 C 16.144531 17.890625 16.265625 17.730469 16.265625 17.566406 Z M 16.304688 10.460938 " fill-opacity="1" fill-rule="nonzero"/><path fill="#ffffff" d="M 16.304688 7.714844 L 16.304688 4.847656 L 14.246094 4.847656 L 14.285156 5.9375 L 10.691406 2.746094 L 10.648438 2.785156 L 10.609375 2.746094 L 2.652344 9.855469 L 3.460938 10.78125 L 10.648438 4.441406 L 17.839844 10.78125 L 18.6875 9.855469 Z M 16.304688 7.714844 " fill-opacity="1" fill-rule="nonzero"/></svg></span> 
-                        <span class="memora-home-text">Quay về trang chủ</span>
-                    </a>
-                </div>
-
-                <div class="memora-footer-text-wrap">
-                    <p class="memora-footer-text">memora.film</p>
-                </div>
-            </div>`;
-
-            var $checkout = $('.memora-checkout-wrap').closest('.memora-booking-container');
-            if ($checkout.length) {
-                $checkout.replaceWith(html);
-                $('html, body').animate({ scrollTop: 0 }, 500);
-            }
-        }
 
         // =========================================================================
         // 6. XỬ LÝ TRA CỨU ĐƠN LỊCH ĐẶT [lookup_booking] (Ảnh 4)

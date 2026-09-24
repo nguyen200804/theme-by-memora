@@ -145,6 +145,9 @@ function memora_ajax_submit_booking() {
     update_post_meta( $booking_id, '_booking_status', 'deposit_paid' );
     update_post_meta( $booking_id, '_booking_created_at', current_time( 'mysql' ) );
 
+    // Tạo sẵn mã HTML giao diện Thank You từ PHP dùng chung
+    $thankyou_html = function_exists( 'memora_render_thankyou_html' ) ? memora_render_thankyou_html( $code ) : '';
+
     // Trả về dữ liệu thành công
     wp_send_json_success( array(
         'booking_id'   => $booking_id,
@@ -154,6 +157,7 @@ function memora_ajax_submit_booking() {
         'package_name' => $pkg_name,
         'total_price'  => memora_format_price( $total_price ),
         'deposit_price'=> memora_format_price( $deposit_price ),
+        'html'         => $thankyou_html,
     ) );
 }
 //====================================

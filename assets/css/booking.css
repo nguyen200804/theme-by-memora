@@ -230,18 +230,17 @@
    4. SHORTCODE [confirm_booking] (Khớp 100% Ảnh 1)
    ========================================================================== */
 .memora-confirm-wrapper {
-    max-width: 680px;
+    font-size: 4px;
     margin: 0 auto;
-    padding: 18px 12px;
     box-sizing: border-box;
     text-align: center;
 }
 
 .memora-confirm-card {
     background: #eaf2f8;
-    border: 1.5px solid #cfe2f0;
-    border-radius: 28px;
-    padding: 26px 26px 28px 26px;
+    border: 1em solid #cfe2f0;
+    border-radius: 10em;
+    padding: 6em 10em;
     text-align: center;
     position: relative;
     box-sizing: border-box;
