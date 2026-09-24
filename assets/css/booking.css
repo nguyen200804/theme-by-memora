@@ -629,6 +629,8 @@
     padding: 15px 0;
     text-align: center;
     font-size: 4px;
+    width: 278em;
+    margin: 0 auto;
 }
 
 .memora-thankyou-title {
@@ -651,12 +653,12 @@
 .memora-success-icon-wrap {
     display: flex;
     justify-content: center;
-    margin-bottom: 24px;
+    margin-bottom: 8em;
 }
 
 .memora-success-check-circle {
-    width: 90px;
-    height: 90px;
+    width: 95em;
+    height: 95em;
     background: var(--memora-blue-light);
     border-radius: 50%;
     display: flex;
@@ -677,9 +679,9 @@
 .memora-banner-pill {
     background: var(--memora-blue-light);
     border-radius: 30px;
-    padding: 8px 24px;
+    padding: 0.3em 0.7em;
     display: inline-block;
-    font-size: 16px;
+    font-size: 9.5em;
     font-weight: 700;
     color: var(--memora-brown-text);
     margin-bottom: 22px;
@@ -689,7 +691,8 @@
     display: flex;
     justify-content: space-between;
     gap: 8px;
-    margin-bottom: 24px;
+    margin-bottom: 23em;
+    margin-top: 38em;
 }
 
 .memora-info-col {
@@ -699,20 +702,21 @@
 }
 
 .memora-info-label {
-    font-family: var(--memora-font-serif);
-    font-size: 15px;
+    font-family: 'Montserrat';
+    font-size: 10.8em;
     color: var(--memora-brown-text);
-    margin-bottom: 6px;
+    margin-bottom: 0;
+    text-align: left;
 }
 
 .memora-info-box {
     background: var(--memora-blue-light);
-    border: 1px solid var(--memora-blue-border);
-    border-radius: 12px;
-    padding: 10px 4px;
-    font-size: 16px;
+    border: 0.1em solid #6f381e;
+    border-radius: 0.725em;
+    padding: 1em 0;
+    font-size: 9.8em;
     font-weight: 700;
-    color: var(--memora-brown-text);
+    color: #6f381e;
 }
 
 /* KHỐI RANDOM 4 SỐ */
@@ -724,14 +728,14 @@
 .memora-code-label-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
-    padding-left: 4px;
+    /* gap: 8px; */
+    /* margin-bottom: 6px; */
+    /* padding-left: 4px; */
 }
 
 .memora-code-label {
-    font-family: var(--memora-font-serif);
-    font-size: 17px;
+    font-family: 'Montserrat';
+    font-size: 10.8em;
     color: var(--memora-brown-text);
 }
 
@@ -746,37 +750,37 @@
 
 .memora-code-brown-card {
     background: var(--memora-brown-card);
-    border-radius: 20px;
-    padding: 16px 0;
+    border-radius: 12em;
+    padding: 10em;
     text-align: center;
     box-shadow: 0 4px 12px rgba(115, 62, 28, 0.2);
 }
 
 .memora-code-digits {
-    font-size: 46px;
+    font-size: 31em;
     font-weight: 700;
     color: #ffffff;
-    letter-spacing: 4px;
+    /* letter-spacing: 4px; */
     line-height: 1;
 }
 
 .memora-code-notice {
-    font-size: 12px;
+    font-size: 7.2em;
     color: var(--memora-brown-text);
     font-weight: 600;
     text-align: center;
-    margin-top: 8px;
+    margin-top: 0.8em;
 }
 
 /* THẺ LƯU Ý / NOTE CARD */
 .memora-note-card {
     background: #ffffff;
-    border: 1.5px solid var(--memora-brown);
-    border-radius: 18px;
-    padding: 24px 18px 20px 18px;
+    border: 1em solid var(--memora-brown);
+    border-radius: 12em;
+    padding: 12em;
     position: relative;
-    margin-top: 26px;
-    margin-bottom: 26px;
+    margin-top: 28em;
+    margin-bottom: 31em;
     text-align: center;
 }
 
@@ -794,25 +798,29 @@
 }
 
 .memora-note-p1 {
-    font-size: 13px;
+    font-size: 7.5em;
     color: #333333;
     line-height: 1.5;
     margin: 0 0 14px 0;
+    width: 24em;
+    margin: 0 auto;
 }
 
 .memora-note-cursive {
     font-family: var(--memora-font-serif);
-    font-size: 22px;
+    font-size: 17em;
     font-style: italic;
     color: var(--memora-brown);
     margin: 0 0 14px 0;
 }
 
 .memora-note-p2 {
-    font-size: 12px;
+    font-size: 7.6em;
     color: #444444;
-    line-height: 1.5;
+    line-height: 1.3;
     margin: 0;
+    width: 23em;
+    margin: 0 auto;
 }
 
 /* NÚT QUAY VỀ TRANG CHỦ */
