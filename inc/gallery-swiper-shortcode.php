@@ -146,13 +146,11 @@ function memora_gallery_swiper_shortcode( $atts ) {
             position: relative;
             width: 100%;
             overflow: hidden;
-            border-radius: 12px;
         }
 
         /* ===== Swiper container ===== */
         #<?php echo esc_attr( $uid ); ?>.memora-gallery-swiper {
             width: 100%;
-            height: 100%;
         }
 
         /* ===== Slides ===== */
