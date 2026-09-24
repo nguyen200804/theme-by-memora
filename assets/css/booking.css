@@ -256,7 +256,7 @@
     align-items: center;
     justify-content: center;
     color: #a2c7e2;
-    font-size: 28px;
+    font-size: 40em;
     line-height: 1;
     z-index: 2;
     pointer-events: none;
@@ -273,7 +273,7 @@
 
 .memora-confirm-title {
     font-family: var(--memora-font-serif);
-    font-size: 28px;
+    font-size: 11.5em;
     font-weight: 700;
     color: #5c3520;
     margin: 4px 0 2px 0;
@@ -282,7 +282,7 @@
 
 .memora-confirm-subtitle {
     font-family: var(--memora-font-serif);
-    font-size: 16px;
+    font-size: 7.8em;
     color: #8f6952;
     font-style: italic;
     font-weight: 400;
@@ -294,7 +294,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 18px;
+    gap: 11em;
     margin: 0;
 }
 
@@ -302,13 +302,13 @@
     background: #fffaf4;
     border: 2.5px solid #5c3520;
     border-radius: 9999px;
-    padding: 10px 16px;
+    padding: 0.4em;
     font-family: var(--memora-font-sans);
-    font-size: 30px;
+    font-size: 11em;
     font-weight: 700;
     color: #5c3520;
     text-align: center;
-    height: 68px;
+    /* height: 68px; */
     box-sizing: border-box;
     display: flex;
     align-items: center;
@@ -316,7 +316,7 @@
     flex: 1;
     min-width: 0;
     line-height: 1;
-    letter-spacing: 0.5px;
+    /* letter-spacing: 0.5px; */
     box-shadow: none;
 }
 
@@ -327,7 +327,7 @@
 }
 
 .memora-confirm-action {
-    margin-top: 28px;
+    margin-top: 20em;
     text-align: center;
 }
 
@@ -336,9 +336,9 @@
     color: #ffffff;
     border: none;
     border-radius: 9999px;
-    padding: 13px 44px;
+    padding: 0.5em 1em;
     font-family: var(--memora-font-serif);
-    font-size: 19px;
+    font-size: 11em;
     font-weight: 700;
     letter-spacing: 1.5px;
     cursor: pointer;
