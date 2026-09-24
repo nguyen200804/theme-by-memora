@@ -460,12 +460,12 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             position: relative;
         }
 
-        /* Khung ảnh poster 1:1 có bo tròn */
+        /* Khung ảnh poster 1:1 không bo góc */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster {
             width: 100%;
             max-width: 100%;
             aspect-ratio: 1 / 1;
-            border-radius: 18px;
+            border-radius: 0;
             overflow: hidden;
             background-color: #f7f3ef;
             position: relative;
@@ -631,13 +631,13 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             box-shadow: 0 6px 16px rgba(115, 62, 28, 0.32);
         }
 
-        /* Cột slider bên phải */
+        /* Cột slider bên phải không bo góc */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-slider-wrap {
             flex: 1 1 0;
             min-width: 0;
             max-width: 100%;
             aspect-ratio: 16 / 9.5;
-            border-radius: 18px;
+            border-radius: 0;
             overflow: hidden;
             background-color: #f7f3ef;
             box-shadow: 0 4px 18px rgba(115, 62, 28, 0.08);
