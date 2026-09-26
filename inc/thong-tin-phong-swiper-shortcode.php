@@ -53,8 +53,8 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
     if ( function_exists( 'memora_resolve_gallery_post_id' ) ) {
         $post_id = memora_resolve_gallery_post_id( $atts['post_id'], $repeater_candidates );
     } else {
-        $post_id = ! empty( $atts['post_id'] ) ? (int) $atts['post_id'] : get_queried_object_id();
-        if ( ! $post_id ) $post_id = get_the_ID();
+        $post_id = ! empty( $atts['post_id'] ) ? (int) $atts['post_id'] : get_the_ID();
+        if ( ! $post_id ) $post_id = get_queried_object_id();
     }
 
     // Nếu đang trong Elementor Template editor của phong-chup-anh, tự động tìm bài mẫu

@@ -10,3 +10,9 @@ Version: 3.5.1.1789614758
 Updated: 2026-09-17 03:12:38
 
 */
+
+
+.hn__danh-sach-co-so [data-elementor-type="loop-item"] {
+    max-width: 600px !important;
+    width: 100%;
+}

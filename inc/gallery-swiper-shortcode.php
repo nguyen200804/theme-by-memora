@@ -31,7 +31,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 if ( ! function_exists( 'memora_resolve_gallery_post_id' ) ) {
     function memora_resolve_gallery_post_id( $post_id = 0, $field_candidates = [] ) {
         // 1. Nếu shortcode được truyền post_id cụ thể (VD: post_id="267")
-        if ( ! empty( $post_id ) ) {
+        if ( ! empty( $post_id ) && is_numeric( trim( $post_id ) ) && (int) $post_id > 0 ) {
             return (int) $post_id;
         }
 
@@ -42,29 +42,41 @@ if ( ! function_exists( 'memora_resolve_gallery_post_id' ) ) {
             ( isset( $_GET['action'] ) && $_GET['action'] === 'elementor' )
         );
 
-        // 2. NẾU ĐANG Ở FRONTEND (Xem trang chi tiết post-type=dia-chi ngoài website):
-        // get_queried_object_id() luôn là ID chuẩn xác của bài viết đang xem trong URL!
-        if ( ! $is_elementor_editor ) {
+        $target_id = 0;
+
+        // 2. LẤY POST HIỆN TẠI TỪ VÒNG LẶP / BÀI VIẾT (Elementor Loop Item / Loop Grid / The Loop)
+        // Ưu tiên get_the_ID() và $post->ID để mỗi card trong Loop Item nhận đúng ID của từng item!
+        // KHÔNG dùng get_queried_object_id() trước, vì trong Loop Grid get_queried_object_id() luôn trả về ID của trang chứa loop (trang đang truy cập) thay vì từng card item.
+        $the_id = get_the_ID();
+        if ( ! $the_id ) {
+            global $post;
+            if ( ! empty( $post->ID ) ) {
+                $the_id = (int) $post->ID;
+            }
+        }
+
+        // Nếu $the_id hợp lệ và không phải là template thư viện Elementor
+        if ( $the_id > 0 && get_post_type( $the_id ) !== 'elementor_library' ) {
+            // Khi ở ngoài Frontend: $the_id chính là bài viết hiện tại (trong Loop Grid hoặc trang chi tiết)
+            if ( ! $is_elementor_editor ) {
+                return (int) $the_id;
+            }
+            // Nếu đang trong Editor nhưng là item thực tế của loop:
+            $target_id = (int) $the_id;
+        }
+
+        // 3. NẾU ĐANG Ở FRONTEND MÀ CHƯA CÓ TARGET_ID (ví dụ ngoài loop trên trang chi tiết):
+        if ( ! $is_elementor_editor && ! $target_id ) {
             $q_id = get_queried_object_id();
             if ( $q_id > 0 && get_post_type( $q_id ) !== 'elementor_library' ) {
                 return (int) $q_id;
             }
-
-            global $post;
-            if ( ! empty( $post->ID ) && get_post_type( $post->ID ) !== 'elementor_library' ) {
-                return (int) $post->ID;
-            }
-
-            $the_id = get_the_ID();
-            if ( $the_id > 0 && get_post_type( $the_id ) !== 'elementor_library' ) {
-                return (int) $the_id;
-            }
         }
 
-        // 3. NẾU ĐANG Ở TRONG ELEMENTOR EDITOR / THEME BUILDER PREVIEW:
-        $target_id = 0;
-        if ( class_exists( '\Elementor\Plugin' ) ) {
-            if ( class_exists( '\ElementorPro\Modules\ThemeBuilder\Module' ) ) {
+        // 4. NẾU ĐANG Ở TRONG ELEMENTOR EDITOR / THEME BUILDER PREVIEW:
+        if ( $is_elementor_editor ) {
+            // 4.1. Theme Builder Preview
+            if ( ! $target_id && class_exists( '\ElementorPro\Modules\ThemeBuilder\Module' ) ) {
                 try {
                     $tb_preview = \ElementorPro\Modules\ThemeBuilder\Module::instance()->get_preview();
                     if ( $tb_preview && method_exists( $tb_preview, 'get_preview_id' ) ) {
@@ -76,6 +88,7 @@ if ( ! function_exists( 'memora_resolve_gallery_post_id' ) ) {
                 } catch ( \Throwable $e ) {}
             }
 
+            // 4.2. Document Preview (Loop Item / Single template preview settings)
             if ( ! $target_id && isset( \Elementor\Plugin::$instance->documents ) ) {
                 $doc = \Elementor\Plugin::$instance->documents->get_current();
                 if ( $doc ) {
@@ -85,41 +98,41 @@ if ( ! function_exists( 'memora_resolve_gallery_post_id' ) ) {
                     }
                 }
             }
-        }
 
-        if ( ! $target_id ) {
-            $q_id = get_queried_object_id();
-            if ( $q_id > 0 && get_post_type( $q_id ) !== 'elementor_library' ) {
-                $target_id = $q_id;
+            // 4.3. get_queried_object_id()
+            if ( ! $target_id ) {
+                $q_id = get_queried_object_id();
+                if ( $q_id > 0 && get_post_type( $q_id ) !== 'elementor_library' ) {
+                    $target_id = $q_id;
+                }
             }
-        }
 
-        if ( ! $target_id ) {
-            $the_id = get_the_ID();
-            if ( $the_id > 0 && get_post_type( $the_id ) !== 'elementor_library' ) {
-                $target_id = $the_id;
-            }
-        }
+            // 4.4. Fallback khi ở trong Elementor editor và chưa chọn Preview:
+            // Quét danh sách bài viết 'dia-chi' có chứa ảnh để hiển thị mẫu trực quan
+            if ( ! $target_id || get_post_type( $target_id ) === 'elementor_library' ) {
+                $candidate_post_types = [ 'dia-chi', 'phong-chup-anh', 'post' ];
+                foreach ( $candidate_post_types as $cpt ) {
+                    $sample_posts = get_posts( [
+                        'post_type'      => $cpt,
+                        'posts_per_page' => 5,
+                        'post_status'    => 'publish',
+                        'fields'         => 'ids',
+                    ] );
 
-        // 4. Fallback khi ở trong Elementor editor và chưa chọn Preview:
-        // Quét danh sách bài viết 'dia-chi' có chứa ảnh để hiển thị mẫu trực quan
-        if ( ! $target_id || get_post_type( $target_id ) === 'elementor_library' ) {
-            $dia_chi_posts = get_posts( [
-                'post_type'      => 'dia-chi',
-                'posts_per_page' => 10,
-                'post_status'    => 'publish',
-                'fields'         => 'ids',
-            ] );
-
-            if ( ! empty( $dia_chi_posts ) ) {
-                $target_id = (int) $dia_chi_posts[0];
-                foreach ( $dia_chi_posts as $p_id ) {
-                    if ( ! empty( $field_candidates ) && function_exists( 'get_field' ) ) {
-                        foreach ( $field_candidates as $fc ) {
-                            if ( ! empty( get_field( $fc, $p_id ) ) ) {
-                                $target_id = (int) $p_id;
-                                break 2;
+                    if ( ! empty( $sample_posts ) ) {
+                        foreach ( $sample_posts as $p_id ) {
+                            if ( ! empty( $field_candidates ) && function_exists( 'get_field' ) ) {
+                                foreach ( $field_candidates as $fc ) {
+                                    if ( ! empty( get_field( $fc, $p_id ) ) ) {
+                                        $target_id = (int) $p_id;
+                                        break 3;
+                                    }
+                                }
                             }
+                        }
+                        if ( ! $target_id ) {
+                            $target_id = (int) $sample_posts[0];
+                            break;
                         }
                     }
                 }
