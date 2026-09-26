@@ -461,7 +461,7 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?>-wrap .memora-ttp-wysiwyg p {
             margin: 0 0 10px 0;
             color: #733e1c;
-            font-size: 15px;
+            font-size: 10px;
             line-height: 1.65;
         }
 
