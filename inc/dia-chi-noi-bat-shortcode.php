@@ -16,6 +16,71 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+/* ------------------------------------------------------------------
+   0. Helper lấy ID bài viết dia-chi mới nhất / nổi bật
+------------------------------------------------------------------ */
+if ( ! function_exists( 'memora_get_featured_dia_chi_id' ) ) {
+    function memora_get_featured_dia_chi_id() {
+        static $featured_id = null;
+        if ( $featured_id !== null ) {
+            return $featured_id;
+        }
+
+        // 1. Nếu đã được set trong runtime
+        if ( ! empty( $GLOBALS['memora_featured_dia_chi_id'] ) ) {
+            $featured_id = (int) $GLOBALS['memora_featured_dia_chi_id'];
+            return $featured_id;
+        }
+
+        // 2. Mặc định: Lấy bài viết post_type=dia-chi MỚI NHẤT
+        $posts = get_posts( [
+            'post_type'        => 'dia-chi',
+            'posts_per_page'   => 1,
+            'post_status'      => 'publish',
+            'orderby'          => 'date',
+            'order'            => 'DESC',
+            'fields'           => 'ids',
+            'suppress_filters' => true,
+        ] );
+
+        $featured_id = ! empty( $posts ) ? (int) $posts[0] : 0;
+        $GLOBALS['memora_featured_dia_chi_id'] = $featured_id;
+        return $featured_id;
+    }
+}
+
+/* ------------------------------------------------------------------
+   1. Đăng ký Query ID cho Elementor Loop Grid: cacDiaChiKhac
+   Lấy các bài viết post_type=dia-chi và bỏ qua bài viết mới nhất
+------------------------------------------------------------------ */
+function memora_elementor_query_cac_dia_chi_khac( $query ) {
+    // Đảm bảo lấy đúng post_type 'dia-chi'
+    $query->set( 'post_type', 'dia-chi' );
+
+    // Lấy ID bài viết mới nhất (được hiển thị ở [dia_chi_noi_bat]) để bỏ qua
+    $latest_id = function_exists( 'memora_get_featured_dia_chi_id' )
+        ? memora_get_featured_dia_chi_id()
+        : 0;
+
+    if ( $latest_id > 0 ) {
+        $post_not_in = (array) $query->get( 'post__not_in' );
+        $post_not_in[] = $latest_id;
+        $query->set( 'post__not_in', array_values( array_unique( array_filter( $post_not_in ) ) ) );
+    }
+
+    // Mặc định sắp xếp theo ngày mới nhất nếu chưa chọn
+    if ( ! $query->get( 'orderby' ) ) {
+        $query->set( 'orderby', 'date' );
+        $query->set( 'order', 'DESC' );
+    }
+}
+add_action( 'elementor/query/cacDiaChiKhac', 'memora_elementor_query_cac_dia_chi_khac', 10, 2 );
+add_action( 'elementor/query/cac_dia_chi_khac', 'memora_elementor_query_cac_dia_chi_khac', 10, 2 );
+add_action( 'elementor/query/cacdiachikhac', 'memora_elementor_query_cac_dia_chi_khac', 10, 2 );
+
+/* ------------------------------------------------------------------
+   2. Shortcode [dia_chi_noi_bat] – Mặc định lấy bài viết dia-chi mới nhất
+------------------------------------------------------------------ */
 add_shortcode( 'dia_chi_noi_bat', 'memora_dia_chi_noi_bat_shortcode' );
 
 function memora_dia_chi_noi_bat_shortcode( $atts ) {
@@ -26,34 +91,47 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         'speed'    => 600,
     ], $atts, 'dia_chi_noi_bat' );
 
-    if ( ! function_exists( 'get_field' ) ) {
-        return '<p style="color:red;">[dia_chi_noi_bat] Plugin ACF chua duoc kich hoat.</p>';
-    }
     if ( ! function_exists( 'memora_gallery_swiper_shortcode' ) ) {
-        return '<p style="color:red;">[dia_chi_noi_bat] Thieu file gallery-swiper-shortcode.php.</p>';
+        return '<p style="color:red;">[dia_chi_noi_bat] Thiếu file gallery-swiper-shortcode.php.</p>';
     }
 
-    // Luon bao dam assets duoc nạp
+    // Luôn bảo đảm assets được nạp
     if ( function_exists( 'memora_gallery_swiper_assets' ) ) {
         memora_gallery_swiper_assets();
     }
 
-    /* -- Nguon lay field -- */
-    if ( $atts['post_id'] === 'option' || $atts['post_id'] === 'options' ) {
-        $source_id = 'option';
-    } elseif ( ! empty( $atts['post_id'] ) ) {
-        $source_id = (int) $atts['post_id'];
+    /* -- Xác định ID bài viết dia-chi (Ưu tiên bài viết mới nhất) -- */
+    $dc_id = 0;
+
+    if ( ! empty( $atts['post_id'] ) && is_numeric( $atts['post_id'] ) ) {
+        $dc_id = (int) $atts['post_id'];
+    } elseif ( $atts['post_id'] === 'option' || $atts['post_id'] === 'options' ) {
+        if ( function_exists( 'get_field' ) ) {
+            $opt_post = get_field( 'dia_chi_co_so_noi_bat', 'option' );
+            if ( ! empty( $opt_post ) ) {
+                $dc_id = is_object( $opt_post ) ? (int) $opt_post->ID : (int) $opt_post;
+            }
+        }
     } else {
-        $source_id = get_the_ID();
+        // Kiểm tra ACF field trên trang hiện tại nếu có
+        if ( function_exists( 'get_field' ) && get_the_ID() ) {
+            $cur_post = get_field( 'dia_chi_co_so_noi_bat', get_the_ID() );
+            if ( ! empty( $cur_post ) ) {
+                $dc_id = is_object( $cur_post ) ? (int) $cur_post->ID : (int) $cur_post;
+            }
+        }
     }
 
-    /* -- Lay Post Object tu ACF -- */
-    $dia_chi_post = get_field( 'dia_chi_co_so_noi_bat', $source_id );
-    if ( empty( $dia_chi_post ) ) {
-        return '<p style="color:red;">[dia_chi_noi_bat] Chua co dia chi noi bat duoc chon.</p>';
+    // MẶC ĐỊNH: Lấy bài viết post_type=dia-chi MỚI NHẤT
+    if ( ! $dc_id && function_exists( 'memora_get_featured_dia_chi_id' ) ) {
+        $dc_id = memora_get_featured_dia_chi_id();
     }
 
-    $dc_id    = is_object( $dia_chi_post ) ? $dia_chi_post->ID : (int) $dia_chi_post;
+    if ( ! $dc_id ) {
+        return '<p style="color:#d9534f; font-size:14px; padding:10px 14px; background:#fff2f2; border:1px solid #fecaca; border-radius:4px;">[dia_chi_noi_bat] Không tìm thấy bài viết nào thuộc post type <code>dia-chi</code>.</p>';
+    }
+
+    $GLOBALS['memora_featured_dia_chi_id'] = $dc_id;
     $dc_title = get_the_title( $dc_id );
 
     /* -- Featured image (thumbnail trai) -- */
