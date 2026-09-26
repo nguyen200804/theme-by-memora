@@ -246,7 +246,7 @@ function memora_contact_button_scripts_styles() {
         background-color: #fbf7f4 !important;
         color: #733e1c !important;
         font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif !important;
-        font-size: 27px !important;
+        font-size: 15px !important;
         font-weight: 700 !important;
         letter-spacing: 0.2px;
         border-radius: 9999px !important;
