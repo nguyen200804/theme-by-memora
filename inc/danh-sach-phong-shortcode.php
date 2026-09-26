@@ -457,7 +457,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: #733e1c;
             box-sizing: border-box;
-            font-size: 4px;
+            font-size: 2px;
         }
 
         #<?php echo esc_attr( $uid ); ?> * {
