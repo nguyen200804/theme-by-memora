@@ -478,7 +478,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         }
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-room-num--large {
             font-size: 10em;
-            margin-bottom: 6px;
+            margin-bottom: 0.15em;
         }
 
         /* -------------------------------------------
@@ -618,15 +618,15 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-badge {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 0.385em;
             background: linear-gradient(135deg, #eaf4fb 0%, #edf6fc 100%);
             border: 1px solid #c7e3f5;
             color: #3f88b5;
-            padding: 5px 15px;
+            padding: 0.385em 1.154em;
             border-radius: 9999px;
             font-size: 3.25em;
             font-weight: 700;
-            margin-bottom: 12px;
+            margin-bottom: 0.923em;
             box-shadow: 0 2px 8px rgba(63, 136, 181, 0.12);
         }
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-badge-star {
@@ -636,7 +636,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
         /* Tiêu đề phòng lớn */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-title {
-            margin: 0 0 8px 0;
+            margin: 0 0 0.364em 0;
             font-size: 5.5em;
             font-weight: 700;
             line-height: 1.3;
@@ -652,11 +652,11 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
         /* Đoạn miêu tả concept */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-desc {
-            margin: 0 0 20px 0;
+            margin: 0 0 1.429em 0;
             font-size: 3.5em;
             line-height: 1.55;
             color: #7a6a5f;
-            max-width: 280px;
+            max-width: 20em;
         }
 
         /* Nút "Tìm hiểu thêm" viên thuốc màu nâu */
@@ -666,7 +666,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             justify-content: center;
             background-color: #733e1c;
             color: #ffffff !important;
-            padding: 9px 24px;
+            padding: 0.643em 1.714em;
             border-radius: 9999px;
             font-size: 3.5em;
             font-weight: 600;
