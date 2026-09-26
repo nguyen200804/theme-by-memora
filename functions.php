@@ -78,11 +78,11 @@ function tocfl_force_desktop_viewport( $html ) {
     // Remove all existing viewport meta tags to avoid duplicates or overrides
     $html = preg_replace( '/<meta\s+name=["\']viewport["\'][^>]*>/i', '', $html );
     
-    $target_width = 1200;
+    $target_width = 600;
     if ( isset( $_SERVER['REQUEST_URI'] ) ) {
         $path = strtok( $_SERVER['REQUEST_URI'], '?' );
         if ( preg_match( '#^/paper_download/?$#', $path ) ) {
-            $target_width = 980;
+            $target_width = 600;
         }
     }
     
