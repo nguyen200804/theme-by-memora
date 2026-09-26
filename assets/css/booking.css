@@ -46,37 +46,38 @@
     /* border: 1.5px solid var(--memora-blue-border); */
     /* padding: 18px; */
     text-align: center;
+    font-size: 2px;
 }
 
 .memora-step-title {
     font-family: var(--memora-font-serif);
-    font-size: 20px;
+    font-size: 5em;
     font-weight: 700;
     color: var(--memora-brown);
-    margin: 0 0 4px 0;
+    margin: 0 0 0.2em 0;
 }
 
 .memora-step-subtitle {
-    font-size: 13px;
+    font-size: 3.25em;
     color: #888;
-    margin: 0 0 14px 0;
+    margin: 0 0 1.077em 0;
     font-style: italic;
 }
 
 .memora-date-inputs {
     display: flex;
     justify-content: center;
-    gap: 60px;
+    gap: 15em;
 }
 
 .memora-date-input {
     background-color: #fff9f3;
-    border: 3px solid #733e1c !important;
+    border: 0.0625em solid #733e1c !important;
     border-radius: 2000px !important;
     color: #764525 !important;
     outline: 0 !important;
-    font-size: 48px;
-    padding: 20px 40px !important;
+    font-size: 12em;
+    padding: 0.417em 0.833em !important;
 }
 
 .memora-date-field {
@@ -87,21 +88,21 @@
 }
 
 .memora-date-field label {
-    font-size: 12px;
+    font-size: 3em;
     font-weight: 600;
     color: var(--memora-brown);
-    margin-bottom: 4px;
+    margin-bottom: 0.333em;
 }
 
 .memora-date-select {
     width: 100%;
-    height: 42px;
+    height: 2.8em;
     background: var(--memora-cream);
     border: 1.5px solid var(--memora-brown);
-    border-radius: 25px;
-    padding: 0 10px;
+    border-radius: 1.667em;
+    padding: 0 0.667em;
     font-family: var(--memora-font-sans);
-    font-size: 15px;
+    font-size: 3.75em;
     font-weight: 700;
     color: var(--memora-brown);
     text-align: center;
@@ -118,26 +119,28 @@
 /* ==========================================================================
    2. SHORTCODE [choose_time]
    ========================================================================== */
-
+.memora-choose-time-wrap {
+    font-size: 2px;
+}
 
 .memora-time-slots-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     justify-content: center;
-    gap: 30px;
-    margin-top: 12px;
-    max-height: 725px;
+    gap: 7.5em;
+    margin-top: 3em;
+    max-height: 181.25em;
     overflow-y: auto;
-    padding: 4px;
+    padding: 1em;
 }
 
 .memora-time-slot-btn {
     background: #bad6ed;
-    border: 4px solid var(--memora-brown);
-    border-radius: 25px;
-    padding: 6px 14px;
+    border: 0.077em solid var(--memora-brown);
+    border-radius: 0.481em;
+    padding: 0.115em 0.269em;
     font-family: 'Montserrat';
-    font-size: 52px;
+    font-size: 13em;
     text-wrap: wrap;
     font-weight: 400;
     color: var(--memora-brown);
@@ -162,7 +165,7 @@
 .memora-time-slot-btn:disabled,
 .memora-time-slot-btn.is-booked {
     background: #dfb0bf !important;
-    border: 4px solid var(--memora-brown) !important;
+    border: 0.077em solid var(--memora-brown) !important;
     color: var(--memora-brown) !important;
     text-decoration: none !important;
     cursor: not-allowed;
@@ -180,24 +183,25 @@
    ========================================================================== */
 .memora-choose-pkg-wrap {
     text-align: center;
+    font-size: 2px;
 }
 
 .memora-pkg-list {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 60px;
+    gap: 15em;
 }
 
 .memora-pkg-card {
     background: #733e1ca3;
-    border: 3px solid #b1d2ed;
-    border-radius: 200px;
-    padding: 12px 18px;
+    border: 0.0625em solid #b1d2ed;
+    border-radius: 4.167em;
+    padding: 0.25em 0.375em;
     display: flex;
     justify-content: center;
     color: #FFF;
     font-weight: 600;
-    font-size: 48px;
+    font-size: 12em;
     align-items: center;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -230,7 +234,7 @@
    4. SHORTCODE [confirm_booking] (Khớp 100% Ảnh 1)
    ========================================================================== */
 .memora-confirm-wrapper {
-    font-size: 4px;
+    font-size: 2px;
     margin: 0 auto;
     box-sizing: border-box;
     text-align: center;
