@@ -457,6 +457,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: #733e1c;
             box-sizing: border-box;
+            font-size: 4px;
         }
 
         #<?php echo esc_attr( $uid ); ?> * {
@@ -469,15 +470,15 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-room-num {
             font-family: 'Playball', cursive, Georgia, serif;
             color: #733e1c;
-            font-size: 26px;
+            font-size: 6.5em;
             line-height: 1.1;
             font-weight: 400;
             display: inline-block;
             letter-spacing: 0.5px;
         }
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-room-num--large {
-            font-size: 40px;
-            margin-bottom: 6px;
+            font-size: 10em;
+            margin-bottom: 1.5em;
         }
 
         /* -------------------------------------------
@@ -486,8 +487,8 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 28px;
-            margin-bottom: 40px;
+            gap: 7em;
+            margin-bottom: 10em;
             width: 100%;
             max-width: 100%;
         }
@@ -567,8 +568,8 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             display: flex;
             align-items: baseline;
             justify-content: center;
-            gap: 10px;
-            margin-top: 14px;
+            gap: 2.5em;
+            margin-top: 3.5em;
             text-decoration: none;
             color: #733e1c;
             transition: opacity 0.2s ease;
@@ -578,7 +579,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-meta .memora-dsp-room-name {
-            font-size: 18px;
+            font-size: 4.5em;
             font-weight: 700;
             color: #733e1c;
         }
@@ -589,7 +590,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-list {
             display: flex;
             flex-direction: column;
-            gap: 36px;
+            gap: 9em;
             width: 100%;
             max-width: 100%;
         }
@@ -597,7 +598,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-card {
             display: flex;
             align-items: center;
-            gap: 40px;
+            gap: 10em;
             width: 100%;
             min-width: 0;
             max-width: 100%;
@@ -617,26 +618,26 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-badge {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 1.25em;
             background: linear-gradient(135deg, #eaf4fb 0%, #edf6fc 100%);
             border: 1px solid #c7e3f5;
             color: #3f88b5;
-            padding: 5px 15px;
+            padding: 1.25em 3.75em;
             border-radius: 9999px;
-            font-size: 13px;
+            font-size: 3.25em;
             font-weight: 700;
-            margin-bottom: 12px;
+            margin-bottom: 3em;
             box-shadow: 0 2px 8px rgba(63, 136, 181, 0.12);
         }
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-badge-star {
-            font-size: 11px;
+            font-size: 2.75em;
             color: #559ec7;
         }
 
         /* Tiêu đề phòng lớn */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-title {
-            margin: 0 0 8px 0;
-            font-size: 22px;
+            margin: 0 0 2em 0;
+            font-size: 5.5em;
             font-weight: 700;
             line-height: 1.3;
         }
@@ -651,11 +652,11 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
         /* Đoạn miêu tả concept */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-desc {
-            margin: 0 0 20px 0;
-            font-size: 14px;
+            margin: 0 0 5em 0;
+            font-size: 3.5em;
             line-height: 1.55;
             color: #7a6a5f;
-            max-width: 280px;
+            max-width: 70em;
         }
 
         /* Nút "Tìm hiểu thêm" viên thuốc màu nâu */
@@ -665,9 +666,9 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             justify-content: center;
             background-color: #733e1c;
             color: #ffffff !important;
-            padding: 9px 24px;
+            padding: 2.25em 6em;
             border-radius: 9999px;
-            font-size: 14px;
+            font-size: 3.5em;
             font-weight: 600;
             text-decoration: none;
             box-shadow: 0 4px 12px rgba(115, 62, 28, 0.22);
@@ -744,7 +745,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
            PAGINATION HÌNH NGÔI SAO MÀU NÂU #733e1c
         ------------------------------------------- */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination {
-            bottom: 12px;
+            bottom: 3em;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -752,11 +753,11 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet {
-            width: 18px;
-            height: 18px;
+            width: 4.5em;
+            height: 4.5em;
             background: transparent !important;
             opacity: 1;
-            margin: 0 3px;
+            margin: 0 0.75em;
             border-radius: 0;
             position: relative;
             cursor: pointer;
@@ -782,22 +783,22 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         ------------------------------------------- */
         @media (max-width: 820px) {
             #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-grid {
-                gap: 18px;
-                margin-bottom: 30px;
+                gap: 4.5em;
+                margin-bottom: 7.5em;
             }
 
             #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-meta .memora-dsp-room-num {
-                font-size: 22px;
+                font-size: 5.5em;
             }
 
             #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-meta .memora-dsp-room-name {
-                font-size: 15px;
+                font-size: 3.75em;
             }
 
             #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-card {
                 flex-direction: column-reverse;
                 align-items: stretch;
-                gap: 20px;
+                gap: 5em;
             }
 
             #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-info {
