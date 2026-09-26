@@ -51,16 +51,7 @@ function memora_menu_header_scripts_styles() {
         --memora-menu-bg: rgba(255, 255, 255, 0.85);
     }
 
-    @media (max-width: 768px) {
-        :root {
-            --memora-menu-font-base: 20px;
-        }
-    }
-    @media (max-width: 480px) {
-        :root {
-            --memora-menu-font-base: 18px;
-        }
-    }
+
 
     /* Container: Định vị relative để card menu con bám chính xác mép phải và trên của nút 3 gạch */
     .memora-menu-header-container {

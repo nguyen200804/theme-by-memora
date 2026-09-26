@@ -368,62 +368,7 @@
     margin-top: 26px;
 }
 
-/* Responsive hiển thị mượt mà trên di động */
-@media (max-width: 640px) {
-    .memora-confirm-wrapper {
-        padding: 12px 8px;
-    }
 
-    .memora-confirm-card {
-        padding: 22px 14px 24px 14px;
-        border-radius: 20px;
-    }
-
-    .memora-confirm-title {
-        font-size: 22px;
-    }
-
-    .memora-confirm-subtitle {
-        font-size: 14px;
-        margin-bottom: 16px;
-    }
-
-    .memora-confirm-pills {
-        gap: 10px;
-    }
-
-    .memora-pill-item {
-        font-size: 20px;
-        height: 52px;
-        border-width: 2px;
-        padding: 6px 8px;
-    }
-
-    .memora-confirm-action {
-        margin-top: 22px;
-    }
-
-    .memora-btn-brown {
-        font-size: 16px;
-        padding: 11px 34px;
-    }
-}
-
-@media (max-width: 420px) {
-    .memora-confirm-title {
-        font-size: 19px;
-    }
-
-    .memora-confirm-pills {
-        gap: 6px;
-    }
-
-    .memora-pill-item {
-        font-size: 16px;
-        height: 46px;
-        padding: 4px 6px;
-    }
-}
 
 /* ==========================================================================
    5. SHORTCODE [checkout_booking] (Khớp 100% Ảnh 2)

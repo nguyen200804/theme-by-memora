@@ -778,52 +778,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             transform: scale(1.3);
         }
 
-        /* -------------------------------------------
-           RESPONSIVE MOBILE & TABLET
-        ------------------------------------------- */
-        @media (max-width: 820px) {
-            #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-grid {
-                gap: 4.5em;
-                margin-bottom: 7.5em;
-            }
 
-            #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-meta .memora-dsp-room-num {
-                font-size: 5.5em;
-            }
-
-            #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-meta .memora-dsp-room-name {
-                font-size: 3.75em;
-            }
-
-            #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-card {
-                flex-direction: column-reverse;
-                align-items: stretch;
-                gap: 5em;
-            }
-
-            #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-info {
-                flex: none;
-                width: 100%;
-                max-width: 100%;
-                align-items: center;
-                text-align: center;
-            }
-
-            #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-desc {
-                max-width: 100%;
-            }
-
-            #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-slider-wrap {
-                width: 100%;
-                aspect-ratio: 16 / 10;
-            }
-        }
-
-        @media (max-width: 540px) {
-            #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-grid {
-                grid-template-columns: minmax(0, 1fr);
-            }
-        }
     </style>
 
     <!-- SCRIPT KHỞI TẠO TẤT CẢ SWIPER SLIDERS -->

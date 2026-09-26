@@ -343,30 +343,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             right: 12px;
         }
 
-        /* === Responsive === */
-        @media (max-width: 768px) {
-            #<?php echo esc_attr( $wrap_uid ); ?>.dcnb-wrap {
-                flex-direction: column;
-                min-height: auto;
-            }
-            #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-info {
-                flex: none;
-                width: 100%;
-                max-width: 100%;
-                flex-direction: column;
-                justify-content: center;
-                padding: 20px 16px;
-            }
-            #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col {
-                flex: none;
-                width: 100%;
-                max-width: 100%;
-            }
-            #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .memora-gallery-swiper-wrap,
-            #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .memora-gallery-swiper {
-                min-height: 220px;
-            }
-        }
+
     </style>
     <?php
     return ob_get_clean();

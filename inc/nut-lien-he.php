@@ -370,28 +370,7 @@ function memora_contact_button_scripts_styles() {
         }
     }
 
-    /* Responsive trên màn hình di động */
-    @media (max-width: 480px) {
-        .memora-contact-widget {
-            bottom: 20px;
-            right: 20px;
-        }
-        .memora-contact-pill {
-            padding: 0.3em 1em !important;
-            font-size: 22px !important;
-        }
-        .memora-contact-circle {
-            width: calc(var(--memora-contact-icon-size, 54px) * 0.85) !important;
-            height: calc(var(--memora-contact-icon-size, 54px) * 0.85) !important;
-        }
-        .memora-contact-socials {
-            gap: 10px;
-        }
-        .memora-contact-close {
-            width: calc(var(--memora-contact-close-size, 44px) * 0.85) !important;
-            height: calc(var(--memora-contact-close-size, 44px) * 0.85) !important;
-        }
-    }
+
     ';
 
     wp_register_style( 'memora-contact-button-style', false );

@@ -476,25 +476,7 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
             text-decoration: underline;
         }
 
-        @media (max-width: 640px) {
-            #<?php echo esc_attr( $uid ); ?>-wrap .memora-ttp-arrow {
-                width: 36px;
-                height: 36px;
-            }
-            #<?php echo esc_attr( $uid ); ?>-wrap .memora-ttp-arrow svg {
-                width: 16px;
-                height: 16px;
-            }
-            #<?php echo esc_attr( $uid ); ?>-wrap .memora-ttp-prev {
-                left: 10px;
-            }
-            #<?php echo esc_attr( $uid ); ?>-wrap .memora-ttp-next {
-                right: 10px;
-            }
-            #<?php echo esc_attr( $uid ); ?>-wrap .memora-ttp-wysiwyg {
-                font-size: 14px;
-            }
-        }
+
     </style>
 
     <!-- JAVASCRIPT KHỞI TẠO SWIPER & ĐỒNG BỘ MÔ TẢ WYSIWYG -->
