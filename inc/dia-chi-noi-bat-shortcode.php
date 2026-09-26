@@ -219,7 +219,6 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             justify-content: center;
             gap: 14px;
             padding: 28px 20px;
-            background: #fff;
         }
 
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-brand-label {
