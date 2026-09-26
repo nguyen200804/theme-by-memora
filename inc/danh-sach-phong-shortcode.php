@@ -606,8 +606,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
         /* Cột thông tin bên trái */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-info {
-            flex: 0 0 320px;
-            min-width: 0;
+            min-width: 40em;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
