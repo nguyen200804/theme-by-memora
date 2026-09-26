@@ -478,7 +478,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         }
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-room-num--large {
             font-size: 10em;
-            margin-bottom: 1.5em;
+            margin-bottom: 6px;
         }
 
         /* -------------------------------------------
@@ -487,8 +487,8 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 7em;
-            margin-bottom: 10em;
+            gap: 28px;
+            margin-bottom: 40px;
             width: 100%;
             max-width: 100%;
         }
@@ -568,8 +568,8 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             display: flex;
             align-items: baseline;
             justify-content: center;
-            gap: 2.5em;
-            margin-top: 3.5em;
+            gap: 10px;
+            margin-top: 14px;
             text-decoration: none;
             color: #733e1c;
             transition: opacity 0.2s ease;
@@ -590,7 +590,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-list {
             display: flex;
             flex-direction: column;
-            gap: 9em;
+            gap: 36px;
             width: 100%;
             max-width: 100%;
         }
@@ -598,7 +598,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-card {
             display: flex;
             align-items: center;
-            gap: 10em;
+            gap: 40px;
             width: 100%;
             min-width: 0;
             max-width: 100%;
@@ -618,15 +618,15 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-badge {
             display: inline-flex;
             align-items: center;
-            gap: 1.25em;
+            gap: 5px;
             background: linear-gradient(135deg, #eaf4fb 0%, #edf6fc 100%);
             border: 1px solid #c7e3f5;
             color: #3f88b5;
-            padding: 1.25em 3.75em;
+            padding: 5px 15px;
             border-radius: 9999px;
             font-size: 3.25em;
             font-weight: 700;
-            margin-bottom: 3em;
+            margin-bottom: 12px;
             box-shadow: 0 2px 8px rgba(63, 136, 181, 0.12);
         }
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-badge-star {
@@ -636,7 +636,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
         /* Tiêu đề phòng lớn */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-title {
-            margin: 0 0 2em 0;
+            margin: 0 0 8px 0;
             font-size: 5.5em;
             font-weight: 700;
             line-height: 1.3;
@@ -652,11 +652,11 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
         /* Đoạn miêu tả concept */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-desc {
-            margin: 0 0 5em 0;
+            margin: 0 0 20px 0;
             font-size: 3.5em;
             line-height: 1.55;
             color: #7a6a5f;
-            max-width: 70em;
+            max-width: 280px;
         }
 
         /* Nút "Tìm hiểu thêm" viên thuốc màu nâu */
@@ -666,7 +666,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             justify-content: center;
             background-color: #733e1c;
             color: #ffffff !important;
-            padding: 2.25em 6em;
+            padding: 9px 24px;
             border-radius: 9999px;
             font-size: 3.5em;
             font-weight: 600;
@@ -745,7 +745,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
            PAGINATION HÌNH NGÔI SAO MÀU NÂU #733e1c
         ------------------------------------------- */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination {
-            bottom: 3em;
+            bottom: 12px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -753,11 +753,11 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet {
-            width: 4.5em;
-            height: 4.5em;
+            width: 18px;
+            height: 18px;
             background: transparent !important;
             opacity: 1;
-            margin: 0 0.75em;
+            margin: 0 3px;
             border-radius: 0;
             position: relative;
             cursor: pointer;
