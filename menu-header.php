@@ -44,7 +44,7 @@ function memora_menu_header_scripts_styles() {
     // 2. CSS Menu Header (Toàn bộ kích thước dùng đơn vị em)
     $css = '
     :root {
-        --memora-menu-font-base: 36px;
+        --memora-menu-font-base: 18px;
         --memora-menu-color-text: #733e1c;
         --memora-menu-color-border: #cddce8;
         --memora-menu-color-divider: #dfb0bf;
