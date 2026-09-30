@@ -66,6 +66,100 @@ if ( file_exists( get_stylesheet_directory() . '/inc/nut-lien-he.php' ) ) {
 
 
 
+/**
+ * Force-load tất cả Elementor Custom Fonts (@font-face) vào wp_head.
+ * Elementor chỉ load font khi widget Elementor trên trang dùng font đó.
+ * Hook này đảm bảo font luôn available cho PHP shortcodes.
+ */
+add_action( 'wp_head', 'memora_force_elementor_custom_fonts', 1 );
+function memora_force_elementor_custom_fonts() {
+    // Chỉ chạy ở frontend
+    if ( is_admin() ) return;
+    // Kiểm tra Elementor Custom Fonts post type tồn tại
+    if ( ! post_type_exists( 'elementor_font' ) ) return;
+
+    $font_posts = get_posts( [
+        'post_type'      => 'elementor_font',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'orderby'        => 'title',
+        'order'          => 'ASC',
+        'no_found_rows'  => true,
+    ] );
+
+    if ( empty( $font_posts ) ) return;
+
+    $format_map = [
+        'woff2' => 'woff2',
+        'woff'  => 'woff',
+        'ttf'   => 'truetype',
+        'otf'   => 'opentype',
+        'eot'   => 'embedded-opentype',
+        'svg'   => 'svg',
+    ];
+
+    $css = '';
+
+    foreach ( $font_posts as $font_post ) {
+        $family = $font_post->post_title;
+
+        // Lấy font file attachments (Elementor lưu file là children của font post)
+        $attachments = get_posts( [
+            'post_type'      => 'attachment',
+            'post_parent'    => $font_post->ID,
+            'post_status'    => 'inherit',
+            'posts_per_page' => -1,
+            'no_found_rows'  => true,
+        ] );
+
+        // Fallback: đọc từ meta (một số phiên bản Elementor lưu theo cách khác)
+        if ( empty( $attachments ) ) {
+            $meta_all = get_post_meta( $font_post->ID );
+            foreach ( $meta_all as $mk => $mv ) {
+                $val = maybe_unserialize( $mv[0] );
+                if ( ! is_array( $val ) ) continue;
+                // Tìm attachment ID trong mảng meta
+                foreach ( $val as $face ) {
+                    if ( ! is_array( $face ) ) continue;
+                    foreach ( $face as $k => $v ) {
+                        if ( is_numeric( $v ) && (int) $v > 0 ) {
+                            $url = wp_get_attachment_url( (int) $v );
+                            if ( $url ) {
+                                $ext     = strtolower( pathinfo( $url, PATHINFO_EXTENSION ) );
+                                $fmt     = $format_map[ $ext ] ?? $ext;
+                                $weight  = ! empty( $face['font_weight'] ) ? $face['font_weight'] : '400';
+                                $style   = ! empty( $face['font_style'] )  ? $face['font_style']  : 'normal';
+                                $css .= "@font-face{font-family:'" . esc_attr( $family ) . "';font-weight:{$weight};font-style:{$style};src:url('" . esc_url( $url ) . "') format('{$fmt}');}\n";
+                            }
+                        }
+                    }
+                }
+            }
+            continue; // Đã xử lý qua meta
+        }
+
+        // Build @font-face từ child attachments
+        $sources = [];
+        foreach ( $attachments as $att ) {
+            $url = wp_get_attachment_url( $att->ID );
+            if ( ! $url ) continue;
+            $ext     = strtolower( pathinfo( $url, PATHINFO_EXTENSION ) );
+            $fmt     = $format_map[ $ext ] ?? $ext;
+            $sources[] = "url('" . esc_url( $url ) . "') format('" . esc_attr( $fmt ) . "')";
+        }
+
+        if ( empty( $sources ) ) continue;
+
+        $css .= "@font-face{font-family:'" . esc_attr( $family ) . "';font-weight:400;font-style:normal;src:" . implode( ',', $sources ) . ";}\n";
+    }
+
+    if ( $css ) {
+        echo "\n<style id=\"memora-elementor-custom-fonts\">\n" . $css . "</style>\n";
+    }
+}
+
+
+
 // Force desktop layout on all devices by setting viewport width to 1200px on small screens, and standard viewport on large screens
 function tocfl_force_desktop_viewport( $html ) {
     if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
