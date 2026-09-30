@@ -530,6 +530,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    font-family: 'Pinyon Script';
 }
 
 .memora-heart-btn:hover {
@@ -561,7 +562,7 @@
 .memora-heart-text {
     position: relative;
     z-index: 2;
-    font-family: var(--memora-font-script);
+    font-family: "Pinyon Script";
     font-size: 19.2em;
     font-weight: 700;
     color: var(--memora-brown);

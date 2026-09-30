@@ -176,27 +176,94 @@ add_action( 'wp_ajax_nopriv_memora_lookup_booking', 'memora_ajax_lookup_booking'
 
 function memora_ajax_lookup_booking() {
     $phone = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '';
-    $code  = isset( $_POST['code'] ) ? sanitize_text_field( wp_unslash( $_POST['code'] ) ) : '';
+    $code  = isset( $_POST['code'] )  ? sanitize_text_field( wp_unslash( $_POST['code'] ) )  : '';
 
-    if ( empty( $phone ) || empty( $code ) ) {
-        wp_send_json_error( array( 'message' => 'Vui lòng nhập đầy đủ Số điện thoại và Code chụp để tra cứu nhaaa!' ) );
-    }
-
-    // Chuẩn hóa số điện thoại loại bỏ khoảng trắng, dấu chấm
     $clean_phone = preg_replace( '/[^0-9]/', '', $phone );
     $clean_code  = trim( $code );
 
-    $args = array(
+    // Phải có ít nhất 1 trong 2 trường
+    if ( empty( $clean_phone ) && empty( $clean_code ) ) {
+        wp_send_json_error( array( 'message' => 'Vui lòng nhập Số điện thoại hoặc Code chụp để tra cứu nhaaa!' ) );
+    }
+
+    $result_data = array();
+
+    // -------------------------------------------------------
+    // CASE 1: Có code (tìm theo code, optionally verify phone)
+    // -------------------------------------------------------
+    if ( ! empty( $clean_code ) ) {
+        $args = array(
+            'post_type'      => 'memora_booking',
+            'post_status'    => 'publish',
+            'posts_per_page' => 1,
+            'meta_query'     => array(
+                'relation' => 'AND',
+                array(
+                    'key'     => '_booking_code',
+                    'value'   => $clean_code,
+                    'compare' => '=',
+                ),
+                array(
+                    'key'     => '_booking_status',
+                    'value'   => 'cancelled',
+                    'compare' => '!=',
+                ),
+            ),
+        );
+
+        $query = new WP_Query( $args );
+
+        if ( ! $query->have_posts() ) {
+            wp_send_json_error( array( 'message' => 'Không tìm thấy đơn lịch đặt nào với Code ' . esc_html( $clean_code ) . '. Bạn vui lòng kiểm tra lại nhaaa!' ) );
+        }
+
+        $found = false;
+        while ( $query->have_posts() ) {
+            $query->the_post();
+            $post_id      = get_the_ID();
+            $db_phone     = get_post_meta( $post_id, '_booking_phone', true );
+            $clean_db_phone = preg_replace( '/[^0-9]/', '', $db_phone );
+
+            // Nếu có nhập phone → verify khớp; nếu chỉ nhập code → bỏ qua verify
+            $phone_ok = empty( $clean_phone )
+                || $clean_db_phone === $clean_phone
+                || strpos( $clean_db_phone, $clean_phone ) !== false
+                || strpos( $clean_phone, $clean_db_phone ) !== false;
+
+            if ( $phone_ok ) {
+                $found = true;
+                $result_data = array(
+                    'code'         => get_post_meta( $post_id, '_booking_code', true ),
+                    'name'         => get_post_meta( $post_id, '_booking_customer_name', true ),
+                    'phone'        => $db_phone,
+                    'date'         => get_post_meta( $post_id, '_booking_date', true ),
+                    'time'         => get_post_meta( $post_id, '_booking_time', true ),
+                    'package_name' => get_post_meta( $post_id, '_booking_package_name', true ),
+                    'total_price'  => memora_format_price( get_post_meta( $post_id, '_booking_total_price', true ) ),
+                    'status'       => get_post_meta( $post_id, '_booking_status', true ),
+                );
+                break;
+            }
+        }
+        wp_reset_postdata();
+
+        if ( ! $found ) {
+            wp_send_json_error( array( 'message' => 'Số điện thoại không khớp với mã Code này. Bạn vui lòng kiểm tra lại số điện thoại nhaaa!' ) );
+        }
+
+        wp_send_json_success( array( 'data' => $result_data ) );
+    }
+
+    // -------------------------------------------------------
+    // CASE 2: Chỉ có phone → tìm theo phone, lấy lịch gần nhất
+    // -------------------------------------------------------
+    $all_bookings_args = array(
         'post_type'      => 'memora_booking',
         'post_status'    => 'publish',
-        'posts_per_page' => 1,
+        'posts_per_page' => -1,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
         'meta_query'     => array(
-            'relation' => 'AND',
-            array(
-                'key'     => '_booking_code',
-                'value'   => $clean_code,
-                'compare' => '=',
-            ),
             array(
                 'key'     => '_booking_status',
                 'value'   => 'cancelled',
@@ -205,23 +272,22 @@ function memora_ajax_lookup_booking() {
         ),
     );
 
-    $query = new WP_Query( $args );
+    $all_query = new WP_Query( $all_bookings_args );
 
-    if ( ! $query->have_posts() ) {
-        wp_send_json_error( array( 'message' => 'Không tìm thấy đơn lịch đặt nào với Code ' . esc_html( $clean_code ) . '. Bạn vui lòng kiểm tra lại nhaaa!' ) );
+    if ( ! $all_query->have_posts() ) {
+        wp_send_json_error( array( 'message' => 'Không tìm thấy đơn lịch đặt nào. Bạn vui lòng kiểm tra lại nhaaa!' ) );
     }
 
     $found = false;
-    $result_data = array();
-
-    while ( $query->have_posts() ) {
-        $query->the_post();
-        $post_id   = get_the_ID();
-        $db_phone  = get_post_meta( $post_id, '_booking_phone', true );
+    while ( $all_query->have_posts() ) {
+        $all_query->the_post();
+        $post_id        = get_the_ID();
+        $db_phone       = get_post_meta( $post_id, '_booking_phone', true );
         $clean_db_phone = preg_replace( '/[^0-9]/', '', $db_phone );
 
-        // Kiểm tra khớp số điện thoại
-        if ( $clean_db_phone === $clean_phone || strpos( $clean_db_phone, $clean_phone ) !== false || strpos( $clean_phone, $clean_db_phone ) !== false ) {
+        if ( $clean_db_phone === $clean_phone
+            || strpos( $clean_db_phone, $clean_phone ) !== false
+            || strpos( $clean_phone, $clean_db_phone ) !== false ) {
             $found = true;
             $result_data = array(
                 'code'         => get_post_meta( $post_id, '_booking_code', true ),
@@ -233,18 +299,16 @@ function memora_ajax_lookup_booking() {
                 'total_price'  => memora_format_price( get_post_meta( $post_id, '_booking_total_price', true ) ),
                 'status'       => get_post_meta( $post_id, '_booking_status', true ),
             );
-            break;
+            break; // orderby=DESC nên cái đầu tiên match là gần nhất
         }
     }
     wp_reset_postdata();
 
     if ( ! $found ) {
-        wp_send_json_error( array( 'message' => 'Số điện thoại không khớp với mã Code này. Bạn vui lòng kiểm tra lại số điện thoại nhaaa!' ) );
+        wp_send_json_error( array( 'message' => 'Không tìm thấy đơn lịch đặt nào với số điện thoại này. Bạn vui lòng kiểm tra lại nhaaa!' ) );
     }
 
-    wp_send_json_success( array(
-        'data' => $result_data,
-    ) );
+    wp_send_json_success( array( 'data' => $result_data ) );
 }
 //====================================
 // END - AJAX TRA CỨU ĐƠN ĐẶT LỊCH

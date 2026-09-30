@@ -414,8 +414,8 @@
             var phone = $.trim($('#memora_lookup_phone').val());
             var code = $.trim($('#memora_lookup_code').val());
 
-            if (!phone || !code) {
-                alert('Vui lòng nhập cả Số điện thoại và Code chụp để tra cứu nhaaa!');
+            if (!phone && !code) {
+                alert('Vui lòng nhập Số điện thoại hoặc Code chụp để tra cứu nhaaa!');
                 return;
             }
 
