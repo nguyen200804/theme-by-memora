@@ -269,11 +269,8 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             </div>
             <?php endif; ?>
 
-            <a href="<?php echo esc_url( get_permalink( $dc_id ) ); ?>" class="dcnb-address">
-                <svg class="dcnb-pin-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                </svg>
-                <span><?php echo esc_html( $dc_title ); ?></span>
+            <a href="<?php echo esc_url( get_permalink( $dc_id ) ); ?>" class="dcnb-book-btn">
+                Book lịch ngay
             </a>
 
         </div>
@@ -341,28 +338,25 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             display: block;
         }
 
-        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-address {
-            display: flex;
-            align-items: flex-start;
-            gap: 5px;
-            font-size: 0.85rem;
-            color: #555;
-            line-height: 1.45;
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-book-btn {
+            display: inline-block;
+            font-family: "Cocomat Pro", Sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: #733E1C;
+            border-style: solid;
+            border-width: 1px;
+            border-color: #733E1C;
+            border-radius: 151px;
+            padding: 0.5em 1em 0.7em 1em;
             text-decoration: none;
             text-align: center;
+            line-height: 1.3;
+            transition: background 0.2s ease, color 0.2s ease;
         }
-        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-address:hover {
-            color: #733e1c;
-        }
-        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-address:hover .dcnb-pin-icon {
-            color: #733e1c;
-        }
-        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-pin-icon {
-            width: 14px;
-            height: 14px;
-            flex-shrink: 0;
-            margin-top: 2px;
-            color: #733e1c;
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-book-btn:hover {
+            background: #733E1C;
+            color: #fff;
         }
 
         /* === Cot phai (2/3) === */
