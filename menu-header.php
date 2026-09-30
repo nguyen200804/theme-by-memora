@@ -174,7 +174,7 @@ function memora_menu_header_scripts_styles() {
     /* Main Menu Card */
     .memora-menu-card {
         font-size: var(--memora-menu-font-base);
-        font-family: "Cormorant Garamond", "Playfair Display", Georgia, serif;
+        font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif;
         width: 16.5em;
         max-width: calc(100vw - 24px);
         background: var(--memora-menu-bg);
@@ -293,10 +293,10 @@ function memora_menu_header_scripts_styles() {
 
     .memora-menu-back-title {
         font-size: 1.15em;
-        font-weight: 400;
+        font-weight: 500;
         text-align: right;
         margin-left: auto;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.03em;
     }
 
     /* Menu Lists */
@@ -329,8 +329,8 @@ function memora_menu_header_scripts_styles() {
         text-decoration: none;
         font-family: inherit;
         font-size: 1.12em;
-        font-weight: 300;
-        letter-spacing: 0.04em;
+        font-weight: 400;
+        letter-spacing: 0.03em;
         cursor: pointer;
         text-align: right;
         transition: opacity 0.2s ease, transform 0.2s ease;
