@@ -667,6 +667,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             color: #ffffff !important;
             padding: 0.643em 1.714em;
             border-radius: 9999px;
+            font-family: "Cocomat Pro", Sans-serif;
             font-size: 3.5em;
             font-weight: 600;
             text-decoration: none;
