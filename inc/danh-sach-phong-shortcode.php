@@ -472,13 +472,14 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             color: #733e1c;
             font-size: 6.5em;
             line-height: 1.1;
-            font-weight: 400;
+            font-weight: 700;
             display: inline-block;
             letter-spacing: 0.5px;
         }
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-room-num--large {
-            font-size: 10em;
-            margin-bottom: 0.15em;
+                font-size: 16em;
+    font-weight: 700;
+    margin-bottom: -0.05em;
         }
 
         /* -------------------------------------------
@@ -607,11 +608,11 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
         /* Cột thông tin bên trái */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-info {
-            min-width: 40em;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            position: relative;
+                min-width: 40em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
         }
 
         /* Badge "Special Room" pastel siêu xinh */
@@ -653,29 +654,31 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
         /* Đoạn miêu tả concept */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-desc {
-            margin: 0 0 1.429em 0;
-            font-family: "Mulish", sans-serif;
-            font-size: 3.5em;
-            line-height: 1.55;
-            color: #7a6a5f;
-            max-width: 20em;
+                      margin: 0 0 1.129em 0;
+                    font-family: "Mulish", sans-serif;
+                    font-size: 4.6em;
+                    line-height: 1.4;
+                    color: #7a6a5f;
+                    max-width: 150px;
+                    white-space: wrap;
+                    text-align: center;
         }
 
         /* Nút "Tìm hiểu thêm" viên thuốc màu nâu */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-btn-more {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #733e1c;
-            color: #ffffff !important;
-            padding: 0.643em 1.714em;
-            border-radius: 9999px;
-            font-family: "Cocomat Pro", Sans-serif;
-            font-size: 3.5em;
-            font-weight: 600;
-            text-decoration: none;
-            box-shadow: 0 4px 12px rgba(115, 62, 28, 0.22);
-            transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        background-color: #733e1c;
+                        color: #ffffff !important;
+                        padding: 0.443em 1.314em;
+                        border-radius: 9999px;
+                        font-family: "Cocomat Pro", Sans-serif;
+                        font-size: 4.8em;
+                        font-weight: 600;
+                        text-decoration: none;
+                        box-shadow: 0 4px 12px rgba(115, 62, 28, 0.22);
+                        transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
         }
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-btn-more:hover {
             background-color: #572e14;
