@@ -87,6 +87,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
 
     $atts = shortcode_atts( [
         'post_id'  => '',
+        'current'  => '',   // current="1" → tự dùng get_the_ID() (cho Elementor Loop Item)
         'autoplay' => 4000,
         'speed'    => 600,
     ], $atts, 'dia_chi_noi_bat' );
@@ -100,10 +101,13 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         memora_gallery_swiper_assets();
     }
 
-    /* -- Xác định ID bài viết dia-chi (Ưu tiên bài viết mới nhất) -- */
+    /* -- Xác định ID bài viết dia-chi -- */
     $dc_id = 0;
 
-    if ( ! empty( $atts['post_id'] ) && is_numeric( $atts['post_id'] ) ) {
+    if ( ! empty( $atts['current'] ) && $atts['current'] ) {
+        // current="1": Dùng post hiện tại trong loop (Elementor Loop Item)
+        $dc_id = (int) get_the_ID();
+    } elseif ( ! empty( $atts['post_id'] ) && is_numeric( $atts['post_id'] ) ) {
         $dc_id = (int) $atts['post_id'];
     } elseif ( $atts['post_id'] === 'option' || $atts['post_id'] === 'options' ) {
         if ( function_exists( 'get_field' ) ) {
