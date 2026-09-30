@@ -178,6 +178,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
        Lấy ảnh từ ACF Gallery field (hoặc ids)
     ------------------------------------------------------- */
     $slides_data = []; // Mỗi phần tử: ['src' => '...', 'alt' => '...']
+    $post_id     = 0;  // Khởi tạo trước để error message luôn hiển thị đúng
 
     if ( ! empty( $atts['acf_gallery'] ) ) {
         $raw_field = trim( $atts['acf_gallery'] );
@@ -240,7 +241,8 @@ function memora_gallery_swiper_shortcode( $atts ) {
             }
         }
 
-        // TẦNG 4: Quét toàn bộ meta keys của bài viết này xem có meta nào lưu mảng ID ảnh
+        // TẦNG 4: Quét toàn bộ meta keys tìm giá trị mảng ảnh
+        // Chỉ chấp nhận: array (gallery) hoặc số là attachment ID hợp lệ (không phải row count của repeater)
         if ( empty( $acf_images ) && $post_id ) {
             $all_meta = get_post_meta( $post_id );
             if ( ! empty( $all_meta ) && is_array( $all_meta ) ) {
@@ -248,9 +250,16 @@ function memora_gallery_swiper_shortcode( $atts ) {
                     if ( strpos( $mk, '_' ) === 0 ) continue;
                     if ( stripos( $mk, 'anh' ) !== false || stripos( $mk, 'gallery' ) !== false || stripos( $mk, 'hinh' ) !== false ) {
                         $val = maybe_unserialize( $mv[0] );
-                        if ( ! empty( $val ) && ( is_array( $val ) || is_numeric( $val ) ) ) {
+                        if ( is_array( $val ) && ! empty( $val ) ) {
+                            // Chỉ chấp nhận arrays — bỏ qua integer thuần (có thể là row count của repeater)
                             $acf_images = $val;
                             break;
+                        } elseif ( is_numeric( $val ) && (int) $val > 0 ) {
+                            // Chỉ chấp nhận nếu đây là attachment ID hợp lệ
+                            if ( get_post_type( (int) $val ) === 'attachment' ) {
+                                $acf_images = $val;
+                                break;
+                            }
                         }
                     }
                 }
