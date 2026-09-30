@@ -161,6 +161,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
     $atts = shortcode_atts( [
         'acf_gallery'     => '',
         'post_id'         => '',
+        'repeater'        => '', // Tên repeater cha, VD: repeater="cac_hinh_anh_phong_chup"
         'ids'             => '',
         'speed'           => 600,
         'autoplay'        => 4000,
@@ -194,7 +195,66 @@ function memora_gallery_swiper_shortcode( $atts ) {
 
         $acf_images = null;
 
-        // TẦNG 1: Thử get_field() từ ACF
+        /* ==========================================================
+           ĐƯỜNG TẮT: Nếu có repeater="cac_hinh_anh_phong_chup" được truyền vào,
+           gọi get_field(repeater, post_id) trực tiếp — bỏ qua TẦNG 1-5
+           Dùng khi: [gallery_swiper acf_gallery="anh-phong-chup" repeater="cac_hinh_anh_phong_chup"]
+        ========================================================== */
+        if (
+            ! empty( $atts['repeater'] ) &&
+            function_exists( 'get_field' )
+        ) {
+            $rp_name      = trim( $atts['repeater'] );
+            $rp_variants  = array_unique( array_filter( [
+                $rp_name,
+                str_replace( '-', '_', $rp_name ),
+                str_replace( '_', '-', $rp_name ),
+            ] ) );
+            $img_subfields = array_merge( $field_candidates, [
+                str_replace( '-', '_', $raw_field ),
+                str_replace( '_', '-', $raw_field ),
+            ] );
+            $img_subfields = array_unique( $img_subfields );
+
+            foreach ( $rp_variants as $rp ) {
+                $rows = get_field( $rp, $post_id );
+                if ( empty( $rows ) || ! is_array( $rows ) ) {
+                    // Fallback: đọc thẳng post meta rồi gọi get_field
+                    $rp_count = get_post_meta( $post_id, $rp, true );
+                    if ( is_numeric( $rp_count ) && (int) $rp_count > 0 ) {
+                        $rows = [];
+                        for ( $ri = 0; $ri < (int) $rp_count; $ri++ ) {
+                            $rrow = [];
+                            foreach ( $img_subfields as $isf ) {
+                                $v = get_post_meta( $post_id, $rp . '_' . $ri . '_' . $isf, true );
+                                if ( ! empty( $v ) ) {
+                                    $rrow[ $isf ] = maybe_unserialize( $v );
+                                }
+                            }
+                            if ( ! empty( $rrow ) ) $rows[] = $rrow;
+                        }
+                    }
+                }
+                if ( empty( $rows ) ) continue;
+
+                $collected = [];
+                foreach ( $rows as $rrow ) {
+                    if ( ! is_array( $rrow ) ) continue;
+                    foreach ( $img_subfields as $isf ) {
+                        if ( ! empty( $rrow[ $isf ] ) ) {
+                            $collected[] = $rrow[ $isf ];
+                            break; // chỉ lấy 1 ảnh/row
+                        }
+                    }
+                }
+                if ( ! empty( $collected ) ) {
+                    $acf_images = $collected;
+                    break;
+                }
+            }
+        }
+
+        // TẦNG 1: Thử get_field() từ ACF (chạy khi không có param repeater hoặc repeater thất bại)
         if ( function_exists( 'get_field' ) ) {
             foreach ( $field_candidates as $candidate ) {
                 $val = get_field( $candidate, $post_id );
