@@ -279,6 +279,8 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
 
     <!-- CSS STYLESHEET CHUẨN DESIGN MEMORA -->
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
         #<?php echo esc_attr( $uid ); ?>-wrap.memora-ttp-wrap {
             width: 100%;
             max-width: 100%;
@@ -452,10 +454,11 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
         }
 
         #<?php echo esc_attr( $uid ); ?>-wrap .memora-ttp-wysiwyg {
+            font-family: "Noto Sans", sans-serif;
             color: #733e1c;
             font-size: 15px;
             line-height: 1.65;
-            text-align: left;
+            text-align: center;
         }
 
         #<?php echo esc_attr( $uid ); ?>-wrap .memora-ttp-wysiwyg p {
