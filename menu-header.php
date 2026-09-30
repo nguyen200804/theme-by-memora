@@ -36,7 +36,7 @@ function memora_menu_header_scripts_styles() {
     // 1. Google Fonts: Cormorant Garamond & Playfair Display
     wp_enqueue_style(
         'memora-menu-google-fonts',
-        'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,600&display=swap',
+        'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,600&subset=latin,vietnamese&display=swap',
         array(),
         null
     );
@@ -293,10 +293,10 @@ function memora_menu_header_scripts_styles() {
 
     .memora-menu-back-title {
         font-size: 1.15em;
-        font-weight: 600;
+        font-weight: 400;
         text-align: right;
         margin-left: auto;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.04em;
     }
 
     /* Menu Lists */
@@ -329,7 +329,8 @@ function memora_menu_header_scripts_styles() {
         text-decoration: none;
         font-family: inherit;
         font-size: 1.12em;
-        font-weight: 600;
+        font-weight: 300;
+        letter-spacing: 0.04em;
         cursor: pointer;
         text-align: right;
         transition: opacity 0.2s ease, transform 0.2s ease;
