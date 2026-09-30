@@ -163,6 +163,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
         'post_id'         => '',
         'repeater'        => '', // Tên repeater cha, VD: repeater="cac_hinh_anh_phong_chup"
         'ids'             => '',
+        'placeholder'     => '', // Text hiển thị khi không có ảnh, VD: placeholder="Chưa có ảnh bảng giá"
         'speed'           => 600,
         'autoplay'        => 4000,
         'loop'            => 'true',
@@ -494,6 +495,14 @@ function memora_gallery_swiper_shortcode( $atts ) {
     }
 
     if ( empty( $slides_data ) ) {
+        // Nếu có placeholder text → hiển thị cho tất cả mọi người (kể cả khách)
+        if ( ! empty( $atts['placeholder'] ) ) {
+            return sprintf(
+                '<p class="gallery-swiper-placeholder" style="font-size:14px; color:#999; padding:12px 0;">%s</p>',
+                esc_html( $atts['placeholder'] )
+            );
+        }
+        // Không có placeholder → chỉ hiển lỗi cho admin
         if ( current_user_can( 'edit_posts' ) ) {
             return sprintf(
                 '<p style="color:#d9534f; font-size:14px; padding:10px 14px; background:#fff2f2; border:1px solid #fecaca; border-radius:4px;">[gallery_swiper] Không tìm thấy ảnh cho post ID #%d (Post type: %s). Vui lòng kiểm tra lại field <code>%s</code> đã được thêm ảnh chưa.</p>',
