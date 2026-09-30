@@ -449,7 +449,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
     <!-- STYLESHEET CHUẨN DESIGN MEMORA -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playball&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playball&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Mulish:wght@300;400;500;600;700&display=swap');
 
         #<?php echo esc_attr( $uid ); ?>.memora-dsp-container {
             width: 100%;
@@ -468,7 +468,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
            Chữ "Room 1", "Room 2" font nghệ thuật Script
         ------------------------------------------- */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-room-num {
-            font-family: 'Playball', cursive, Georgia, serif;
+            font-family: "Anastasia Script", cursive, Georgia, serif;
             color: #733e1c;
             font-size: 6.5em;
             line-height: 1.1;
@@ -579,6 +579,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-meta .memora-dsp-room-name {
+            font-family: "Cocomat Pro", sans-serif;
             font-size: 4.5em;
             font-weight: 700;
             color: #733e1c;
@@ -636,6 +637,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         /* Tiêu đề phòng lớn */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-title {
             margin: 0 0 0.364em 0;
+            font-family: "Cocomat Pro", sans-serif;
             font-size: 5.5em;
             font-weight: 700;
             line-height: 1.3;
@@ -652,6 +654,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         /* Đoạn miêu tả concept */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-desc {
             margin: 0 0 1.429em 0;
+            font-family: "Mulish", sans-serif;
             font-size: 3.5em;
             line-height: 1.55;
             color: #7a6a5f;
