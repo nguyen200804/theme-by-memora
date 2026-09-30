@@ -352,7 +352,7 @@ function memora_contact_button_scripts_styles() {
         /* transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); */
     }
 
-    .memora-contact-widget.is-open .memora-contact-container::after {
+    .memora-contact-widget.is-open .memora-contact-container::after { 
         opacity: 1;
         transform: translateX(-50%) scaleX(1);
     }
