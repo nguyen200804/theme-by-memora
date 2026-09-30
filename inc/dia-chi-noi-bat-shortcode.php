@@ -105,10 +105,12 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
     $dc_id = 0;
 
     if ( ! empty( $atts['current'] ) && $atts['current'] ) {
-        // current="1": Dùng post hiện tại trong loop (Elementor Loop Item)
+        // current="1": Buộc dùng post hiện tại trong loop (tương thích ngược)
         $dc_id = (int) get_the_ID();
+
     } elseif ( ! empty( $atts['post_id'] ) && is_numeric( $atts['post_id'] ) ) {
         $dc_id = (int) $atts['post_id'];
+
     } elseif ( $atts['post_id'] === 'option' || $atts['post_id'] === 'options' ) {
         if ( function_exists( 'get_field' ) ) {
             $opt_post = get_field( 'dia_chi_co_so_noi_bat', 'option' );
@@ -116,17 +118,26 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
                 $dc_id = is_object( $opt_post ) ? (int) $opt_post->ID : (int) $opt_post;
             }
         }
+
     } else {
-        // Kiểm tra ACF field trên trang hiện tại nếu có
-        if ( function_exists( 'get_field' ) && get_the_ID() ) {
-            $cur_post = get_field( 'dia_chi_co_so_noi_bat', get_the_ID() );
+        // AUTO-DETECT Elementor Loop Item context:
+        // Nếu post đang active trong WordPress loop là 'dia-chi', dùng nó ngay.
+        // Điều này xảy ra khi Loop Grid của Elementor gọi the_post() cho từng item.
+        $loop_id = (int) get_the_ID();
+        if ( $loop_id > 0 && get_post_type( $loop_id ) === 'dia-chi' ) {
+            $dc_id = $loop_id;
+        }
+
+        // Fallback: Kiểm tra ACF field trên trang hiện tại
+        if ( ! $dc_id && function_exists( 'get_field' ) && $loop_id ) {
+            $cur_post = get_field( 'dia_chi_co_so_noi_bat', $loop_id );
             if ( ! empty( $cur_post ) ) {
                 $dc_id = is_object( $cur_post ) ? (int) $cur_post->ID : (int) $cur_post;
             }
         }
     }
 
-    // MẶC ĐỊNH: Lấy bài viết post_type=dia-chi MỚI NHẤT
+    // MẶC ĐỊNH: Lấy bài viết post_type=dia-chi MỚI NHẤT (chỉ khi không ở trong loop)
     if ( ! $dc_id && function_exists( 'memora_get_featured_dia_chi_id' ) ) {
         $dc_id = memora_get_featured_dia_chi_id();
     }
