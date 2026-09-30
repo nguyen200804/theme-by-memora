@@ -38,7 +38,7 @@ if ( ! function_exists( 'memora_resolve_gallery_post_id' ) ) {
         // 1b. ƯUTIÊN 0: Đọc phong_id từ URL (?phong_id=274) — dùng cho trang /dat-lich/
         if ( isset( $_GET['phong_id'] ) ) {
             $url_phong_id = (int) $_GET['phong_id'];
-            if ( $url_phong_id > 0 && get_post_status( $url_phong_id ) === 'publish' ) {
+            if ( $url_phong_id > 0 && get_post_type( $url_phong_id ) !== false ) {
                 return $url_phong_id;
             }
         }
@@ -257,41 +257,83 @@ function memora_gallery_swiper_shortcode( $atts ) {
             }
         }
 
-        // TẦNG 5: Tìm sub-field trong Repeater field
-        // Dùng khi acf_gallery="anh-phong-chup" là sub-field bên trong repeater
-        // VD: cac_hinh_anh_phong_chup (repeater) -> anh-phong-chup (image)
-        if ( empty( $acf_images ) && $post_id && function_exists( 'get_field_objects' ) ) {
-            $all_fields = get_field_objects( $post_id );
-            if ( ! empty( $all_fields ) && is_array( $all_fields ) ) {
-                foreach ( $all_fields as $parent_field ) {
-                    if ( empty( $parent_field['type'] ) || $parent_field['type'] !== 'repeater' ) continue;
-                    $rows = get_field( $parent_field['name'], $post_id );
-                    if ( empty( $rows ) || ! is_array( $rows ) ) continue;
-                    // Kiểm tra xem sub-field có tên khớp với $field_candidates không
-                    foreach ( $field_candidates as $candidate ) {
-                        $candidate_dash  = str_replace( '_', '-', $candidate );
-                        $candidate_under = str_replace( '-', '_', $candidate );
-                        $match_key = null;
-                        if ( isset( $rows[0][ $candidate ] ) ) {
-                            $match_key = $candidate;
-                        } elseif ( isset( $rows[0][ $candidate_dash ] ) ) {
-                            $match_key = $candidate_dash;
-                        } elseif ( isset( $rows[0][ $candidate_under ] ) ) {
-                            $match_key = $candidate_under;
-                        }
-                        if ( $match_key !== null ) {
-                            $collected = [];
-                            foreach ( $rows as $row ) {
-                                if ( ! empty( $row[ $match_key ] ) ) {
-                                    $collected[] = $row[ $match_key ];
-                                }
-                            }
-                            if ( ! empty( $collected ) ) {
-                                $acf_images = $collected;
-                                break 2; // Thoát cả 2 vòng lặp
-                            }
+        // TẦNG 5a: Tìm sub-field qua các Repeater field bằng get_field()
+        // Giống logic của [thong_tin_phong_swiper] đã hoạt động đúng.
+        // Bước 1: tìm tên repeater bằng metadata_exists; Bước 2: get_field() lấy rows.
+        if ( empty( $acf_images ) && $post_id && function_exists( 'get_field' ) ) {
+            $all_meta_keys = array_keys( (array) get_post_meta( $post_id ) );
+            $repeater_keys = [];
+            foreach ( $all_meta_keys as $mk ) {
+                if ( strpos( $mk, '_' ) === 0 ) continue;
+                $raw_val = get_post_meta( $post_id, $mk, true );
+                if ( is_numeric( $raw_val ) && (int) $raw_val > 0 ) {
+                    foreach ( $field_candidates as $fc ) {
+                        $fc_u = str_replace( '-', '_', $fc );
+                        $fc_d = str_replace( '_', '-', $fc );
+                        if (
+                            metadata_exists( 'post', $post_id, $mk . '_0_' . $fc ) ||
+                            metadata_exists( 'post', $post_id, $mk . '_0_' . $fc_u ) ||
+                            metadata_exists( 'post', $post_id, $mk . '_0_' . $fc_d )
+                        ) {
+                            $repeater_keys[ $mk ] = (int) $raw_val;
+                            break;
                         }
                     }
+                }
+            }
+
+            foreach ( $repeater_keys as $rk => $row_count ) {
+                $rows = get_field( $rk, $post_id );
+                if ( empty( $rows ) || ! is_array( $rows ) ) continue;
+                foreach ( $field_candidates as $fc ) {
+                    $fc_u  = str_replace( '-', '_', $fc );
+                    $fc_d  = str_replace( '_', '-', $fc );
+                    $match = null;
+                    if ( isset( $rows[0][ $fc ] ) )        { $match = $fc; }
+                    elseif ( isset( $rows[0][ $fc_u ] ) )  { $match = $fc_u; }
+                    elseif ( isset( $rows[0][ $fc_d ] ) )  { $match = $fc_d; }
+                    if ( $match !== null ) {
+                        $collected = [];
+                        foreach ( $rows as $row ) {
+                            if ( ! empty( $row[ $match ] ) ) {
+                                $collected[] = $row[ $match ];
+                            }
+                        }
+                        if ( ! empty( $collected ) ) {
+                            $acf_images = $collected;
+                            break 2;
+                        }
+                    }
+                }
+            }
+        }
+
+        // TẦNG 5b: Fallback - quét raw post meta theo ACF repeater pattern
+        // ACF lưu: {repeater}_{row_index}_{sub_field} = attachment_id
+        // Không cần biết tên repeater — chỉ cần biết tên sub-field
+        if ( empty( $acf_images ) && $post_id ) {
+            $all_meta = get_post_meta( $post_id );
+            if ( ! empty( $all_meta ) && is_array( $all_meta ) ) {
+                $sub_variants = [];
+                foreach ( $field_candidates as $fc ) {
+                    $sub_variants[] = preg_quote( $fc, '/' );
+                    $sub_variants[] = preg_quote( str_replace( '-', '_', $fc ), '/' );
+                    $sub_variants[] = preg_quote( str_replace( '_', '-', $fc ), '/' );
+                }
+                $sub_variants = array_unique( array_filter( $sub_variants ) );
+                $sub_pattern  = '(' . implode( '|', $sub_variants ) . ')';
+
+                $found_entries = [];
+                foreach ( $all_meta as $mk => $mv ) {
+                    if ( strpos( $mk, '_' ) === 0 ) continue;
+                    if ( preg_match( '/^.+?_(\d+)_' . $sub_pattern . '$/', $mk, $m ) ) {
+                        $found_entries[ (int) $m[1] ] = maybe_unserialize( $mv[0] );
+                    }
+                }
+
+                if ( ! empty( $found_entries ) ) {
+                    ksort( $found_entries );
+                    $acf_images = array_values( array_filter( $found_entries ) );
                 }
             }
         }
