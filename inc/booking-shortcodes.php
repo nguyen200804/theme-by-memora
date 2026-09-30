@@ -143,9 +143,9 @@ function memora_shortcode_confirm_booking( $atts ) {
             <div class="memora-confirm-subtitle">Confirm your booking</div>
 
             <div class="memora-confirm-pills">
-                <div class="memora-pill-item memora-pill-time">12:00</div>
-                <div class="memora-pill-item memora-pill-item--center memora-pill-date">04/09/2026</div>
-                <div class="memora-pill-item memora-pill-pkg">5p</div>
+                <div class="memora-pill-item memora-pill-time">--</div>
+                <div class="memora-pill-item memora-pill-item--center memora-pill-date">--</div>
+                <div class="memora-pill-item memora-pill-pkg">--</div>
             </div>
         </div>
 

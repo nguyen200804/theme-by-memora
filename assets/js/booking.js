@@ -269,9 +269,9 @@
 
         function updatePillDisplays() {
             // Pills ở [confirm_booking]
-            var displayTime = state.time || '12:00';
-            var displayDate = state.date || '04/09/2026';
-            var displayPkg = state.packageName || '5p';
+            var displayTime = state.time || '--';
+            var displayDate = state.date || '--';
+            var displayPkg = state.packageName || '--';
 
             $('.memora-pill-time').text(displayTime);
             $('.memora-pill-date').text(displayDate);
