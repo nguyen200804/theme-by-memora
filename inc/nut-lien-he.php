@@ -334,6 +334,28 @@ function memora_contact_button_scripts_styles() {
         transform: translateY(-3px) rotate(90deg) scale(1.1) !important;
     }
 
+    /* Gradient glow dưới widget khi mở */
+    .memora-contact-container::after {
+        content: "";
+        position: absolute;
+        bottom: -18px;
+        left: 50%;
+        transform: translateX(-50%) scaleX(0.4);
+        width: 100%;
+        height: 32px;
+        background: radial-gradient(ellipse at center, rgba(215, 160, 110, 0.55) 0%, rgba(251, 247, 244, 0.3) 55%, transparent 80%);
+        border-radius: 50%;
+        pointer-events: none;
+        opacity: 0;
+        filter: blur(6px);
+        transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .memora-contact-widget.is-open .memora-contact-container::after {
+        opacity: 1;
+        transform: translateX(-50%) scaleX(1);
+    }
+
     /* Trạng thái MỞ (.is-open) */
     .memora-contact-widget.is-open .memora-contact-pill {
         opacity: 0;
