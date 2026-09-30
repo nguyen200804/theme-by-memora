@@ -312,12 +312,12 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         }
 
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-brand-label {
-            font-family: "Anastasia Script", Sans-serif;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #733e1c;
-            text-align: center;
-            line-height: 1.3;
+                font-family: "Anastasia Script", Sans-serif;
+                font-size: 1.25rem;
+                font-weight: 500;
+                color: #733e1c;
+                text-align: center;
+                line-height: 0.9;
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-brand-label em {
             font-style: italic;
@@ -341,7 +341,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-book-btn {
             display: inline-block;
             font-family: "Cocomat Pro", Sans-serif;
-            font-size: 16px;
+            font-size: 12px;
             font-weight: 600;
             color: #733E1C;
             border-style: solid;
