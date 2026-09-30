@@ -312,7 +312,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         }
 
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-brand-label {
-            font-family: 'Dancing Script', 'Pacifico', cursive, serif;
+            font-family: "Anastasia Script", Sans-serif;
             font-size: 1.25rem;
             font-weight: 700;
             color: #733e1c;
