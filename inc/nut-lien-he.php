@@ -337,18 +337,19 @@ function memora_contact_button_scripts_styles() {
     /* Gradient glow dưới widget khi mở */
     .memora-contact-container::after {
         content: "";
-        position: absolute;
-        bottom: -18px;
+        position: fixed;
+        bottom: 0px;
         left: 50%;
         transform: translateX(-50%) scaleX(0.4);
         width: 100%;
-        height: 32px;
-        background: radial-gradient(ellipse at center, rgba(215, 160, 110, 0.55) 0%, rgba(251, 247, 244, 0.3) 55%, transparent 80%);
-        border-radius: 50%;
+        height: 100px;
+        background: linear-gradient(to bottom, #fff0, #fff);
+        /* border-radius: 50%; */
         pointer-events: none;
+        z-index: -1;
         opacity: 0;
-        filter: blur(6px);
-        transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        /* filter: blur(6px); */
+        /* transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); */
     }
 
     .memora-contact-widget.is-open .memora-contact-container::after {
