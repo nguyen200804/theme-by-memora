@@ -261,13 +261,19 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         <div class="dcnb-info">
             <div class="dcnb-brand-label">Memora<br><em>"Angel Shot"</em></div>
 
-            <?php if ( $thumb_src ) : ?>
-            <div class="dcnb-thumbnail">
-                <img src="<?php echo esc_url( $thumb_src ); ?>"
-                     alt="<?php echo esc_attr( $thumb_alt ); ?>"
-                     loading="lazy" />
+            <div class="dcnb-map">
+                <iframe
+                    src="https://maps.google.com/maps?q=<?php echo urlencode( $dc_title ); ?>&output=embed&z=15&hl=vi"
+                    width="100%"
+                    height="100%"
+                    style="border:0; display:block;"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="<?php echo esc_attr( $dc_title ); ?>">
+                </iframe>
             </div>
-            <?php endif; ?>
+
 
             <a href="<?php echo esc_url( get_permalink( $dc_id ) ); ?>" class="dcnb-book-btn">
                 Book lịch ngay
@@ -324,17 +330,18 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             font-size: 1.05rem;
         }
 
-        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-thumbnail {
-            width: 120px;
-            height: 120px;
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-map {
+            width: 100%;
+            flex: 1 1 auto;
+            min-height: 140px;
             border-radius: 8px;
             overflow: hidden;
-            flex-shrink: 0;
         }
-        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-thumbnail img {
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-map iframe {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            min-height: 140px;
+            border: 0;
             display: block;
         }
 
