@@ -35,6 +35,14 @@ if ( ! function_exists( 'memora_resolve_gallery_post_id' ) ) {
             return (int) $post_id;
         }
 
+        // 1b. ƯUTIÊN 0: Đọc phong_id từ URL (?phong_id=274) — dùng cho trang /dat-lich/
+        if ( isset( $_GET['phong_id'] ) ) {
+            $url_phong_id = (int) $_GET['phong_id'];
+            if ( $url_phong_id > 0 && get_post_status( $url_phong_id ) === 'publish' ) {
+                return $url_phong_id;
+            }
+        }
+
         $is_elementor_editor = class_exists( '\Elementor\Plugin' ) && (
             ( isset( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) ||
             ( isset( \Elementor\Plugin::$instance->preview ) && \Elementor\Plugin::$instance->preview->is_preview_mode() ) ||
@@ -243,6 +251,45 @@ function memora_gallery_swiper_shortcode( $atts ) {
                         if ( ! empty( $val ) && ( is_array( $val ) || is_numeric( $val ) ) ) {
                             $acf_images = $val;
                             break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // TẦNG 5: Tìm sub-field trong Repeater field
+        // Dùng khi acf_gallery="anh-phong-chup" là sub-field bên trong repeater
+        // VD: cac_hinh_anh_phong_chup (repeater) -> anh-phong-chup (image)
+        if ( empty( $acf_images ) && $post_id && function_exists( 'get_field_objects' ) ) {
+            $all_fields = get_field_objects( $post_id );
+            if ( ! empty( $all_fields ) && is_array( $all_fields ) ) {
+                foreach ( $all_fields as $parent_field ) {
+                    if ( empty( $parent_field['type'] ) || $parent_field['type'] !== 'repeater' ) continue;
+                    $rows = get_field( $parent_field['name'], $post_id );
+                    if ( empty( $rows ) || ! is_array( $rows ) ) continue;
+                    // Kiểm tra xem sub-field có tên khớp với $field_candidates không
+                    foreach ( $field_candidates as $candidate ) {
+                        $candidate_dash  = str_replace( '_', '-', $candidate );
+                        $candidate_under = str_replace( '-', '_', $candidate );
+                        $match_key = null;
+                        if ( isset( $rows[0][ $candidate ] ) ) {
+                            $match_key = $candidate;
+                        } elseif ( isset( $rows[0][ $candidate_dash ] ) ) {
+                            $match_key = $candidate_dash;
+                        } elseif ( isset( $rows[0][ $candidate_under ] ) ) {
+                            $match_key = $candidate_under;
+                        }
+                        if ( $match_key !== null ) {
+                            $collected = [];
+                            foreach ( $rows as $row ) {
+                                if ( ! empty( $row[ $match_key ] ) ) {
+                                    $collected[] = $row[ $match_key ];
+                                }
+                            }
+                            if ( ! empty( $collected ) ) {
+                                $acf_images = $collected;
+                                break 2; // Thoát cả 2 vòng lặp
+                            }
                         }
                     }
                 }
