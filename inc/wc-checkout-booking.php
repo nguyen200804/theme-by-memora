@@ -287,3 +287,14 @@ function memora_show_ig_in_order_admin( $order ) {
         echo '</p>';
     }
 }
+
+// =====================================================================
+// 8. DANG KY ACTION HOOK CHO woocommerce_checkout_payment
+// =====================================================================
+add_action( 'woocommerce_checkout_payment', 'memora_run_woocommerce_checkout_payment', 10 );
+function memora_run_woocommerce_checkout_payment() {
+    if ( function_exists( 'woocommerce_checkout_payment' ) ) {
+        woocommerce_checkout_payment();
+    }
+}
+

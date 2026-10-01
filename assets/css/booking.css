@@ -552,6 +552,88 @@
     margin-top: 0.2em;
 }
 
+/* ==========================================================================
+   WC Payment Section inside [checkout_booking]
+   ========================================================================== */
+.memora-wc-payment-section {
+    font-size: 14px !important;
+    text-align: left;
+    margin: 25px 0 15px;
+    background: #fdfbf7;
+    border: 1px solid #ebd9cb;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 6px rgba(115, 62, 28, 0.04);
+}
+
+.memora-wc-payment-section #payment {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.memora-wc-payment-section ul.payment_methods {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+}
+
+.memora-wc-payment-section li.wc_payment_method {
+    margin-bottom: 12px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+}
+
+.memora-wc-payment-section li.wc_payment_method input[type="radio"] {
+    accent-color: var(--memora-brown, #733e1c);
+    margin-right: 8px !important;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.memora-wc-payment-section li.wc_payment_method label {
+    font-weight: 600 !important;
+    color: var(--memora-brown, #733e1c) !important;
+    cursor: pointer;
+    vertical-align: middle;
+    font-size: 14px !important;
+}
+
+.memora-wc-payment-section .payment_box {
+    background: #f5ebe1 !important;
+    border-radius: 8px !important;
+    padding: 12px 14px !important;
+    margin: 8px 0 0 24px !important;
+    font-size: 13px !important;
+    color: #5a3e30 !important;
+    border-left: 3px solid var(--memora-brown, #733e1c) !important;
+}
+
+.memora-wc-payment-section .payment_box p {
+    margin: 0 !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+}
+
+.memora-wc-payment-section li.wc_payment_method > input:checked ~ .payment_box,
+.memora-wc-payment-section li.wc_payment_method:only-child .payment_box {
+    display: block !important;
+}
+
+/* An nut dat hang mac dinh cua WooCommerce vi da co nut Trai Tim cua Memora */
+.memora-wc-payment-section .place-order button#place_order,
+.memora-wc-payment-section .form-row.place-order button[type="submit"] {
+    display: none !important;
+}
+
+.memora-wc-payment-section .place-order {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+
 /* NÃšT THANH TOÃN HÃŒNH TRÃI TIM */
 .memora-heart-button-wrap {
     display: flex;

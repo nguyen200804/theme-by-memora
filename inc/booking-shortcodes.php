@@ -240,14 +240,79 @@ function memora_shortcode_checkout_booking( $atts ) {
 
             <?php
             // ============================================================
-            // Gọi WC Payment Methods (hiển phương thức thanh toán native WC)
+            // Gọi WC Payment Methods (hiển thị phương thức thanh toán native WC)
             // ============================================================
             if ( class_exists( 'WooCommerce' ) && function_exists( 'WC' ) ) {
-                WC()->initialize_cart(); // đảm bảo cart khởi tạo
+                if ( ! WC()->session ) {
+                    WC()->initialize_session();
+                }
+                if ( ! WC()->customer ) {
+                    WC()->initialize_customer();
+                }
+                if ( ! WC()->cart ) {
+                    WC()->initialize_cart();
+                }
+
+                // Đảm bảo cart có sản phẩm đặt lịch để needs_payment() = true
+                if ( WC()->cart->is_empty() && function_exists( 'memora_get_or_create_booking_product' ) ) {
+                    $prod_id = memora_get_or_create_booking_product();
+                    if ( $prod_id ) {
+                        WC()->cart->add_to_cart( $prod_id, 1, 0, array(), array( 'memora_booking_pending' => true ) );
+                    }
+                }
+
+                // Đảm bảo giá cart item > 0 để needs_payment() trả về true
+                $pending_data = WC()->session ? WC()->session->get( 'memora_booking_pending_data' ) : null;
+                $deposit_val  = ! empty( $pending_data['deposit_price'] ) ? floatval( $pending_data['deposit_price'] ) : ( ! empty( $pending_data['total_price'] ) ? floatval( $pending_data['total_price'] ) : 100000 );
+                if ( ! WC()->cart->is_empty() ) {
+                    foreach ( WC()->cart->get_cart() as $cart_item ) {
+                        if ( isset( $cart_item['data'] ) && is_object( $cart_item['data'] ) ) {
+                            if ( $cart_item['data']->get_price() <= 0 ) {
+                                $cart_item['data']->set_price( $deposit_val );
+                            }
+                        }
+                    }
+                    WC()->cart->calculate_totals();
+                }
+
                 // Khởi tạo WC Checkout object
                 WC()->checkout();
+
+                // Đảm bảo hook woocommerce_checkout_payment gắn hàm woocommerce_checkout_payment()
+                if ( ! has_action( 'woocommerce_checkout_payment', 'woocommerce_checkout_payment' ) && function_exists( 'woocommerce_checkout_payment' ) ) {
+                    add_action( 'woocommerce_checkout_payment', 'woocommerce_checkout_payment', 10 );
+                }
+
                 echo '<div class="memora-wc-payment-section" id="memora-wc-payment">';
+
+                ob_start();
                 do_action( 'woocommerce_checkout_payment' );
+                $payment_html = ob_get_clean();
+
+                // Fallback nếu do_action chưa xuất nội dung do cart filter hoặc gateway
+                if ( empty( trim( $payment_html ) ) && function_exists( 'wc_get_template' ) ) {
+                    $available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
+                    if ( empty( $available_gateways ) ) {
+                        foreach ( WC()->payment_gateways()->payment_gateways() as $gw ) {
+                            if ( 'yes' === $gw->enabled ) {
+                                $available_gateways[ $gw->id ] = $gw;
+                            }
+                        }
+                    }
+
+                    ob_start();
+                    wc_get_template(
+                        'checkout/payment.php',
+                        array(
+                            'checkout'           => WC()->checkout(),
+                            'available_gateways' => $available_gateways,
+                            'order_button_text'  => apply_filters( 'woocommerce_order_button_text', __( 'Thanh toán', 'woocommerce' ) ),
+                        )
+                    );
+                    $payment_html = ob_get_clean();
+                }
+
+                echo $payment_html;
                 echo '</div>';
             }
             ?>

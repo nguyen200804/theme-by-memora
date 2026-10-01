@@ -426,7 +426,8 @@
                     deposit_price: state.depositPrice,
                     room_id:    state.roomId    || '',
                     room_name:  state.roomName  || '',
-                    dia_chi_id: state.diaChiId  || ''
+                    dia_chi_id: state.diaChiId  || '',
+                    payment_method: $('input[name="payment_method"]:checked').val() || 'bacs'
                 },
                 success: function (response) {
                     $btn.prop('disabled', false).css('opacity', '1');
@@ -465,6 +466,12 @@
                         .text('Lỗi kết nối máy chủ. Bạn vui lòng thử lại sau giây lát!').show();
                 }
             });
+        });
+
+        // Xử lý chuyển phương thức thanh toán WC trong [checkout_booking]
+        $(document).on('change', '.memora-wc-payment-section input[name="payment_method"]', function () {
+            $('.memora-wc-payment-section .payment_box').hide();
+            $(this).closest('li').find('.payment_box').slideDown(200);
         });
 
         // =========================================================================
