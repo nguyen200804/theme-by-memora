@@ -481,59 +481,56 @@ function memora_shortcode_booking_room_url( $atts ) {
     $atts = shortcode_atts( array(
         'page_url'   => '/dat-lich/',
         'room_id'    => '',
-        'dia_chi_id' => '', // Tuỳ chọn: truyền rõ ID dia-chi nếu không tự bắt được
+        'dia_chi_id' => '', // Tuỳ chọn: truyền rõ term_id taxonomy dia-chi nếu không tự bắt được
     ), $atts, 'booking_room_url' );
 
     // -------------------------------------------------------
-    // Xác định phong_id và dia_chi_id không bị nhầm lẫn
+    // Xác định phong_id (post phong-chup-anh)
     // -------------------------------------------------------
     $explicit_room_id    = intval( $atts['room_id'] );
-    $explicit_dia_chi_id = intval( $atts['dia_chi_id'] );
+    $explicit_dia_chi_id = intval( $atts['dia_chi_id'] ); // term_id
 
-    // Queried object (trang đang được xem trên trình duyệt)
-    $queried_id      = get_queried_object_id();
-    $queried_type    = get_post_type( $queried_id );
+    $queried_id   = get_queried_object_id();
+    $queried_type = get_post_type( $queried_id );
 
-    // Loop post (get_the_ID() trong Elementor loop, WP_Query, v.v.)
-    $loop_id         = get_the_ID();
-    $loop_type       = $loop_id ? get_post_type( $loop_id ) : '';
+    $loop_id   = get_the_ID();
+    $loop_type = $loop_id ? get_post_type( $loop_id ) : '';
 
-    // --- Xác định phong_id ---
+    // --- Xác định post_id phòng chụp ---
     if ( $explicit_room_id > 0 ) {
-        // Được truyền rõ → dùng luôn
         $post_id = $explicit_room_id;
+    } elseif ( $loop_type === 'phong-chup-anh' && $loop_id > 0 ) {
+        $post_id = $loop_id;
+    } elseif ( $queried_type === 'phong-chup-anh' && $queried_id > 0 ) {
+        $post_id = $queried_id;
     } elseif ( $loop_type && $loop_type !== 'dia-chi' && $loop_id > 0 ) {
-        // Đang trong loop của phòng (phong-chup-anh, page, v.v.)
         $post_id = $loop_id;
     } elseif ( $queried_type && $queried_type !== 'dia-chi' && $queried_id > 0 ) {
-        // Queried object là phòng hoặc post khác (không phải dia-chi)
         $post_id = $queried_id;
     } else {
-        // Không xác định được phòng cụ thể
         $post_id = 0;
     }
 
     $room_title = $post_id > 0 ? get_the_title( $post_id ) : '';
 
-    // --- Xác định dia_chi_id ---
+    // -------------------------------------------------------
+    // Xác định dia_chi_id = term_id của taxonomy 'dia-chi'
+    // -------------------------------------------------------
     if ( $explicit_dia_chi_id > 0 ) {
-        // Truyền thủ công qua attribute → dùng luôn
+        // Truyền thủ công → dùng luôn
         $dia_chi_id = $explicit_dia_chi_id;
-    } elseif ( $queried_type === 'dia-chi' && $queried_id > 0 ) {
-        // Đang xem trang dia-chi (queried object)
-        $dia_chi_id = $queried_id;
-    } elseif ( $loop_type === 'dia-chi' && $loop_id > 0 ) {
-        // Đang trong loop của dia-chi
-        $dia_chi_id = $loop_id;
-    } elseif ( $post_id > 0 && function_exists( 'memora_get_location_id_from_room' ) ) {
-        // Đang trên trang phòng (phong-chup-anh) → tra ngược sang dia-chi cha
-        $dia_chi_id = memora_get_location_id_from_room( $post_id );
-    } else {
-        $dia_chi_id = 0;
-    }
 
-    // Tránh trường hợp phong_id = dia_chi_id (cùng là ID dia-chi)
-    if ( $post_id > 0 && $post_id === $dia_chi_id ) {
+    } elseif ( is_tax( 'dia-chi' ) ) {
+        // Đang ở taxonomy archive dia-chi
+        $queried = get_queried_object();
+        $dia_chi_id = ( $queried instanceof WP_Term ) ? (int) $queried->term_id : 0;
+
+    } elseif ( $post_id > 0 ) {
+        // Lấy term 'dia-chi' gắn với phòng chụp
+        $terms = wp_get_object_terms( $post_id, 'dia-chi', array( 'fields' => 'ids' ) );
+        $dia_chi_id = ( ! empty( $terms ) && ! is_wp_error( $terms ) ) ? (int) $terms[0] : 0;
+
+    } else {
         $dia_chi_id = 0;
     }
 
@@ -544,7 +541,7 @@ function memora_shortcode_booking_room_url( $atts ) {
         $url_params['phong']    = rawurlencode( $room_title );
     }
     if ( $dia_chi_id > 0 ) {
-        $url_params['dia_chi_id'] = $dia_chi_id;
+        $url_params['dia_chi_id'] = $dia_chi_id; // term_id
     }
 
     $url = add_query_arg( $url_params, home_url( $atts['page_url'] ) );
@@ -579,21 +576,18 @@ function memora_shortcode_booking_room_button( $atts ) {
     $template_id = intval( $atts['id'] );
     $modal_id    = 'memora-modal-room-' . $post_id . '-' . wp_rand( 100, 999 );
 
-    // Xác định dia_chi_id: ưu tiên attribute, sau đó detect context, cuối cùng tra ngược từ phòng
+    // Xác định dia_chi_id = term_id taxonomy 'dia-chi'
     $explicit_dia_chi_id = intval( $atts['dia_chi_id'] );
     if ( $explicit_dia_chi_id > 0 ) {
         $dia_chi_id = $explicit_dia_chi_id;
+    } elseif ( is_tax( 'dia-chi' ) ) {
+        $queried    = get_queried_object();
+        $dia_chi_id = ( $queried instanceof WP_Term ) ? (int) $queried->term_id : 0;
+    } elseif ( $post_id > 0 ) {
+        $terms      = wp_get_object_terms( $post_id, 'dia-chi', array( 'fields' => 'ids' ) );
+        $dia_chi_id = ( ! empty( $terms ) && ! is_wp_error( $terms ) ) ? (int) $terms[0] : 0;
     } else {
-        // Thử detect từ context trang (nếu đang trên trang dia-chi)
-        $dia_chi_id = memora_detect_dia_chi_context( 0 );
-        // Nếu vẫn không có (đang trên trang phòng) → tra ngược từ post_id
-        if ( $dia_chi_id <= 0 && $post_id > 0 && function_exists( 'memora_get_location_id_from_room' ) ) {
-            $dia_chi_id = memora_get_location_id_from_room( $post_id );
-        }
-        // Safeguard: không để dia_chi_id = post_id
-        if ( $dia_chi_id === $post_id ) {
-            $dia_chi_id = 0;
-        }
+        $dia_chi_id = 0;
     }
 
     $url_params = array(

@@ -123,30 +123,17 @@ function memora_register_booking_options_page() {
                 'capability' => 'manage_options',
                 'icon_url'   => 'dashicons-clock',
                 'position'   => 29,
-                'redirect'   => false,
-            ) );
-        }
-    }
-}
-//====================================
-// END - ĐĂNG KÝ OPTIONS PAGE CẤU HÌNH THỜI GIAN
-//====================================
-
-
-
-
-
-//====================================
-// START - TRA NGƯỢC: LẤY ID ĐỊA CHỈ TỪ ID PHÒNG CHỤP
+        //====================================
+// START - TRA NGƯỢC: LẤY TERM ID ĐỊA CHỂ TỪ ID PHÒNG CHỤP
 //====================================
 /**
  * Từ ID một post phòng chụp (post-type: phong-chup-anh),
- * tìm ID post dia-chi cha chứa phòng đó qua ACF field "cac-phong-cua-dia-chi".
+ * lấy term_id của taxonomy 'dia-chi' gắn với phòng đó.
  *
  * Kết quả được cache tĩnh trong request để tránh query lặp.
  *
  * @param int $room_id  ID post phòng chụp.
- * @return int  ID post dia-chi, hoặc 0 nếu không tìm thấy.
+ * @return int  term_id của taxonomy 'dia-chi', hoặc 0 nếu không tìm thấy.
  */
 function memora_get_location_id_from_room( $room_id ) {
     $room_id = intval( $room_id );
@@ -160,103 +147,62 @@ function memora_get_location_id_from_room( $room_id ) {
         return $cache[ $room_id ];
     }
 
-    // Truy vấn tất cả post dia-chi, kiểm tra xem phòng có nằm trong field không
-    $dia_chi_posts = get_posts( array(
-        'post_type'      => 'dia-chi',
-        'post_status'    => 'publish',
-        'posts_per_page' => -1,
-        'fields'         => 'ids',
-    ) );
+    // Lấy terms taxonomy 'dia-chi' gắn với post phong-chup-anh
+    $terms = wp_get_object_terms( $room_id, 'dia-chi', array( 'fields' => 'ids' ) );
 
-    if ( empty( $dia_chi_posts ) ) {
-        $cache[ $room_id ] = 0;
-        return 0;
-    }
-
-    $field_candidates = array(
-        'cac-phong-cua-dia-chi',
-        'cac_phong_cua_dia_chi',
-    );
-
-    foreach ( $dia_chi_posts as $dc_id ) {
-        foreach ( $field_candidates as $field_key ) {
-            $rooms_val = function_exists( 'get_field' )
-                ? get_field( $field_key, $dc_id )
-                : get_post_meta( $dc_id, $field_key, true );
-
-            if ( empty( $rooms_val ) ) {
-                continue;
-            }
-
-            // Chuẩn hóa thành mảng ID
-            $room_ids_in_dc = array();
-            if ( is_array( $rooms_val ) ) {
-                foreach ( $rooms_val as $r ) {
-                    $room_ids_in_dc[] = is_object( $r ) ? intval( $r->ID ) : intval( $r );
-                }
-            } elseif ( is_object( $rooms_val ) ) {
-                $room_ids_in_dc[] = intval( $rooms_val->ID );
-            } elseif ( is_numeric( $rooms_val ) ) {
-                $room_ids_in_dc[] = intval( $rooms_val );
-            }
-
-            if ( in_array( $room_id, $room_ids_in_dc, true ) ) {
-                $cache[ $room_id ] = $dc_id;
-                return $dc_id;
-            }
-        }
+    if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+        $term_id           = (int) $terms[0];
+        $cache[ $room_id ] = $term_id;
+        return $term_id;
     }
 
     $cache[ $room_id ] = 0;
     return 0;
 }
 //====================================
-// END - TRA NGƯỢC: LẤY ID ĐỊA CHỈ TỪ ID PHÒNG CHỤP
+// END - TRA NGƯỢC: LẤY TERM ID ĐỊA CHỈ TỪ ID PHÒNG CHỤP
 //====================================
 
 //====================================
-// START - RESOLVE: XÁC ĐỊNH ID ĐỊA CHỈ TỪ THAM SỐ URL
+// START - RESOLVE: XÁC ĐỊNH TERM ID ĐỊA CHỂ TỪ THAM SỐ URL
 //====================================
 /**
  * Đọc tham số URL (?phong_id=... hoặc ?dia_chi_id=...) và trả về
- * ID post dia-chi tương ứng.
+ * term_id của taxonomy 'dia-chi' tương ứng.
  *
  * Ưu tiên:
- *  1. ?dia_chi_id   → dùng trực tiếp (đã là ID dia-chi)
- *  2. ?phong_id     → tra ngược qua ACF field để tìm dia-chi cha
+ *  1. ?dia_chi_id   → term_id trực tiếp
+ *  2. ?phong_id     → lấy taxonomy term gắn với phòng
  *
- * @return int  ID post dia-chi, hoặc 0 nếu không xác định được.
+ * @return int  term_id taxonomy 'dia-chi', hoặc 0 nếu không xác định được.
  */
 function memora_resolve_booking_location_id() {
-    // 1. Có dia_chi_id trực tiếp trên URL → dùng ngay
+    // 1. Có dia_chi_id trực tiếp trên URL → là term_id, dùng ngay
     if ( ! empty( $_GET['dia_chi_id'] ) && intval( $_GET['dia_chi_id'] ) > 0 ) {
         return intval( $_GET['dia_chi_id'] );
     }
 
-    // 2. Có phong_id → tra ngược sang dia-chi cha
+    // 2. Có phong_id → lấy term 'dia-chi' gắn với phòng
     if ( ! empty( $_GET['phong_id'] ) && intval( $_GET['phong_id'] ) > 0 ) {
-        $room_id     = intval( $_GET['phong_id'] );
-        $location_id = memora_get_location_id_from_room( $room_id );
-        if ( $location_id > 0 ) {
-            return $location_id;
+        $term_id = memora_get_location_id_from_room( intval( $_GET['phong_id'] ) );
+        if ( $term_id > 0 ) {
+            return $term_id;
         }
     }
 
     return 0;
 }
 //====================================
-// END - RESOLVE: XÁC ĐỊNH ID ĐỊA CHỈ TỪ THAM SỐ URL
-//====================================
-
-
+// END - RESOLVE: XÁC ĐỊNH TERM ID ĐỊA CHỂ TỪ THAM SỐ URL
 //====================================
 /**
- * Lấy cấu hình giờ chụp & gói chụp theo địa chỉ (post-type: dia-chi).
+ * Lấy cấu hình giờ chụp & gói chụp theo địa chỉ (taxonomy: dia-chi).
  *
- * Ưu tiên lấy từ post dia-chi nếu $location_id hợp lệ.
+ * $location_id là term_id của taxonomy 'dia-chi'.
+ * Dùng cú pháp 'term_{id}' để đọc ACF field từ taxonomy term.
  * Fallback về ACF Options Page nếu không tìm thấy hoặc field trống.
  *
- * @param int|string $location_id  ID của post dia-chi. Để trống để lấy từ Options.
+ * @param int $location_id  term_id của taxonomy 'dia-chi'. 0 để dùng Options.
  * @return array { start_time, end_time, interval, packages }
  */
 function memora_get_booking_config( $location_id = 0 ) {
@@ -267,15 +213,32 @@ function memora_get_booking_config( $location_id = 0 ) {
     $location_id = intval( $location_id );
 
     if ( function_exists( 'get_field' ) ) {
-        // --- Lấy từ post dia-chi nếu có ID hợp lệ ---
-        if ( $location_id > 0 ) {
-            $start_time = get_field( 'thoi_gian_bat_dau_phuc_vu_hanh_chinh', $location_id );
-            $end_time   = get_field( 'thoi_gian_ket_thuc_phuc_vu_hanh_chinh', $location_id );
-            $interval   = get_field( 'dan_cach_gio_chup_anh', $location_id );
-            $packages   = get_field( 'cac_goi_chup_anh', $location_id );
+        // Dùng cú pháp 'term_{id}' — ACF đọc field từ taxonomy term
+        $acf_source = $location_id > 0 ? 'term_' . $location_id : null;
+
+        if ( $acf_source ) {
+            $start_time = get_field( 'thoi_gian_bat_dau_phuc_vu_hanh_chinh', $acf_source );
+            $end_time   = get_field( 'thoi_gian_ket_thuc_phuc_vu_hanh_chinh', $acf_source );
+            $interval   = get_field( 'dan_cach_gio_chup_anh', $acf_source );
+            $packages   = get_field( 'cac_goi_chup_anh', $acf_source );
+
+            // Fallback get_term_meta nếu get_field trống
+            if ( empty( $start_time ) ) {
+                $start_time = get_term_meta( $location_id, 'thoi_gian_bat_dau_phuc_vu_hanh_chinh', true );
+            }
+            if ( empty( $end_time ) ) {
+                $end_time = get_term_meta( $location_id, 'thoi_gian_ket_thuc_phuc_vu_hanh_chinh', true );
+            }
+            if ( empty( $interval ) ) {
+                $interval = get_term_meta( $location_id, 'dan_cach_gio_chup_anh', true );
+            }
+            if ( empty( $packages ) ) {
+                $packages = get_term_meta( $location_id, 'cac_goi_chup_anh', true );
+                if ( $packages ) $packages = maybe_unserialize( $packages );
+            }
         }
 
-        // --- Fallback về ACF Options nếu field trống ---
+        // --- Fallback về ACF Options nếu field term trống ---
         if ( empty( $start_time ) ) {
             $start_time = get_field( 'thoi_gian_bat_dau_phuc_vu_hanh_chinh', 'option' );
         }
@@ -309,6 +272,24 @@ function memora_get_booking_config( $location_id = 0 ) {
                 'ten_goi_chup' => '5p',
                 'gia_goi_chup' => 200000,
             ),
+            array(
+                'ten_goi_chup' => '10p',
+                'gia_goi_chup' => 350000,
+            ),
+        );
+    }
+
+    return array(
+        'start_time'  => $start_time,
+        'end_time'    => $end_time,
+        'interval'    => $interval,
+        'packages'    => $packages,
+        'location_id' => $location_id,
+    );
+}
+//====================================
+// END - LẤY CẤU HÌNH TỪ ACF (THEO ĐỊA CHỂ TAXONOMY)
+//====================================            ),
             array(
                 'ten_goi_chup' => '10p',
                 'gia_goi_chup' => 350000,
