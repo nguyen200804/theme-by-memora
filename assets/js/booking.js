@@ -343,13 +343,13 @@
 
             // Gọi AJAX để lưu session WC + thêm vào cart → nhận URL WC checkout
             $.ajax({
-                url: memoraBooking.ajaxUrl,
+                url: memora_booking_vars.ajax_url,
                 type: 'POST',
                 data: {
                     action:       'memora_prepare_checkout_session',
-                    nonce:        memoraBooking.nonce,
-                    date:         state.bookingDate,
-                    time:         state.bookingTime,
+                    nonce:        memora_booking_vars.nonce,
+                    date:         state.date,
+                    time:         state.time,
                     package_name: state.packageName,
                     total_price:  state.totalPrice   || 0,
                     deposit_price:state.depositPrice || 0,
