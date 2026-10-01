@@ -672,17 +672,12 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             position: relative;
         }
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-badge {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            z-index: 10;
-            display: block;
-            line-height: 0;
-            margin: 0;
-            padding: 0;
-            background: none;
-            border: none;
-            box-shadow: none;
+             position: absolute;
+            z-index: 2;
+            width: 121px;
+            top: -20px;
+            left: -33px;
+            transform: rotate(-12deg);
         }
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-badge img {
             width: auto;
