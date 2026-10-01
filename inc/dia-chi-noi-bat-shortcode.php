@@ -103,9 +103,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
     }
 
     /* ------------------------------------------------------------------
-       Chế độ A: term_id truyền trực tiếp (Loop Grid → Post Taxonomy)
-       Khi đó mỗi Loop Item là một term của taxonomy 'dia-chi'.
-       Dùng term đó luôn — không cần tìm qua post.
+       Khởi tạo biến
     ------------------------------------------------------------------ */
     $dc_term        = null;
     $dc_term_url    = '';
@@ -113,6 +111,10 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
     $dc_id          = 0;
     $dc_title       = '';
 
+    /* ------------------------------------------------------------------
+       Chế độ A1: term_id truyền tường minh qua attribute
+       Dùng khi cần override hoặc debug.
+    ------------------------------------------------------------------ */
     if ( ! empty( $atts['term_id'] ) && is_numeric( $atts['term_id'] ) ) {
         $t = get_term( (int) $atts['term_id'], 'dia-chi' );
         if ( $t && ! is_wp_error( $t ) ) {
@@ -125,7 +127,27 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
     }
 
     /* ------------------------------------------------------------------
-       Chế độ B: lookup qua post (cách hoạt động cũ)
+       Chế độ A2: AUTO-DETECT Elementor taxonomy Loop Grid
+       Elementor set get_the_ID() = term_id khi chạy "Post Taxonomy" loop.
+       Thử get_term(get_the_ID(), 'dia-chi') — nếu hợp lệ thì đang trong loop.
+       Chỉ chạy khi không có post_id/current/term_id tường minh.
+    ------------------------------------------------------------------ */
+    if ( ! $dc_term && empty( $atts['term_id'] ) && empty( $atts['post_id'] ) && empty( $atts['current'] ) ) {
+        $maybe_term_id = (int) get_the_ID();
+        if ( $maybe_term_id > 0 ) {
+            $t = get_term( $maybe_term_id, 'dia-chi' );
+            if ( $t && ! is_wp_error( $t ) ) {
+                $dc_term        = $t;
+                $dc_term_source = 'term_' . $t->term_id;
+                $term_link      = get_term_link( $t, 'dia-chi' );
+                $dc_term_url    = ! is_wp_error( $term_link ) ? $term_link : '';
+                $dc_title       = $t->name;
+            }
+        }
+    }
+
+    /* ------------------------------------------------------------------
+       Chế độ B: lookup qua post (fallback khi không phải taxonomy loop)
     ------------------------------------------------------------------ */
     if ( ! $dc_term ) {
 
