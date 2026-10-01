@@ -138,6 +138,33 @@
     padding: 1em;
     width: 100%;
     box-sizing: border-box;
+    /* Firefox */
+    scrollbar-color: #693d21 #bad6ec;
+    scrollbar-width: thin;
+}
+
+/* Custom scrollbar – Webkit (Chrome, Safari, Edge) */
+.memora-time-slots-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.memora-time-slots-grid::-webkit-scrollbar-track {
+    background: #bad6ec;
+    border-radius: 99px;
+}
+
+.memora-time-slots-grid::-webkit-scrollbar-thumb {
+    background: #693d21;
+    border-radius: 99px;
+    border: 2px solid #bad6ec;
+}
+
+.memora-time-slots-grid::-webkit-scrollbar-thumb:hover {
+    background: #4f2d18;
+}
+
+.memora-time-slots-grid::-webkit-scrollbar-thumb:active {
+    background: #3a2010;
 }
 
 .memora-time-slot-btn {
