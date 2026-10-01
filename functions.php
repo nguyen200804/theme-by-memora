@@ -64,6 +64,11 @@ if ( file_exists( get_stylesheet_directory() . '/inc/nut-lien-he.php' ) ) {
     require_once get_stylesheet_directory() . '/inc/nut-lien-he.php';
 }
 
+// Nạp tích hợp WooCommerce BACS + VietQR QR Code
+if ( file_exists( get_stylesheet_directory() . '/inc/wc-vietqr.php' ) ) {
+    require_once get_stylesheet_directory() . '/inc/wc-vietqr.php';
+}
+
 
 
 /**
