@@ -531,11 +531,10 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             margin: 0 auto;
         }
 
-        /* Khung ảnh poster 1:1 không bo góc */
+        /* Khung ảnh poster không bo góc */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster {
             width: 100%;
             max-width: 100%;
-            aspect-ratio: 1 / 1;
             border-radius: 0;
             overflow: hidden;
             background-color: #f7f3ef;
@@ -712,7 +711,6 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             flex: 1 1 0;
             min-width: 0;
             max-width: 100%;
-            aspect-ratio: 16 / 9.5;
             border-radius: 0;
             overflow: hidden;
             background-color: #f7f3ef;
