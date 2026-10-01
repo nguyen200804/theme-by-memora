@@ -31,7 +31,24 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         'orderby'          => 'menu_order', // menu_order | title | date
         'order'            => 'ASC',
         'booking_room_url' => '',      // URL đặt lịch dùng chung cho tất cả phòng
+        'room_urls'        => '',      // URL riêng từng phòng: "post_id:url|post_id:url" (VD: "267:/dat-lich/phong-1/|268:/dat-lich/phong-2/")
     ], $atts, 'danh_sach_phong' );
+
+    // Parse room_urls thành map [ post_id => url ]
+    $room_url_map = [];
+    if ( ! empty( $atts['room_urls'] ) ) {
+        foreach ( explode( '|', $atts['room_urls'] ) as $pair ) {
+            $pair = trim( $pair );
+            if ( strpos( $pair, ':' ) !== false ) {
+                $parts = explode( ':', $pair, 2 );
+                $rid   = (int) trim( $parts[0] );
+                $rurl  = trim( $parts[1] );
+                if ( $rid > 0 && ! empty( $rurl ) ) {
+                    $room_url_map[ $rid ] = $rurl;
+                }
+            }
+        }
+    }
 
     // Enqueue Swiper assets
     if ( function_exists( 'memora_gallery_swiper_assets' ) ) {
@@ -158,15 +175,19 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         $index++;
         $title = get_the_title( $r_id );
 
-        // Ưu tiên: 1) booking_room_url từ shortcode attr, 2) ACF field từng phòng, 3) permalink
-        $booking_url = ! empty( $atts['booking_room_url'] ) ? $atts['booking_room_url'] : '';
-        if ( empty( $booking_url ) && function_exists( 'get_field' ) ) {
-            $booking_url = get_field( 'booking_room_url', $r_id )
-                        ?: get_field( 'booking_url', $r_id )
-                        ?: get_field( 'dat_lich_url', $r_id )
-                        ?: get_field( 'url_dat_lich', $r_id );
+        // Ưu tiên: 1) room_urls theo post_id, 2) booking_room_url chung, 3) ACF field từng phòng, 4) permalink
+        if ( isset( $room_url_map[ $r_id ] ) ) {
+            $link = esc_url( $room_url_map[ $r_id ] );
+        } else {
+            $booking_url = ! empty( $atts['booking_room_url'] ) ? $atts['booking_room_url'] : '';
+            if ( empty( $booking_url ) && function_exists( 'get_field' ) ) {
+                $booking_url = get_field( 'booking_room_url', $r_id )
+                            ?: get_field( 'booking_url', $r_id )
+                            ?: get_field( 'dat_lich_url', $r_id )
+                            ?: get_field( 'url_dat_lich', $r_id );
+            }
+            $link = ! empty( $booking_url ) ? esc_url( $booking_url ) : get_permalink( $r_id );
         }
-        $link = ! empty( $booking_url ) ? esc_url( $booking_url ) : get_permalink( $r_id );
 
 
         // Số phòng / Nhãn phòng
