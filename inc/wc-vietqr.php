@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * WooCommerce BACS + VietQR Integration
  *
@@ -47,45 +47,64 @@ function memora_render_wc_vietqr( $order ) {
     if ( empty( $template ) ) $template = 'compact2';
 
     // --- Fallback: lấy từ WooCommerce BACS accounts nếu ACF chưa cấu hình ---
-    if ( empty( $bank_id ) || empty( $account_no ) ) {
+    if ( empty( $account_no ) ) {
         $bacs_accounts = get_option( 'woocommerce_bacs_accounts', array() );
         if ( ! empty( $bacs_accounts[0] ) ) {
             $acc          = $bacs_accounts[0];
             $account_no   = ! empty( $acc['account_number'] ) ? $acc['account_number'] : '';
-            $account_name = ! empty( $acc['account_name'] )   ? $acc['account_name']   : '';
-            $bank_name    = ! empty( $acc['bank_name'] )      ? $acc['bank_name']       : '';
-            // sort_code dùng để lưu BIN nếu không có ACF
-            $bank_id      = ! empty( $acc['sort_code'] )      ? $acc['sort_code']       : '';
+            $account_name = ! empty( $acc['account_name'] )   ? $acc['account_name']   : $account_name;
+            $bank_name    = ! empty( $acc['bank_name'] )      ? $acc['bank_name']       : $bank_name;
+            // sort_code = nơi lưu Bank BIN (VD: 970422 cho MB)
+            if ( empty( $bank_id ) ) {
+                $bank_id = ! empty( $acc['sort_code'] ) ? $acc['sort_code'] : '';
+            }
         }
     }
 
-    if ( empty( $bank_id ) || empty( $account_no ) ) return;
+    // Không có số tài khoản → không hiển thị gì
+    if ( empty( $account_no ) ) {
+        // Chỉ cảnh báo admin
+        if ( current_user_can( 'manage_options' ) ) {
+            echo '<div style="background:#fff3cd;border:1px solid #ffc107;padding:12px 16px;border-radius:6px;margin:16px 0;font-size:14px;">'
+               . '⚠️ <strong>Admin:</strong> Chưa cấu hình thông tin ngân hàng VietQR. '
+               . 'Vào <a href="' . admin_url( 'admin.php?page=cau-hinh-thoi-gian-chup-anh' ) . '">Cấu hình Lịch Chụp</a> → tab <strong>💳 Thông Tin Ngân Hàng</strong> để điền.'
+               . '</div>';
+        }
+        return;
+    }
+
+    // Có số TK nhưng chưa có BIN → hiển thị thông tin CK, không có QR
+    $has_qr = ! empty( $bank_id );
 
     // --- Thông tin đơn hàng ---
     $amount       = (int) round( $order->get_total() );
     $order_number = $order->get_order_number();
     $add_info     = 'MEMORA DH' . $order_number;
 
-    // --- Build VietQR image URL ---
-    $qr_params = http_build_query( array(
-        'amount'      => $amount > 0 ? $amount : '',
-        'addInfo'     => $add_info,
-        'accountName' => $account_name,
-    ) );
-    $qr_url = 'https://img.vietqr.io/image/'
-        . rawurlencode( $bank_id ) . '-'
-        . rawurlencode( $account_no ) . '-'
-        . rawurlencode( $template ) . '.png?'
-        . $qr_params;
+    // --- Build VietQR image URL (chỉ khi có BIN) ---
+    $qr_url = '';
+    if ( $has_qr ) {
+        $qr_params = http_build_query( array(
+            'amount'      => $amount > 0 ? $amount : '',
+            'addInfo'     => $add_info,
+            'accountName' => $account_name,
+        ) );
+        $qr_url = 'https://img.vietqr.io/image/'
+            . rawurlencode( $bank_id ) . '-'
+            . rawurlencode( $account_no ) . '-'
+            . rawurlencode( $template ) . '.png?'
+            . $qr_params;
+    }
 
     ?>
     <section class="memora-wc-vietqr woocommerce-order-vietqr">
         <h3 class="memora-wc-vietqr__title">
-            💳 Quét mã QR để thanh toán
+            <?php echo $has_qr ? '💳 Quét mã QR để thanh toán' : '🏦 Thông tin chuyển khoản'; ?>
         </h3>
 
         <div class="memora-wc-vietqr__body">
 
+            <?php if ( $has_qr ) : ?>
             <!-- QR CODE -->
             <div class="memora-wc-vietqr__qr">
                 <img
@@ -94,6 +113,7 @@ function memora_render_wc_vietqr( $order ) {
                     loading="lazy"
                 />
             </div>
+            <?php endif; ?>
 
             <!-- THÔNG TIN CHUYỂN KHOẢN -->
             <div class="memora-wc-vietqr__info">
