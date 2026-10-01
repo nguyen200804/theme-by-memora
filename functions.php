@@ -207,3 +207,24 @@ add_action( 'template_redirect', function() {
     }
     ob_start( 'tocfl_force_desktop_viewport' );
 } );
+
+
+/**
+ * Fix taxonomy 'dia-chi' (tạo bởi SCF) hiển thị trong Elementor Archive conditions.
+ * Elementor dùng get_taxonomies(['show_in_nav_menus' => true]) để build danh sách.
+ * Hook này chạy sau SCF (priority 999) để đảm bảo các args cần thiết đúng.
+ */
+add_action( 'init', 'memora_fix_dia_chi_taxonomy_for_elementor', 999 );
+function memora_fix_dia_chi_taxonomy_for_elementor() {
+    global $wp_taxonomies;
+
+    if ( ! isset( $wp_taxonomies['dia-chi'] ) ) {
+        return;
+    }
+
+    // Đảm bảo taxonomy xuất hiện trong Elementor Archive conditions
+    $wp_taxonomies['dia-chi']->public            = true;
+    $wp_taxonomies['dia-chi']->publicly_queryable = true;
+    $wp_taxonomies['dia-chi']->show_in_nav_menus = true;
+    $wp_taxonomies['dia-chi']->show_ui           = true;
+}
