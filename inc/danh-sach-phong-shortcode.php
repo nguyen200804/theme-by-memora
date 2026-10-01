@@ -451,12 +451,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
                 <!-- CỘT TRÁI: THÔNG TIN PHÒNG -->
                 <div class="memora-dsp-wide-info">
-                    <?php if ( ! empty( $w_room['badge'] ) ) : ?>
-                    <div class="memora-dsp-badge">
-                        <span class="memora-dsp-badge-star">✦</span>
-                        <span class="memora-dsp-badge-text"><?php echo esc_html( $w_room['badge'] ); ?></span>
-                    </div>
-                    <?php endif; ?>
+                    
 
                     <div class="memora-dsp-room-num memora-dsp-room-num--large">
                         <?php echo esc_html( $w_room['room_number'] ); ?>
@@ -479,6 +474,11 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
                 <!-- CỘT PHẢI: SLIDER ẢNH -->
                 <div class="memora-dsp-wide-slider-wrap">
+                    <?php if ( ! empty( $w_room['badge'] ) ) : ?>
+                    <div class="memora-dsp-badge">
+                        <img src="/wp-content/uploads/2026/10/special-room.png">
+                    </div>
+                    <?php endif; ?>
                     <div class="swiper memora-room-swiper" id="<?php echo esc_attr( $slider_id ); ?>" data-loop="<?php echo count( $w_room['images'] ) >= 2 ? 'true' : 'false'; ?>">
                         <div class="swiper-wrapper">
                             <?php if ( $has_slides ) : ?>

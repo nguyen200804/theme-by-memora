@@ -433,16 +433,15 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         }
 
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-map {
-            width: 100%;
-            flex: 1 1 auto;
-            min-height: 140px;
+            width: 130px;
+            height: 130px;
+            flex: 0 0 130px;
             border-radius: 8px;
             overflow: hidden;
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-map iframe {
-            width: 100%;
-            height: 100%;
-            min-height: 140px;
+            width: 130px;
+            height: 130px;
             border: 0;
             display: block;
         }
