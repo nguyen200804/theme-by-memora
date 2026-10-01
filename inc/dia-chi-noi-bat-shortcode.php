@@ -149,6 +149,19 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
     $GLOBALS['memora_featured_dia_chi_id'] = $dc_id;
     $dc_title = get_the_title( $dc_id );
 
+    /* -- Lấy term đầu tiên của taxonomy 'dia-chi' gắn với bài viết -- */
+    $dc_term     = null;
+    $dc_term_url = get_permalink( $dc_id ); // fallback
+    $dc_term_source = null; // dùng cho get_field / get_term_meta
+
+    $dc_terms = get_the_terms( $dc_id, 'dia-chi' );
+    if ( ! empty( $dc_terms ) && ! is_wp_error( $dc_terms ) ) {
+        $dc_term        = $dc_terms[0];
+        $term_link      = get_term_link( $dc_term, 'dia-chi' );
+        $dc_term_url    = ! is_wp_error( $term_link ) ? $term_link : $dc_term_url;
+        $dc_term_source = 'term_' . $dc_term->term_id;
+    }
+
     /* -- Featured image (thumbnail trai) -- */
     $thumb_id  = get_post_thumbnail_id( $dc_id );
     $thumb_src = $thumb_id ? wp_get_attachment_image_url( $thumb_id, 'medium' ) : '';
@@ -169,45 +182,67 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         'hinh_anh_dia_chi',
     ];
 
-    foreach ( $gallery_candidates as $field_key ) {
-        $gallery = get_field( $field_key, $dc_id );
-        if ( ! empty( $gallery ) ) {
-            if ( is_array( $gallery ) ) {
-                foreach ( $gallery as $img ) {
-                    if ( is_array( $img ) ) {
-                        $img_id = ! empty( $img['ID'] ) ? (int) $img['ID'] : ( ! empty( $img['id'] ) ? (int) $img['id'] : 0 );
-                        if ( $img_id ) $slide_ids[] = $img_id;
-                    } elseif ( is_numeric( $img ) ) {
-                        $slide_ids[] = (int) $img;
-                    } elseif ( is_string( $img ) && is_numeric( trim( $img ) ) ) {
-                        $slide_ids[] = (int) trim( $img );
-                    }
-                }
-            } elseif ( is_string( $gallery ) && strpos( $gallery, ',' ) !== false ) {
-                foreach ( explode( ',', $gallery ) as $p ) {
-                    if ( is_numeric( trim( $p ) ) ) $slide_ids[] = (int) trim( $p );
+    // Helper parse gallery value (array hoặc chuỗi CSV)
+    $parse_gallery = function( $gallery ) use ( &$slide_ids ) {
+        if ( is_array( $gallery ) ) {
+            foreach ( $gallery as $img ) {
+                if ( is_array( $img ) ) {
+                    $img_id = ! empty( $img['ID'] ) ? (int) $img['ID'] : ( ! empty( $img['id'] ) ? (int) $img['id'] : 0 );
+                    if ( $img_id ) $slide_ids[] = $img_id;
+                } elseif ( is_numeric( $img ) ) {
+                    $slide_ids[] = (int) $img;
+                } elseif ( is_string( $img ) && is_numeric( trim( $img ) ) ) {
+                    $slide_ids[] = (int) trim( $img );
                 }
             }
-            if ( ! empty( $slide_ids ) ) break;
+        } elseif ( is_string( $gallery ) && strpos( $gallery, ',' ) !== false ) {
+            foreach ( explode( ',', $gallery ) as $p ) {
+                if ( is_numeric( trim( $p ) ) ) $slide_ids[] = (int) trim( $p );
+            }
+        }
+    };
+
+    // Ưu tiên: lấy ảnh từ ACF field của TERM (taxonomy 'dia-chi')
+    if ( $dc_term_source && function_exists( 'get_field' ) ) {
+        foreach ( $gallery_candidates as $field_key ) {
+            $gallery = get_field( $field_key, $dc_term_source );
+            if ( ! empty( $gallery ) ) {
+                $parse_gallery( $gallery );
+                if ( ! empty( $slide_ids ) ) break;
+            }
         }
     }
 
-    // Nếu get_field rỗng, thử quét postmeta
+    // Nếu term meta rỗng, thử get_term_meta trực tiếp
+    if ( empty( $slide_ids ) && $dc_term ) {
+        foreach ( $gallery_candidates as $field_key ) {
+            $meta_val = get_term_meta( $dc_term->term_id, $field_key, true );
+            if ( ! empty( $meta_val ) ) {
+                $meta_val = maybe_unserialize( $meta_val );
+                $parse_gallery( $meta_val );
+                if ( ! empty( $slide_ids ) ) break;
+            }
+        }
+    }
+
+    // Fallback: thử ACF field từ POST nếu term không có ảnh
+    if ( empty( $slide_ids ) && function_exists( 'get_field' ) ) {
+        foreach ( $gallery_candidates as $field_key ) {
+            $gallery = get_field( $field_key, $dc_id );
+            if ( ! empty( $gallery ) ) {
+                $parse_gallery( $gallery );
+                if ( ! empty( $slide_ids ) ) break;
+            }
+        }
+    }
+
+    // Fallback: postmeta trực tiếp
     if ( empty( $slide_ids ) ) {
         foreach ( $gallery_candidates as $field_key ) {
             $meta_val = get_post_meta( $dc_id, $field_key, true );
             if ( ! empty( $meta_val ) ) {
                 $meta_val = maybe_unserialize( $meta_val );
-                if ( is_array( $meta_val ) ) {
-                    foreach ( $meta_val as $m_item ) {
-                        if ( is_numeric( $m_item ) ) $slide_ids[] = (int) $m_item;
-                        elseif ( is_array( $m_item ) && ! empty( $m_item['ID'] ) ) $slide_ids[] = (int) $m_item['ID'];
-                    }
-                } elseif ( is_string( $meta_val ) && strpos( $meta_val, ',' ) !== false ) {
-                    foreach ( explode( ',', $meta_val ) as $p ) {
-                        if ( is_numeric( trim( $p ) ) ) $slide_ids[] = (int) trim( $p );
-                    }
-                }
+                $parse_gallery( $meta_val );
                 if ( ! empty( $slide_ids ) ) break;
             }
         }
@@ -243,9 +278,11 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
     $wrap_uid = 'dcnb-wrap-' . $dcnb_instance;
 
     /* -- Goi gallery_swiper voi IDs va ACF field -- */
+    // Nếu có term, truyền post_id dạng 'term_{id}' để gallery_swiper đọc ACF field từ term
+    $swiper_post_id = $dc_term_source ? $dc_term_source : (string) $dc_id;
     $slider_html = memora_gallery_swiper_shortcode( [
         'acf_gallery' => 'cac-hinh-anh-cua-dia-chi',
-        'post_id'     => (string) $dc_id,
+        'post_id'     => $swiper_post_id,
         'ids'         => implode( ',', $slide_ids ),
         'autoplay'    => $atts['autoplay'],
         'speed'       => $atts['speed'],
@@ -275,7 +312,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             </div>
 
 
-            <a href="<?php echo esc_url( get_permalink( $dc_id ) ); ?>" class="dcnb-book-btn">
+            <a href="<?php echo esc_url( $dc_term_url ); ?>" class="dcnb-book-btn">
                 Book lịch ngay
             </a>
 
