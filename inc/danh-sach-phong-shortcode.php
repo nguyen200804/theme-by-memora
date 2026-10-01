@@ -21,14 +21,15 @@ add_shortcode( 'danh_sach_phong', 'memora_danh_sach_phong_shortcode' );
 function memora_danh_sach_phong_shortcode( $atts ) {
 
     $atts = shortcode_atts( [
-        'post_id'     => '',
-        'term_slug'   => '', // Tên slug term (VD: term_slug="ha-noi") — ưu tiên cao hơn URL detect
-        'taxonomy'    => 'dia-chi', // Taxonomy để lookup term (mặc định: dia-chi)
-        'acf_field'   => 'cac-phong-cua-dia-chi',
-        'layout'      => 'auto', // auto | grid | list
+        'post_id'     => '',      // Không còn dùng để đọc ACF, chỉ dự phòng fallback
+        'term_slug'   => '',      // Slug term tường minh: term_slug="ha-noi"
+        'taxonomy'    => 'dia-chi',
+        'layout'      => 'auto',  // auto | grid | list
         'button_text' => 'Tìm hiểu thêm',
         'speed'       => 600,
         'autoplay'    => 4000,
+        'orderby'     => 'menu_order', // menu_order | title | date
+        'order'       => 'ASC',
     ], $atts, 'danh_sach_phong' );
 
     // Enqueue Swiper assets
@@ -37,215 +38,110 @@ function memora_danh_sach_phong_shortcode( $atts ) {
     }
 
     /* ----------------------------------------------------------
-       1. Xác định Post ID chính xác
+       1. Detect term chỉ định
           Thứ tự ưu tiên:
-            A. term_slug attr → lookup post gắn với term đó
-            B. URL query param: ?dia_chi=slug / ?term_slug=slug / ?term_id=123
+            A. Attr term_slug="ha-noi"
+            B. URL: ?term_id=123 | ?term_slug=slug | ?dia-chi=slug | ?dia_chi=slug
             C. Đang ở trang taxonomy archive (is_tax)
-            D. Resolve bình thường (post_id attr / get_the_ID())
     ---------------------------------------------------------- */
-    $field_candidates = [
-        $atts['acf_field'],
-        str_replace( '-', '_', $atts['acf_field'] ),
-        str_replace( '_', '-', $atts['acf_field'] ),
-    ];
+    $resolved_term = null;
+    $taxonomy_key  = $atts['taxonomy']; // "dia-chi"
 
-    $resolved_term   = null; // WP_Term nếu detect được
-    $resolved_source = null; // "term_{id}" hoặc int post_id
-
-    /* -- A. term_slug attr tường minh -- */
+    /* -- A. Attr tường minh -- */
     if ( ! empty( $atts['term_slug'] ) ) {
-        $t = get_term_by( 'slug', sanitize_title( $atts['term_slug'] ), $atts['taxonomy'] );
-        if ( $t && ! is_wp_error( $t ) ) {
-            $resolved_term   = $t;
-            $resolved_source = 'term_' . $t->term_id;
-        }
+        $t = get_term_by( 'slug', sanitize_title( $atts['term_slug'] ), $taxonomy_key );
+        if ( $t && ! is_wp_error( $t ) ) $resolved_term = $t;
     }
 
-    /* -- B. URL query param detect -- */
+    /* -- B. URL query params -- */
     if ( ! $resolved_term ) {
-        $taxonomy_key = $atts['taxonomy']; // "dia-chi"
-
-        // Thử lần lượt các param URL phổ biến
-        $url_term_id   = isset( $_GET['term_id'] )   ? (int) sanitize_text_field( $_GET['term_id'] )   : 0;
-        $url_term_slug = isset( $_GET['term_slug'] )  ? sanitize_title( $_GET['term_slug'] )             : '';
-        // Thử param cùng tên taxonomy (VD: ?dia-chi=ha-noi hoặc ?dia_chi=ha-noi)
-        $tax_slug_variants = [
-            $taxonomy_key,
-            str_replace( '-', '_', $taxonomy_key ),
-        ];
+        $url_term_id   = isset( $_GET['term_id'] )  ? (int) sanitize_text_field( $_GET['term_id'] )  : 0;
+        $url_term_slug = isset( $_GET['term_slug'] ) ? sanitize_title( $_GET['term_slug'] )            : '';
+        $tax_params    = [ $taxonomy_key, str_replace( '-', '_', $taxonomy_key ) ];
 
         if ( $url_term_id > 0 ) {
             $t = get_term( $url_term_id, $taxonomy_key );
-            if ( $t && ! is_wp_error( $t ) ) {
-                $resolved_term   = $t;
-                $resolved_source = 'term_' . $t->term_id;
-            }
+            if ( $t && ! is_wp_error( $t ) ) $resolved_term = $t;
         }
-
         if ( ! $resolved_term && $url_term_slug ) {
             $t = get_term_by( 'slug', $url_term_slug, $taxonomy_key );
-            if ( $t && ! is_wp_error( $t ) ) {
-                $resolved_term   = $t;
-                $resolved_source = 'term_' . $t->term_id;
-            }
+            if ( $t && ! is_wp_error( $t ) ) $resolved_term = $t;
         }
-
         if ( ! $resolved_term ) {
-            foreach ( $tax_slug_variants as $param_key ) {
-                if ( ! empty( $_GET[ $param_key ] ) ) {
-                    $slug = sanitize_title( $_GET[ $param_key ] );
-                    $t    = get_term_by( 'slug', $slug, $taxonomy_key );
-                    if ( $t && ! is_wp_error( $t ) ) {
-                        $resolved_term   = $t;
-                        $resolved_source = 'term_' . $t->term_id;
-                        break;
-                    }
+            foreach ( $tax_params as $pk ) {
+                if ( ! empty( $_GET[ $pk ] ) ) {
+                    $t = get_term_by( 'slug', sanitize_title( $_GET[ $pk ] ), $taxonomy_key );
+                    if ( $t && ! is_wp_error( $t ) ) { $resolved_term = $t; break; }
                 }
             }
         }
     }
 
-    /* -- C. Đang ở trang taxonomy archive -- */
+    /* -- C. Taxonomy archive -- */
     if ( ! $resolved_term && empty( $atts['post_id'] ) ) {
-        if ( is_tax( $atts['taxonomy'] ) || is_tax() ) {
+        if ( is_tax( $taxonomy_key ) || is_tax() ) {
             $queried = get_queried_object();
-            if ( $queried instanceof WP_Term && ! empty( $queried->term_id ) ) {
-                $resolved_term   = $queried;
-                $resolved_source = 'term_' . $queried->term_id;
-            }
+            if ( $queried instanceof WP_Term ) $resolved_term = $queried;
         }
     }
 
-    /* -- Sau khi có term: tìm post "dia-chi" gắn với term -- */
-    $post_id = 0;
+    /* ----------------------------------------------------------
+       2. Query bài viết phong-chup-anh thuộc term
+    ---------------------------------------------------------- */
+    $room_ids = [];
+
     if ( $resolved_term ) {
-        // Ưu tiên: tìm post có term này gắn vào taxonomy 'dia-chi'
-        $linked_posts = get_posts( [
-            'post_type'      => 'dia-chi',
-            'posts_per_page' => 1,
+        /* --- Query theo taxonomy term --- */
+        $query_args = [
+            'post_type'      => 'phong-chup-anh',
             'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'orderby'        => sanitize_key( $atts['orderby'] ),
+            'order'          => strtoupper( $atts['order'] ) === 'DESC' ? 'DESC' : 'ASC',
             'fields'         => 'ids',
             'tax_query'      => [ [
                 'taxonomy' => $resolved_term->taxonomy,
                 'field'    => 'term_id',
                 'terms'    => $resolved_term->term_id,
             ] ],
-        ] );
+        ];
+        $room_ids = get_posts( $query_args );
 
-        if ( ! empty( $linked_posts ) ) {
-            $post_id = (int) $linked_posts[0];
+    } elseif ( ! empty( $atts['post_id'] ) ) {
+        /* --- Fallback: post_id tường minh (không dùng ACF field) --- */
+        $pid = (int) $atts['post_id'];
+        if ( $pid > 0 && get_post_type( $pid ) === 'phong-chup-anh' ) {
+            $room_ids = [ $pid ];
         }
-        // Nếu không tìm được post theo term, vẫn dùng term source cho get_field()
-    }
 
-    /* -- D. Resolve bình thường nếu không phát hiện được term -- */
-    if ( ! $resolved_term ) {
-        if ( function_exists( 'memora_resolve_gallery_post_id' ) ) {
-            $post_id = memora_resolve_gallery_post_id( $atts['post_id'], $field_candidates );
-        } else {
-            $post_id = ! empty( $atts['post_id'] ) ? (int) $atts['post_id'] : get_the_ID();
-            if ( ! $post_id ) $post_id = get_queried_object_id();
-        }
-        $resolved_source = $post_id;
-    }
-
-    if ( ! function_exists( 'get_field' ) ) {
-        return '<p style="color:red; font-size:14px; padding:10px; background:#fff2f2; border:1px solid #fecaca; border-radius:4px;">[danh_sach_phong] Plugin ACF/SCF chưa được kích hoạt.</p>';
-    }
-
-    /* ----------------------------------------------------------
-       2. Lấy dữ liệu các phòng từ ACF Post Object / Term Field
-    ---------------------------------------------------------- */
-    $raw_rooms = null;
-
-    // 2a. Thử get_field() với resolved_source (có thể là "term_123" hoặc post_id)
-    if ( $resolved_source ) {
-        foreach ( $field_candidates as $f_name ) {
-            $val = get_field( $f_name, $resolved_source );
-            if ( ! empty( $val ) ) {
-                $raw_rooms = $val;
-                break;
-            }
-        }
-    }
-
-    // 2b. Nếu resolved_source là term: thử get_term_meta() trực tiếp
-    if ( empty( $raw_rooms ) && $resolved_term ) {
-        foreach ( $field_candidates as $f_name ) {
-            $meta_v = get_term_meta( $resolved_term->term_id, $f_name, true );
-            if ( ! empty( $meta_v ) ) {
-                $raw_rooms = maybe_unserialize( $meta_v );
-                break;
-            }
-        }
-    }
-
-    // 2c. Fallback: thử get_field() / get_post_meta() với post_id nếu có
-    if ( empty( $raw_rooms ) && $post_id ) {
-        foreach ( $field_candidates as $f_name ) {
-            $val = get_field( $f_name, $post_id );
-            if ( ! empty( $val ) ) { $raw_rooms = $val; break; }
-        }
-        if ( empty( $raw_rooms ) ) {
-            foreach ( $field_candidates as $f_name ) {
-                $meta_v = get_post_meta( $post_id, $f_name, true );
-                if ( ! empty( $meta_v ) ) {
-                    $raw_rooms = maybe_unserialize( $meta_v );
-                    break;
-                }
-            }
-        }
-    }
-
-    // Nếu vẫn rỗng trong môi trường Elementor Preview, thử fallback sang bài địa chỉ mới nhất
-    if ( empty( $raw_rooms ) ) {
+    } else {
+        /* --- Elementor Editor fallback: lấy tất cả phong-chup-anh mới nhất để preview --- */
         $is_elementor_editor = class_exists( '\Elementor\Plugin' ) && (
-            \Elementor\Plugin::$instance->editor->is_edit_mode() ||
-            \Elementor\Plugin::$instance->preview->is_preview_mode() ||
+            ( isset( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) ||
+            ( isset( \Elementor\Plugin::$instance->preview ) && \Elementor\Plugin::$instance->preview->is_preview_mode() ) ||
             isset( $_GET['elementor-preview'] ) ||
             ( isset( $_GET['action'] ) && $_GET['action'] === 'elementor' )
         );
 
         if ( $is_elementor_editor ) {
-            $sample_posts = get_posts( [
-                'post_type'      => 'dia-chi',
-                'posts_per_page' => 1,
+            $room_ids = get_posts( [
+                'post_type'      => 'phong-chup-anh',
                 'post_status'    => 'any',
+                'posts_per_page' => 6,
                 'fields'         => 'ids',
+                'orderby'        => 'menu_order',
+                'order'          => 'ASC',
             ] );
-            if ( ! empty( $sample_posts ) ) {
-                foreach ( $field_candidates as $f_name ) {
-                    $val = get_field( $f_name, $sample_posts[0] );
-                    if ( ! empty( $val ) ) {
-                        $raw_rooms = $val;
-                        break;
-                    }
-                }
-            }
         }
     }
 
-    if ( empty( $raw_rooms ) ) {
-        $debug_info = $resolved_term
-            ? 'term "' . esc_html( $resolved_term->name ) . '" (ID: ' . $resolved_term->term_id . ')'
-            : 'post ID #' . (int) $post_id;
-        return '<p style="color:#733e1c; font-size:14px; padding:12px 16px; background:#faf6f2; border:1px solid #e8ded4; border-radius:6px;">[danh_sach_phong] Chưa có phòng chụp nào được chọn cho ' . $debug_info . '.</p>';
-    }
-
-    // Đảm bảo là mảng các post ID
-    $room_ids = [];
-    if ( is_array( $raw_rooms ) ) {
-        foreach ( $raw_rooms as $r ) {
-            $room_ids[] = is_object( $r ) ? (int) $r->ID : (int) $r;
-        }
-    } else {
-        $room_ids[] = is_object( $raw_rooms ) ? (int) $raw_rooms->ID : (int) $raw_rooms;
-    }
-    $room_ids = array_filter( array_unique( $room_ids ) );
+    $room_ids = array_values( array_filter( array_map( 'intval', (array) $room_ids ) ) );
 
     if ( empty( $room_ids ) ) {
-        return '<p style="color:#733e1c; font-size:14px; padding:12px 16px; background:#faf6f2; border:1px solid #e8ded4; border-radius:6px;">[danh_sach_phong] Không tìm thấy phòng chụp hợp lệ.</p>';
+        $debug = $resolved_term
+            ? 'term "' . esc_html( $resolved_term->name ) . '" (ID: ' . $resolved_term->term_id . ')'
+            : ( ! empty( $atts['term_slug'] ) ? 'slug "' . esc_html( $atts['term_slug'] ) . '"' : 'không xác định được term' );
+        return '<p style="color:#733e1c; font-size:14px; padding:12px 16px; background:#faf6f2; border:1px solid #e8ded4; border-radius:6px;">[danh_sach_phong] Chưa có phòng nào thuộc ' . $debug . '.</p>';
     }
 
     /* ----------------------------------------------------------
