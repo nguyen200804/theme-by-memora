@@ -474,11 +474,11 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
                 <!-- CỘT PHẢI: SLIDER ẢNH -->
                 <div class="memora-dsp-wide-slider-wrap">
-                    <?php if ( ! empty( $w_room['badge'] ) ) : ?>
+                    
                     <div class="memora-dsp-badge">
                         <img src="/wp-content/uploads/2026/10/special-room.png">
                     </div>
-                    <?php endif; ?>
+                    
                     <div class="swiper memora-room-swiper" id="<?php echo esc_attr( $slider_id ); ?>" data-loop="<?php echo count( $w_room['images'] ) >= 2 ? 'true' : 'false'; ?>">
                         <div class="swiper-wrapper">
                             <?php if ( $has_slides ) : ?>
