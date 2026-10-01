@@ -130,9 +130,14 @@ function memora_shortcode_choose_photography_package( $atts ) {
 //====================================
 add_shortcode( 'confirm_booking', 'memora_shortcode_confirm_booking' );
 function memora_shortcode_confirm_booking( $atts ) {
+    $wc_checkout_url = function_exists( 'wc_get_checkout_url' ) ? wc_get_checkout_url() : home_url( '/checkout/' );
     $atts = shortcode_atts( array(
-        'checkout_url' => home_url( '/thanh-toan/' ),
+        'checkout_url' => $wc_checkout_url,
     ), $atts, 'confirm_booking' );
+
+    $checkout_url = ( ! empty( $atts['checkout_url'] ) && strpos( $atts['checkout_url'], '/thanh-toan/' ) === false )
+        ? $atts['checkout_url']
+        : $wc_checkout_url;
 
     ob_start();
     ?>
@@ -154,7 +159,7 @@ function memora_shortcode_confirm_booking( $atts ) {
         </div>
 
         <div class="memora-confirm-action">
-            <button type="button" class="memora-btn-brown memora-btn-confirm-pay" data-checkout-url="<?php echo esc_url( $atts['checkout_url'] ); ?>">
+            <button type="button" class="memora-btn-brown memora-btn-confirm-pay" data-checkout-url="<?php echo esc_url( $checkout_url ); ?>">
                 THANH TOÁN
             </button>
         </div>

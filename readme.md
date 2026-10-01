@@ -160,7 +160,7 @@ Hệ thống đặt lịch tự động hoàn chỉnh, bám sát thiết kế nh
 | `[choose_date]` | 3 trường chọn Ngày, Tháng, Năm. Tự động tính số ngày trong tháng và đồng bộ với khung giờ. | Không |
 | `[choose_time]` | Hiển thị các nút chọn khung giờ tự động tính theo giờ bắt đầu/kết thúc/giãn cách. Tự động vô hiệu hóa giờ đã có người đặt hoặc giờ đã qua. | Không |
 | `[choose_photography_package]` | Hiển thị các gói chụp ảnh lấy từ ACF Repeater `cac_goi_chup_anh`. | Không |
-| `[confirm_booking]` | Thẻ xác nhận lịch chụp (Khớp Ảnh 1), hiển thị 3 viên pill: Giờ, Ngày, Gói chụp & nút **THANH TOÁN**. | `checkout_url="/thanh-toan/"` |
+| `[confirm_booking]` | Thẻ xác nhận lịch chụp (Khớp Ảnh 1), hiển thị 3 viên pill: Giờ, Ngày, Gói chụp & nút **THANH TOÁN**. Tự động chuyển tới trang Checkout WooCommerce (`wc_get_checkout_url()`). | `checkout_url=""` (Mặc định tự lấy trang Checkout trong WooCommerce > Settings > Advanced) |
 | `[checkout_booking]` | Form nhập thông tin khách hàng (Tên, SĐT, IG), bảng giá cọc 50% & nút **Thanh Toán hình Trái Tim** (Khớp Ảnh 2). | `thankyou_url="/thanh-toan-thanh-cong/"` |
 | `[thankyou_booking]` | Trang thông báo thanh toán thành công (Khớp Ảnh 3), hiển thị mã Code 4 số ngẫu nhiên, thông tin lịch và Note dặn dò. | Không (tự đọc `?code=xxxx`) |
 | `[lookup_booking]` / `[tra_cuu_lich]` | Trang tra cứu đơn lịch chụp (Khớp Ảnh 4) theo Số điện thoại và Code chụp qua AJAX. | Không |
