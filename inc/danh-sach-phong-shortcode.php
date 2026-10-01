@@ -185,7 +185,46 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         // Thu thập hình ảnh cho slider phòng
         $image_urls = [];
 
-        // 1. Thử lấy từ ACF Gallery của phòng
+        // 1. Ưu tiên: Repeater field "cac_hinh_anh_phong_chup" → sub-field "anh-phong-chup" (Image)
+        $repeater_candidates = [
+            [ 'repeater' => 'cac_hinh_anh_phong_chup',     'sub' => 'anh-phong-chup' ],
+            [ 'repeater' => 'cac_hinh_anh_phong_chup',     'sub' => 'anh_phong_chup' ],
+            [ 'repeater' => 'cac-hinh-anh-phong-chup',     'sub' => 'anh-phong-chup' ],
+        ];
+
+        foreach ( $repeater_candidates as $rc ) {
+            $rows = get_field( $rc['repeater'], $r_id );
+            if ( ! empty( $rows ) && is_array( $rows ) ) {
+                foreach ( $rows as $row ) {
+                    if ( ! is_array( $row ) ) continue;
+                    $img_data = isset( $row[ $rc['sub'] ] ) ? $row[ $rc['sub'] ] : null;
+                    if ( empty( $img_data ) ) continue;
+                    // Image field trả về array (ACF image return format = array)
+                    if ( is_array( $img_data ) && ! empty( $img_data['url'] ) ) {
+                        $image_urls[] = [
+                            'src' => $img_data['url'],
+                            'alt' => ! empty( $img_data['alt'] ) ? $img_data['alt'] : $title,
+                        ];
+                    // Image field return format = ID
+                    } elseif ( is_numeric( $img_data ) ) {
+                        $src = wp_get_attachment_image_url( (int) $img_data, 'large' );
+                        if ( $src ) {
+                            $image_urls[] = [
+                                'src' => $src,
+                                'alt' => (string) get_post_meta( (int) $img_data, '_wp_attachment_image_alt', true ) ?: $title,
+                            ];
+                        }
+                    // Image field return format = URL
+                    } elseif ( is_string( $img_data ) && ! empty( $img_data ) ) {
+                        $image_urls[] = [ 'src' => $img_data, 'alt' => $title ];
+                    }
+                }
+                if ( ! empty( $image_urls ) ) break;
+            }
+        }
+
+        // 2. Fallback: ACF Gallery field (nếu không có Repeater hoặc Repeater trống)
+        if ( empty( $image_urls ) ) :
         $gallery_candidates = [
             'cac-hinh-anh-cua-phong', 'cac_hinh_anh_cua_phong',
             'cac-hinh-anh-phong', 'cac_hinh_anh_phong',
@@ -217,6 +256,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
                 if ( ! empty( $image_urls ) ) break;
             }
         }
+        endif;
 
         // 2. Thử Featured Image
         $thumb_id = get_post_thumbnail_id( $r_id );
