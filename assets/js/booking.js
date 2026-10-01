@@ -185,6 +185,9 @@
             var $slotsGrid = $('.memora-time-slots-grid');
             if (!$slotsGrid.length) return;
 
+            // Lấy location_id từ wrapper shortcode [choose_time]
+            var locationId = $('.memora-choose-time-wrap').data('location-id') || state.roomId || 0;
+
             $slotsGrid.css('opacity', '0.5');
 
             $.ajax({
@@ -192,7 +195,8 @@
                 type: 'POST',
                 data: {
                     action: 'memora_get_slots',
-                    date: dateStr
+                    date: dateStr,
+                    dia_chi_id: locationId
                 },
                 success: function (response) {
                     $slotsGrid.css('opacity', '1');

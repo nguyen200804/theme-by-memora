@@ -46,22 +46,49 @@ function memora_register_booking_options_page() {
 
 
 //====================================
-// START - LẤY CẤU HÌNH TỪ ACF OPTIONS
+// START - LẤY CẤU HÌNH TỪ ACF (THEO ĐỊA CHỈ)
 //====================================
-function memora_get_booking_config() {
-    $start_time = '';
-    $end_time   = '';
-    $interval   = 15;
-    $packages   = array();
+/**
+ * Lấy cấu hình giờ chụp & gói chụp theo địa chỉ (post-type: dia-chi).
+ *
+ * Ưu tiên lấy từ post dia-chi nếu $location_id hợp lệ.
+ * Fallback về ACF Options Page nếu không tìm thấy hoặc field trống.
+ *
+ * @param int|string $location_id  ID của post dia-chi. Để trống để lấy từ Options.
+ * @return array { start_time, end_time, interval, packages }
+ */
+function memora_get_booking_config( $location_id = 0 ) {
+    $start_time  = '';
+    $end_time    = '';
+    $interval    = 15;
+    $packages    = array();
+    $location_id = intval( $location_id );
 
     if ( function_exists( 'get_field' ) ) {
-        $start_time = get_field( 'thoi_gian_bat_dau_phuc_vu_hanh_chinh', 'option' );
-        $end_time   = get_field( 'thoi_gian_ket_thuc_phuc_vu_hanh_chinh', 'option' );
-        $interval   = get_field( 'dan_cach_gio_chup_anh', 'option' );
-        $packages   = get_field( 'cac_goi_chup_anh', 'option' );
+        // --- Lấy từ post dia-chi nếu có ID hợp lệ ---
+        if ( $location_id > 0 ) {
+            $start_time = get_field( 'thoi_gian_bat_dau_phuc_vu_hanh_chinh', $location_id );
+            $end_time   = get_field( 'thoi_gian_ket_thuc_phuc_vu_hanh_chinh', $location_id );
+            $interval   = get_field( 'dan_cach_gio_chup_anh', $location_id );
+            $packages   = get_field( 'cac_goi_chup_anh', $location_id );
+        }
+
+        // --- Fallback về ACF Options nếu field trống ---
+        if ( empty( $start_time ) ) {
+            $start_time = get_field( 'thoi_gian_bat_dau_phuc_vu_hanh_chinh', 'option' );
+        }
+        if ( empty( $end_time ) ) {
+            $end_time = get_field( 'thoi_gian_ket_thuc_phuc_vu_hanh_chinh', 'option' );
+        }
+        if ( empty( $interval ) ) {
+            $interval = get_field( 'dan_cach_gio_chup_anh', 'option' );
+        }
+        if ( empty( $packages ) ) {
+            $packages = get_field( 'cac_goi_chup_anh', 'option' );
+        }
     }
 
-    // Dự phòng giá trị mặc định nếu chưa cấu hình trong Admin
+    // Dự phòng giá trị mặc định nếu chưa cấu hình
     if ( empty( $start_time ) ) {
         $start_time = '10:00';
     }
@@ -88,14 +115,15 @@ function memora_get_booking_config() {
     }
 
     return array(
-        'start_time' => $start_time,
-        'end_time'   => $end_time,
-        'interval'   => $interval,
-        'packages'   => $packages,
+        'start_time'  => $start_time,
+        'end_time'    => $end_time,
+        'interval'    => $interval,
+        'packages'    => $packages,
+        'location_id' => $location_id,
     );
 }
 //====================================
-// END - LẤY CẤU HÌNH TỪ ACF OPTIONS
+// END - LẤY CẤU HÌNH TỪ ACF (THEO ĐỊA CHỈ)
 //====================================
 
 
@@ -105,8 +133,17 @@ function memora_get_booking_config() {
 //====================================
 // START - TÍNH TOÁN SLOT KHUNG GIỜ TỰ ĐỘNG
 //====================================
-function memora_generate_time_slots( $start_time = '', $end_time = '', $interval_minutes = 15 ) {
-    $config = memora_get_booking_config();
+/**
+ * Tạo danh sách slot khung giờ.
+ *
+ * @param string     $start_time        Giờ bắt đầu (HH:MM). Để trống để lấy từ config.
+ * @param string     $end_time          Giờ kết thúc (HH:MM). Để trống để lấy từ config.
+ * @param int        $interval_minutes  Khoảng cách giữa các slot (phút).
+ * @param int|string $location_id       ID post dia-chi để lấy config theo địa chỉ.
+ * @return array Mảng chuỗi khung giờ ('HH:MM').
+ */
+function memora_generate_time_slots( $start_time = '', $end_time = '', $interval_minutes = 15, $location_id = 0 ) {
+    $config = memora_get_booking_config( $location_id );
 
     if ( empty( $start_time ) ) {
         $start_time = $config['start_time'];

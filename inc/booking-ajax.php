@@ -29,7 +29,15 @@ function memora_ajax_get_slots() {
         wp_send_json_error( array( 'message' => 'Ngày không hợp lệ' ) );
     }
 
-    $all_slots    = memora_generate_time_slots();
+    // Lấy ID địa chỉ để generate đúng slot theo dia-chi
+    $location_id = 0;
+    if ( isset( $_POST['dia_chi_id'] ) && intval( $_POST['dia_chi_id'] ) > 0 ) {
+        $location_id = intval( $_POST['dia_chi_id'] );
+    } elseif ( isset( $_POST['phong_id'] ) && intval( $_POST['phong_id'] ) > 0 ) {
+        $location_id = intval( $_POST['phong_id'] );
+    }
+
+    $all_slots    = memora_generate_time_slots( '', '', 15, $location_id );
     $booked_slots = memora_get_booked_slots( $date );
 
     // Kiểm tra giờ quá khứ nếu chọn ngày hôm nay

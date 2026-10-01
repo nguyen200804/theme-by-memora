@@ -60,11 +60,19 @@ function memora_shortcode_choose_date( $atts ) {
 //====================================
 add_shortcode( 'choose_time', 'memora_shortcode_choose_time' );
 function memora_shortcode_choose_time( $atts ) {
-    $slots = memora_generate_time_slots();
+    // Lấy ID địa chỉ từ URL query param (?dia_chi_id=... hoặc ?phong_id=...)
+    $location_id = 0;
+    if ( isset( $_GET['dia_chi_id'] ) && intval( $_GET['dia_chi_id'] ) > 0 ) {
+        $location_id = intval( $_GET['dia_chi_id'] );
+    } elseif ( isset( $_GET['phong_id'] ) && intval( $_GET['phong_id'] ) > 0 ) {
+        $location_id = intval( $_GET['phong_id'] );
+    }
+
+    $slots = memora_generate_time_slots( '', '', 15, $location_id );
 
     ob_start();
     ?>
-    <div class="memora-booking-container memora-choose-time-wrap">
+    <div class="memora-booking-container memora-choose-time-wrap" data-location-id="<?php echo esc_attr( $location_id ); ?>">
         
         <div class="memora-time-slots-grid">
             <?php foreach ( $slots as $slot ) : ?>
@@ -90,12 +98,20 @@ function memora_shortcode_choose_time( $atts ) {
 //====================================
 add_shortcode( 'choose_photography_package', 'memora_shortcode_choose_photography_package' );
 function memora_shortcode_choose_photography_package( $atts ) {
-    $config   = memora_get_booking_config();
+    // Lấy ID địa chỉ từ URL query param (?dia_chi_id=... hoặc ?phong_id=...)
+    $location_id = 0;
+    if ( isset( $_GET['dia_chi_id'] ) && intval( $_GET['dia_chi_id'] ) > 0 ) {
+        $location_id = intval( $_GET['dia_chi_id'] );
+    } elseif ( isset( $_GET['phong_id'] ) && intval( $_GET['phong_id'] ) > 0 ) {
+        $location_id = intval( $_GET['phong_id'] );
+    }
+
+    $config   = memora_get_booking_config( $location_id );
     $packages = $config['packages'];
 
     ob_start();
     ?>
-    <div class="memora-booking-container memora-choose-pkg-wrap">
+    <div class="memora-booking-container memora-choose-pkg-wrap" data-location-id="<?php echo esc_attr( $location_id ); ?>">
        
         <div class="memora-pkg-list">
             <?php foreach ( $packages as $index => $pkg ) : 
