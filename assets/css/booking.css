@@ -872,7 +872,7 @@
 
 
 .memora-thankyou-title {
-    font-family: var(--memora-font-script);
+    font-family: 'Anastasia Script';
     font-size: 19.3em;
     font-weight: 700;
     color: var(--memora-brown);
@@ -881,11 +881,11 @@
 }
 
 .memora-thankyou-subtitle {
-    font-family: var(--memora-font-serif);
+    font-family: 'Cocomat pro';
     font-size: 7.9em;
     font-weight: 600;
     color: var(--memora-brown-text);
-    margin: 2px 0 24px 0;
+    margin: -3px 0 24px 0;
 }
 
 .memora-success-icon-wrap {
@@ -951,7 +951,7 @@
 }
 
 .memora-info-label {
-    font-family: 'Montserrat';
+    font-family: 'Cocomat Pro';
     font-size: 10.8em;
     color: var(--memora-brown-text);
     margin-bottom: 0;
@@ -1078,11 +1078,12 @@
 }
 
 .memora-note-cursive {
-    font-family: var(--memora-font-serif);
-    font-size: 17em;
+    font-family: 'Anastasia Script';
+    font-size: 19em;
     font-style: italic;
     color: var(--memora-brown);
     margin: 0 0 14px 0;
+    font-weight: 600;
 }
 
 .memora-note-p2 {

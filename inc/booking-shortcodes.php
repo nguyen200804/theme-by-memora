@@ -455,7 +455,7 @@ function memora_render_thankyou_html( $code = '', $order_id = 0 ) {
         <div class="memora-header">
             <div class="memora-header-content">
                 <h2 class="memora-thankyou-title">Thank You!</h2>
-                <div class="memora-thankyou-subtitle">Đặt Lịch Thành Công!</div>
+                <div class="memora-thankyou-subtitle">Thanh Toán Thành Công</div>
             </div>
             <img src="/wp-content/uploads/2026/09/all-star.png">
 

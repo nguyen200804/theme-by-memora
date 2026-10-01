@@ -105,15 +105,17 @@ function memora_ajax_submit_booking() {
     $phong_name  = isset( $_POST['room_name'] )  ? sanitize_text_field( wp_unslash( $_POST['room_name'] ) )            : '';
     $dia_chi_id  = isset( $_POST['dia_chi_id'] ) ? intval( $_POST['dia_chi_id'] )                                      : 0;
 
-    // Nếu không có dia_chi_id nhưng có phong_id → tra ngược
-    if ( $dia_chi_id <= 0 && $phong_id > 0 && function_exists( 'memora_get_location_id_from_room' ) ) {
-        $dia_chi_id = memora_get_location_id_from_room( $phong_id );
-    }
-
     // Tự điền tên phòng nếu JS không truyền
     if ( empty( $phong_name ) && $phong_id > 0 ) {
         $phong_name = get_the_title( $phong_id );
     }
+
+    // Xác định thông tin chi nhánh chuẩn theo taxonomy dia-chi
+    $dia_info     = function_exists( 'memora_get_dia_chi_info' ) 
+        ? memora_get_dia_chi_info( $dia_chi_id, $phong_id ) 
+        : array( 'id' => $dia_chi_id, 'name' => '' );
+    $dia_chi_id   = $dia_info['id'];
+    $dia_chi_name = $dia_info['name'];
 
     // Kiểm tra dữ liệu bắt buộc
     if ( empty( $name ) ) {
@@ -163,7 +165,7 @@ function memora_ajax_submit_booking() {
             'room_id'        => $phong_id,
             'room_name'      => $phong_name,
             'dia_chi_id'     => $dia_chi_id,
-            'dia_chi_name'   => ! empty( $dia_chi_id ) ? get_the_title( $dia_chi_id ) : '',
+            'dia_chi_name'   => $dia_chi_name,
             'code'           => $code,
             'payment_method' => $payment_method,
         ) );
@@ -223,12 +225,21 @@ function memora_create_wc_order_for_booking( $data ) {
 
     $pay_amount = ! empty( $data['deposit_price'] ) ? floatval( $data['deposit_price'] ) : ( ! empty( $data['total_price'] ) ? floatval( $data['total_price'] ) : 0 );
 
+    // Chuẩn hóa thông tin chi nhánh chuẩn theo taxonomy dia-chi
+    $room_id      = ! empty( $data['room_id'] ) ? intval( $data['room_id'] ) : 0;
+    $dia_chi_id   = ! empty( $data['dia_chi_id'] ) ? intval( $data['dia_chi_id'] ) : 0;
+    $dia_info     = function_exists( 'memora_get_dia_chi_info' ) 
+        ? memora_get_dia_chi_info( $dia_chi_id, $room_id ) 
+        : array( 'id' => $dia_chi_id, 'name' => '' );
+    $dia_chi_id   = $dia_info['id'];
+    $dia_chi_name = ! empty( $dia_info['name'] ) ? $dia_info['name'] : ( ! empty( $data['dia_chi_name'] ) && $data['dia_chi_name'] !== 'Default Kit' ? $data['dia_chi_name'] : '' );
+
     $item_title = sprintf( 'Đặt lịch chụp ảnh — %s | %s %s', $data['pkg_name'], $data['date'], $data['time'] );
     if ( ! empty( $data['room_name'] ) ) {
         $item_title .= ' | Phòng: ' . $data['room_name'];
     }
-    if ( ! empty( $data['dia_chi_name'] ) ) {
-        $item_title .= ' | ' . $data['dia_chi_name'];
+    if ( ! empty( $dia_chi_name ) ) {
+        $item_title .= ' | Chi nhánh: ' . $dia_chi_name;
     }
 
     // --- Thêm sản phẩm đặt lịch vào đơn hàng ---
@@ -249,8 +260,8 @@ function memora_create_wc_order_for_booking( $data ) {
             if ( ! empty( $data['room_name'] ) ) {
                 $item->update_meta_data( 'Phòng chụp', $data['room_name'] );
             }
-            if ( ! empty( $data['dia_chi_name'] ) ) {
-                $item->update_meta_data( 'Chi nhánh', $data['dia_chi_name'] );
+            if ( ! empty( $dia_chi_name ) ) {
+                $item->update_meta_data( 'Chi nhánh', $dia_chi_name );
             }
             $order->add_item( $item );
         }
@@ -303,9 +314,11 @@ function memora_create_wc_order_for_booking( $data ) {
         $order->update_meta_data( '_booking_phong_name', $data['room_name'] ?? '' );
         $order->update_meta_data( '_booking_room_name',  $data['room_name'] ?? '' );
     }
-    if ( ! empty( $data['dia_chi_id'] ) ) {
-        $order->update_meta_data( '_booking_dia_chi_id',   $data['dia_chi_id'] );
-        $order->update_meta_data( '_booking_dia_chi_name', $data['dia_chi_name'] ?? '' );
+    if ( $dia_chi_id > 0 ) {
+        $order->update_meta_data( '_booking_dia_chi_id',   $dia_chi_id );
+    }
+    if ( ! empty( $dia_chi_name ) ) {
+        $order->update_meta_data( '_booking_dia_chi_name', $dia_chi_name );
     }
 
     $order->add_order_note(
@@ -381,10 +394,13 @@ function memora_ajax_prepare_checkout_session() {
     if ( $room_id > 0 && empty( $room_name ) ) {
         $room_name = get_the_title( $room_id );
     }
-    if ( $dia_chi_id <= 0 && $room_id > 0 && function_exists( 'memora_get_location_id_from_room' ) ) {
-        $dia_chi_id = memora_get_location_id_from_room( $room_id );
-    }
-    $dia_chi_name = $dia_chi_id > 0 ? get_the_title( $dia_chi_id ) : '';
+
+    // Xác định thông tin chi nhánh chuẩn theo taxonomy dia-chi
+    $dia_info     = function_exists( 'memora_get_dia_chi_info' ) 
+        ? memora_get_dia_chi_info( $dia_chi_id, $room_id ) 
+        : array( 'id' => $dia_chi_id, 'name' => '' );
+    $dia_chi_id   = $dia_info['id'];
+    $dia_chi_name = $dia_info['name'];
 
     // Concurrency check: kiểm tra slot còn trống không
     $booked_slots = memora_get_booked_slots( $date );

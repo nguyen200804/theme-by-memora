@@ -164,6 +164,23 @@ function memora_show_booking_summary_on_checkout() {
                 <span class="lbl">Goi chup</span>
                 <strong><?php echo esc_html( $pending['pkg_name'] ?? '' ); ?></strong>
             </div>
+            <?php if ( ! empty( $pending['room_name'] ) ) : ?>
+            <div class="memora-wc-booking-summary__item">
+                <span class="lbl">Phong chup</span>
+                <strong><?php echo esc_html( $pending['room_name'] ); ?></strong>
+            </div>
+            <?php endif; ?>
+            <?php 
+            $summary_branch = ! empty( $pending['dia_chi_name'] ) && $pending['dia_chi_name'] !== 'Default Kit' 
+                ? $pending['dia_chi_name'] 
+                : ( function_exists( 'memora_get_dia_chi_name' ) ? memora_get_dia_chi_name( $pending['dia_chi_id'] ?? 0, $pending['room_id'] ?? 0 ) : '' );
+            if ( ! empty( $summary_branch ) ) : 
+            ?>
+            <div class="memora-wc-booking-summary__item">
+                <span class="lbl">Chi nhanh</span>
+                <strong><?php echo esc_html( $summary_branch ); ?></strong>
+            </div>
+            <?php endif; ?>
             <div class="memora-wc-booking-summary__item memora-wc-booking-summary__item--price">
                 <span class="lbl">Can thanh toan</span>
                 <strong><?php echo esc_html( $price_fmt ); ?></strong>
@@ -201,6 +218,15 @@ function memora_link_wc_order_to_booking( $order ) {
 
     $deposit = ! empty( $pending['deposit_price'] ) ? floatval( $pending['deposit_price'] ) : floatval( $pending['total_price'] );
 
+    // Chuẩn hóa thông tin chi nhánh chuẩn theo taxonomy dia-chi
+    $room_id      = ! empty( $pending['room_id'] ) ? intval( $pending['room_id'] ) : 0;
+    $dia_chi_id   = ! empty( $pending['dia_chi_id'] ) ? intval( $pending['dia_chi_id'] ) : 0;
+    $dia_info     = function_exists( 'memora_get_dia_chi_info' ) 
+        ? memora_get_dia_chi_info( $dia_chi_id, $room_id ) 
+        : array( 'id' => $dia_chi_id, 'name' => '' );
+    $dia_chi_id   = $dia_info['id'];
+    $dia_chi_name = ! empty( $dia_info['name'] ) ? $dia_info['name'] : ( ! empty( $pending['dia_chi_name'] ) && $pending['dia_chi_name'] !== 'Default Kit' ? $pending['dia_chi_name'] : '' );
+
     // Lưu toàn bộ thông tin đặt lịch trực tiếp vào WooCommerce Order meta
     $order->update_meta_data( '_memora_booking_code',   $code );
     $order->update_meta_data( '_booking_code',          $code );
@@ -221,9 +247,11 @@ function memora_link_wc_order_to_booking( $order ) {
         $order->update_meta_data( '_booking_phong_name', $pending['room_name'] ?? '' );
         $order->update_meta_data( '_booking_room_name',  $pending['room_name'] ?? '' );
     }
-    if ( ! empty( $pending['dia_chi_id'] ) ) {
-        $order->update_meta_data( '_booking_dia_chi_id',   $pending['dia_chi_id'] );
-        $order->update_meta_data( '_booking_dia_chi_name', $pending['dia_chi_name'] ?? '' );
+    if ( $dia_chi_id > 0 ) {
+        $order->update_meta_data( '_booking_dia_chi_id',   $dia_chi_id );
+    }
+    if ( ! empty( $dia_chi_name ) ) {
+        $order->update_meta_data( '_booking_dia_chi_name', $dia_chi_name );
     }
 
     // Cập nhật tên và metadata cho line item sản phẩm trong đơn hàng
@@ -234,8 +262,8 @@ function memora_link_wc_order_to_booking( $order ) {
             if ( ! empty( $pending['room_name'] ) ) {
                 $item_title .= ' | Phòng: ' . $pending['room_name'];
             }
-            if ( ! empty( $pending['dia_chi_name'] ) ) {
-                $item_title .= ' | ' . $pending['dia_chi_name'];
+            if ( ! empty( $dia_chi_name ) ) {
+                $item_title .= ' | Chi nhánh: ' . $dia_chi_name;
             }
             $item->set_name( $item_title );
             $item->update_meta_data( 'Mã đặt lịch', '#' . $code );
@@ -245,16 +273,17 @@ function memora_link_wc_order_to_booking( $order ) {
             if ( ! empty( $pending['room_name'] ) ) {
                 $item->update_meta_data( 'Phòng chụp', $pending['room_name'] );
             }
-            if ( ! empty( $pending['dia_chi_name'] ) ) {
-                $item->update_meta_data( 'Chi nhánh', $pending['dia_chi_name'] );
+            if ( ! empty( $dia_chi_name ) ) {
+                $item->update_meta_data( 'Chi nhánh', $dia_chi_name );
             }
             $item->save();
         }
     }
 
     $order->add_order_note( sprintf(
-        'Đặt lịch thành công | Code: #%s | %s %s | Gói: %s | SĐT: %s | IG/Liên hệ: %s',
-        $code, $pending['date'] ?? '', $pending['time'] ?? '', $pending['pkg_name'] ?? '', $phone, $ig
+        'Đặt lịch thành công | Code: #%s | %s %s | Gói: %s | SĐT: %s | IG/Liên hệ: %s%s',
+        $code, $pending['date'] ?? '', $pending['time'] ?? '', $pending['pkg_name'] ?? '', $phone, $ig,
+        ( ! empty( $dia_chi_name ) ? ' | Chi nhánh: ' . $dia_chi_name : '' )
     ) );
 
     $order->save();

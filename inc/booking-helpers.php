@@ -42,12 +42,12 @@ add_shortcode( 'memora_debug_booking', function() {
     echo "<strong style='color:#a6e3a1;'>2. memora_resolve_booking_location_id():</strong>\n";
     echo '   location_id = ' . $location_id . "\n\n";
 
-    // 3. Post type của location_id
+    // 3. Taxonomy term info của location_id
     if ( $location_id > 0 ) {
-        $pt = get_post_type( $location_id );
-        $title = get_the_title( $location_id );
-        echo "<strong style='color:#a6e3a1;'>3. Post info (ID=" . $location_id . "):</strong>\n";
-        echo '   post_type = ' . ( $pt ?: '(không tìm thấy)' ) . "\n";
+        $term = get_term( $location_id, 'dia-chi' );
+        $title = ( $term && ! is_wp_error( $term ) ) ? $term->name : get_the_title( $location_id );
+        echo "<strong style='color:#a6e3a1;'>3. Location info (ID=" . $location_id . "):</strong>\n";
+        echo '   term_name = ' . ( ( $term && ! is_wp_error( $term ) ) ? $term->name : '(không phải term dia-chi)' ) . "\n";
         echo '   title     = ' . ( $title ?: '(trống)' ) . "\n\n";
 
         // 4. Raw ACF values
@@ -173,6 +173,72 @@ function memora_get_location_id_from_room( $room_id ) {
 }
 //====================================
 // END - TRA NGƯỢC: LẤY TERM ID ĐỊA CHỈ TỪ ID PHÒNG CHỤP
+//====================================
+
+//====================================
+// START - LẤY THÔNG TIN CHI NHÁNH TỪ TAXONOMY 'dia-chi'
+//====================================
+/**
+ * Lấy term_id và tên chi nhánh từ taxonomy 'dia-chi'.
+ *
+ * @param int $dia_chi_id  term_id của taxonomy 'dia-chi'.
+ * @param int $room_id     ID post phòng chụp ảnh (nếu cần tra ngược).
+ * @return array           array( 'id' => int, 'name' => string )
+ */
+function memora_get_dia_chi_info( $dia_chi_id = 0, $room_id = 0 ) {
+    $dia_chi_id = intval( $dia_chi_id );
+    $room_id    = intval( $room_id );
+
+    // 1. Nếu có dia_chi_id, kiểm tra trực tiếp với taxonomy 'dia-chi'
+    if ( $dia_chi_id > 0 ) {
+        $term = get_term( $dia_chi_id, 'dia-chi' );
+        if ( $term && ! is_wp_error( $term ) && ! empty( $term->name ) ) {
+            return array(
+                'id'   => (int) $term->term_id,
+                'name' => $term->name,
+            );
+        }
+
+        // Thử get_term không truyền taxonomy
+        $term = get_term( $dia_chi_id );
+        if ( $term && ! is_wp_error( $term ) && ! empty( $term->name ) && ( $term->taxonomy === 'dia-chi' || $term->taxonomy === 'dia_chi' ) ) {
+            return array(
+                'id'   => (int) $term->term_id,
+                'name' => $term->name,
+            );
+        }
+    }
+
+    // 2. Tra ngược từ phòng chụp (phong-chup-anh) qua taxonomy 'dia-chi'
+    if ( $room_id > 0 ) {
+        $terms = wp_get_object_terms( $room_id, 'dia-chi' );
+        if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+            return array(
+                'id'   => (int) $terms[0]->term_id,
+                'name' => $terms[0]->name,
+            );
+        }
+    }
+
+    return array(
+        'id'   => $dia_chi_id,
+        'name' => '',
+    );
+}
+
+/**
+ * Lấy tên chi nhánh từ taxonomy 'dia-chi'.
+ *
+ * @param int $dia_chi_id  term_id của taxonomy 'dia-chi'.
+ * @param int $room_id     ID post phòng chụp.
+ * @return string          Tên chi nhánh hoặc chuỗi rỗng.
+ */
+function memora_get_dia_chi_name( $dia_chi_id = 0, $room_id = 0 ) {
+    $info = memora_get_dia_chi_info( $dia_chi_id, $room_id );
+    return $info['name'];
+}
+//====================================
+// END - LẤY THÔNG TIN CHI NHÁNH TỪ TAXONOMY 'dia-chi'
 //====================================
 
 //====================================
