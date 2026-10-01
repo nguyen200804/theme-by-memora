@@ -70,6 +70,7 @@ function memora_booking_columns( $columns ) {
         'booking_code'   => __( 'Mã Code', 'memora' ),
         'customer'       => __( 'Khách Hàng', 'memora' ),
         'schedule'       => __( 'Lịch Chụp', 'memora' ),
+        'phong_dia_chi'  => __( 'Phòng / Địa chỉ', 'memora' ),
         'package'        => __( 'Gói Chụp', 'memora' ),
         'payment'        => __( 'Thanh Toán (50%)', 'memora' ),
         'booking_status' => __( 'Trạng Thái', 'memora' ),
@@ -109,6 +110,36 @@ function memora_booking_column_content( $column, $post_id ) {
             $time = get_post_meta( $post_id, '_booking_time', true );
             echo '<span style="display:inline-block; padding:3px 8px; background:#cbe3f3; color:#1e4a6d; border-radius:6px; font-weight:600; font-size:12px; margin-bottom:2px;">' . esc_html( $date ) . '</span><br>';
             echo '<span style="display:inline-block; padding:3px 8px; background:#e8f2f9; color:#333; border-radius:6px; font-weight:600; font-size:12px;">⏰ ' . esc_html( $time ) . '</span>';
+            break;
+
+        case 'phong_dia_chi':
+            $phong_id   = get_post_meta( $post_id, '_booking_phong_id',   true );
+            $phong_name = get_post_meta( $post_id, '_booking_phong_name', true )
+                       ?: get_post_meta( $post_id, '_booking_room_name',  true );
+            $dc_id      = get_post_meta( $post_id, '_booking_dia_chi_id',   true );
+            $dc_name    = get_post_meta( $post_id, '_booking_dia_chi_name', true );
+
+            if ( $phong_name ) {
+                $edit_url = $phong_id ? get_edit_post_link( $phong_id ) : '';
+                echo '<span style="display:inline-block;padding:2px 8px;background:#e8f2f9;color:#1e4a6d;border-radius:4px;font-size:12px;font-weight:600;margin-bottom:3px;">';
+                if ( $edit_url ) echo '<a href="' . esc_url( $edit_url ) . '" style="color:inherit;">';
+                echo '📷 ' . esc_html( $phong_name );
+                if ( $edit_url ) echo '</a>';
+                echo '</span><br>';
+            } else {
+                echo '<span style="color:#aaa;font-size:12px;">Chưa có phòng</span><br>';
+            }
+
+            if ( $dc_name ) {
+                $dc_url = $dc_id ? get_edit_post_link( $dc_id ) : '';
+                echo '<span style="display:inline-block;padding:2px 8px;background:#fdf5f0;color:#733e1c;border-radius:4px;font-size:11px;font-weight:600;">';
+                if ( $dc_url ) echo '<a href="' . esc_url( $dc_url ) . '" style="color:inherit;">';
+                echo '📍 ' . esc_html( $dc_name );
+                if ( $dc_url ) echo '</a>';
+                echo '</span>';
+            } else {
+                echo '<span style="color:#aaa;font-size:11px;">Chưa có địa chỉ</span>';
+            }
             break;
 
         case 'package':
@@ -231,8 +262,31 @@ function memora_render_booking_meta_box( $post ) {
                     <input type="text" id="booking_package_name" name="booking_package_name" value="<?php echo esc_attr( $pkg ); ?>" />
                 </div>
                 <div class="memora-meta-field">
-                    <label for="booking_room_name">Phòng chụp:</label>
-                    <input type="text" id="booking_room_name" name="booking_room_name" value="<?php echo esc_attr( $room ); ?>" />
+                    <label>Phòng chụp:</label>
+                    <?php
+                    $phong_id   = get_post_meta( $post->ID, '_booking_phong_id',   true );
+                    $phong_name = get_post_meta( $post->ID, '_booking_phong_name', true )
+                               ?: get_post_meta( $post->ID, '_booking_room_name',  true );
+                    if ( $phong_id ) {
+                        $edit = get_edit_post_link( $phong_id );
+                        echo '<a href="' . esc_url( $edit ) . '" target="_blank" style="color:#2b6cb0;font-weight:600;">📷 ' . esc_html( $phong_name ) . ' (ID: ' . $phong_id . ')</a>';
+                    } else {
+                        echo '<span style="color:#aaa;">Chưa có</span>';
+                    }
+                    ?>
+                </div>
+                <div class="memora-meta-field">
+                    <label>Địa chỉ:</label>
+                    <?php
+                    $dc_id   = get_post_meta( $post->ID, '_booking_dia_chi_id',   true );
+                    $dc_name = get_post_meta( $post->ID, '_booking_dia_chi_name', true );
+                    if ( $dc_id ) {
+                        $edit = get_edit_post_link( $dc_id );
+                        echo '<a href="' . esc_url( $edit ) . '" target="_blank" style="color:#733e1c;font-weight:600;">📍 ' . esc_html( $dc_name ) . ' (ID: ' . $dc_id . ')</a>';
+                    } else {
+                        echo '<span style="color:#aaa;">Chưa có</span>';
+                    }
+                    ?>
                 </div>
             </div>
         </div>

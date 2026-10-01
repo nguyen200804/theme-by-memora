@@ -91,14 +91,29 @@ function memora_ajax_submit_booking() {
         wp_send_json_error( array( 'message' => 'Phiên làm việc đã hết hạn. Vui lòng tải lại trang!' ) );
     }
 
-    $name          = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
-    $phone         = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '';
+    $name          = isset( $_POST['name'] )          ? sanitize_text_field( wp_unslash( $_POST['name'] ) )          : '';
+    $phone         = isset( $_POST['phone'] )         ? sanitize_text_field( wp_unslash( $_POST['phone'] ) )         : '';
     $contact_other = isset( $_POST['contact_other'] ) ? sanitize_text_field( wp_unslash( $_POST['contact_other'] ) ) : '';
-    $date          = isset( $_POST['date'] ) ? sanitize_text_field( wp_unslash( $_POST['date'] ) ) : '';
-    $time          = isset( $_POST['time'] ) ? sanitize_text_field( wp_unslash( $_POST['time'] ) ) : '';
-    $pkg_name      = isset( $_POST['package_name'] ) ? sanitize_text_field( wp_unslash( $_POST['package_name'] ) ) : '';
-    $total_price   = isset( $_POST['total_price'] ) ? floatval( $_POST['total_price'] ) : 0;
+    $date          = isset( $_POST['date'] )          ? sanitize_text_field( wp_unslash( $_POST['date'] ) )          : '';
+    $time          = isset( $_POST['time'] )          ? sanitize_text_field( wp_unslash( $_POST['time'] ) )          : '';
+    $pkg_name      = isset( $_POST['package_name'] )  ? sanitize_text_field( wp_unslash( $_POST['package_name'] ) )  : '';
+    $total_price   = isset( $_POST['total_price'] )   ? floatval( $_POST['total_price'] )   : 0;
     $deposit_price = isset( $_POST['deposit_price'] ) ? floatval( $_POST['deposit_price'] ) : 0;
+
+    // Phòng chụp và địa chỉ
+    $phong_id    = isset( $_POST['room_id'] )    ? intval( $_POST['room_id'] )                                          : 0;
+    $phong_name  = isset( $_POST['room_name'] )  ? sanitize_text_field( wp_unslash( $_POST['room_name'] ) )            : '';
+    $dia_chi_id  = isset( $_POST['dia_chi_id'] ) ? intval( $_POST['dia_chi_id'] )                                      : 0;
+
+    // Nếu không có dia_chi_id nhưng có phong_id → tra ngược
+    if ( $dia_chi_id <= 0 && $phong_id > 0 && function_exists( 'memora_get_location_id_from_room' ) ) {
+        $dia_chi_id = memora_get_location_id_from_room( $phong_id );
+    }
+
+    // Tự điền tên phòng nếu JS không truyền
+    if ( empty( $phong_name ) && $phong_id > 0 ) {
+        $phong_name = get_the_title( $phong_id );
+    }
 
     // Kiểm tra dữ liệu bắt buộc
     if ( empty( $name ) ) {
@@ -142,18 +157,33 @@ function memora_ajax_submit_booking() {
         wp_send_json_error( array( 'message' => 'Có lỗi xảy ra khi lưu thông tin. Vui lòng thử lại!' ) );
     }
 
-    // Lưu Meta dữ liệu
-    update_post_meta( $booking_id, '_booking_code', $code );
-    update_post_meta( $booking_id, '_booking_customer_name', $name );
-    update_post_meta( $booking_id, '_booking_phone', $phone );
-    update_post_meta( $booking_id, '_booking_contact_other', $contact_other );
-    update_post_meta( $booking_id, '_booking_date', $date );
-    update_post_meta( $booking_id, '_booking_time', $time );
-    update_post_meta( $booking_id, '_booking_package_name', $pkg_name );
-    update_post_meta( $booking_id, '_booking_total_price', $total_price );
-    update_post_meta( $booking_id, '_booking_deposit_price', $deposit_price );
-    update_post_meta( $booking_id, '_booking_status', 'deposit_paid' );
-    update_post_meta( $booking_id, '_booking_created_at', current_time( 'mysql' ) );
+    // Lưu Meta dữ liệu cơ bản
+    update_post_meta( $booking_id, '_booking_code',            $code );
+    update_post_meta( $booking_id, '_booking_customer_name',   $name );
+    update_post_meta( $booking_id, '_booking_phone',           $phone );
+    update_post_meta( $booking_id, '_booking_contact_other',   $contact_other );
+    update_post_meta( $booking_id, '_booking_date',            $date );
+    update_post_meta( $booking_id, '_booking_time',            $time );
+    update_post_meta( $booking_id, '_booking_package_name',    $pkg_name );
+    update_post_meta( $booking_id, '_booking_total_price',     $total_price );
+    update_post_meta( $booking_id, '_booking_deposit_price',   $deposit_price );
+    update_post_meta( $booking_id, '_booking_status',          'deposit_paid' );
+    update_post_meta( $booking_id, '_booking_created_at',      current_time( 'mysql' ) );
+
+    // Lưu Phòng chụp
+    if ( $phong_id > 0 ) {
+        update_post_meta( $booking_id, '_booking_phong_id',   $phong_id );
+        update_post_meta( $booking_id, '_booking_phong_name', $phong_name );
+        // Tương thích ngược: field cũ _booking_room_name
+        update_post_meta( $booking_id, '_booking_room_name',  $phong_name );
+    }
+
+    // Lưu Địa chỉ
+    if ( $dia_chi_id > 0 ) {
+        $dia_chi_name = get_the_title( $dia_chi_id );
+        update_post_meta( $booking_id, '_booking_dia_chi_id',   $dia_chi_id );
+        update_post_meta( $booking_id, '_booking_dia_chi_name', $dia_chi_name );
+    }
 
     // Tạo sẵn mã HTML giao diện Thank You từ PHP dùng chung
     $thankyou_html = function_exists( 'memora_render_thankyou_html' ) ? memora_render_thankyou_html( $code ) : '';

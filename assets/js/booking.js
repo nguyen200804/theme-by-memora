@@ -401,8 +401,9 @@
                     package_name: state.packageName,
                     total_price: state.totalPrice,
                     deposit_price: state.depositPrice,
-                    room_id: state.roomId || '',
-                    room_name: state.roomName || ''
+                    room_id:    state.roomId    || '',
+                    room_name:  state.roomName  || '',
+                    dia_chi_id: state.diaChiId  || ''
                 },
                 success: function (response) {
                     $btn.prop('disabled', false).css('opacity', '1');
