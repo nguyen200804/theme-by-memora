@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Memora Booking Stylesheet
  * Thiáº¿t káº¿ chuáº©n pixel theo phong cÃ¡ch Memora Film
  */
@@ -121,17 +121,23 @@
    ========================================================================== */
 .memora-choose-time-wrap {
     font-size: 2px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 .memora-time-slots-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    justify-content: center;
+    grid-template-columns: repeat(auto-fill, minmax(9em, 1fr));
     gap: 7.5em;
     margin-top: 3em;
     max-height: 181.25em;
+    overflow-x: hidden;
     overflow-y: auto;
     padding: 1em;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .memora-time-slot-btn {
