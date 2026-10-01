@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * WooCommerce Checkout + Booking Integration
  *
@@ -56,6 +56,9 @@ function memora_restore_booking_cart_item( $item, $values ) {
     if ( ! empty( $values['memora_booking_id'] ) ) {
         $item['memora_booking_id'] = (int) $values['memora_booking_id'];
     }
+    if ( ! empty( $values['memora_booking_pending'] ) ) {
+        $item['memora_booking_pending'] = true;
+    }
     return $item;
 }
 
@@ -71,29 +74,60 @@ function memora_override_cart_booking_price( $cart ) {
     if ( ! $pending ) return;
 
     $price = ! empty( $pending['deposit_price'] ) ? floatval( $pending['deposit_price'] ) : floatval( $pending['total_price'] );
+    if ( $price <= 0 ) return;
 
     foreach ( $cart->get_cart() as $item ) {
-        if ( ! empty( $item['memora_booking_id'] ) ) {
+        // Ho tro ca 2 flow: old (memora_booking_id) + new (memora_booking_pending)
+        if ( ! empty( $item['memora_booking_id'] ) || ! empty( $item['memora_booking_pending'] ) ) {
             $item['data']->set_price( $price );
         }
     }
 }
 
-// =====================================================================
-// 4. PRE-FILL BILLING FIELDS TU SESSION
-// =====================================================================
+// Pre-fill chi ap dung cho flow cu (booking-ajax.php submit_booking)
+// Flow moi: user dien name/phone tai WC checkout form
 add_filter( 'woocommerce_checkout_get_value', 'memora_prefill_billing_from_session', 10, 2 );
 function memora_prefill_billing_from_session( $value, $input ) {
     if ( ! function_exists( 'WC' ) || ! WC()->session ) return $value;
 
-    $pending = WC()->session->get( 'memora_booking_pending_data' );
-    if ( ! $pending ) return $value;
+    $pending    = WC()->session->get( 'memora_booking_pending_data' );
+    $booking_id = WC()->session->get( 'memora_booking_pending_id' );
+
+    // Chi pre-fill neu la flow cu (booking_id da co trong session va co name)
+    if ( ! $pending || empty( $booking_id ) ) return $value;
 
     if ( 'billing_first_name' === $input && empty( $value ) ) return $pending['name'] ?? $value;
     if ( 'billing_last_name'  === $input && empty( $value ) ) return '';
     if ( 'billing_phone'      === $input && empty( $value ) ) return $pending['phone'] ?? $value;
 
     return $value;
+}
+
+// =====================================================================
+// 4b. THEM FIELD IG / LIEN HE KHAC VAO WC CHECKOUT FORM
+// =====================================================================
+add_action( 'woocommerce_after_checkout_billing_form', 'memora_add_ig_to_checkout_form' );
+function memora_add_ig_to_checkout_form( $checkout ) {
+    if ( ! function_exists( 'WC' ) || ! WC()->session ) return;
+    if ( ! WC()->session->get( 'memora_booking_pending_data' ) ) return;
+
+    woocommerce_form_field( 'memora_ig', array(
+        'type'        => 'text',
+        'class'       => array( 'form-row-wide' ),
+        'label'       => 'Phuong thuc lien he khac (Instagram, Zalo...)',
+        'placeholder' => 'VD: @memora.film',
+        'required'    => false,
+    ), $checkout->get_value( 'memora_ig' ) );
+}
+
+// Luu IG vao order meta ngay khi WC checkout xu ly POST
+add_action( 'woocommerce_checkout_order_created', 'memora_save_ig_from_checkout_post', 5 );
+function memora_save_ig_from_checkout_post( $order ) {
+    if ( ! empty( $_POST['memora_ig'] ) ) {
+        $ig = sanitize_text_field( wp_unslash( $_POST['memora_ig'] ) );
+        $order->update_meta_data( '_memora_ig', $ig );
+        $order->save();
+    }
 }
 
 // =====================================================================
@@ -150,9 +184,6 @@ function memora_show_booking_summary_on_checkout() {
     <?php
 }
 
-// =====================================================================
-// 6. KHI WC ORDER DUOC TAO -> LIEN KET VOI MEMORA_BOOKING + LUU IG
-// =====================================================================
 add_action( 'woocommerce_checkout_order_created', 'memora_link_wc_order_to_booking', 10 );
 function memora_link_wc_order_to_booking( $order ) {
     if ( ! function_exists( 'WC' ) || ! WC()->session ) return;
@@ -160,26 +191,76 @@ function memora_link_wc_order_to_booking( $order ) {
     $booking_id   = (int) WC()->session->get( 'memora_booking_pending_id' );
     $booking_code = WC()->session->get( 'memora_booking_pending_code' );
     $pending      = WC()->session->get( 'memora_booking_pending_data' );
+    $order_id     = $order->get_id();
 
-    if ( ! $booking_id || ! $booking_code ) return;
+    // =========================================================================
+    // FLOW MOI: khong co booking_id trong session -> tao memora_booking moi
+    // (user di tu [choose_time] -> WC checkout truc tiep)
+    // =========================================================================
+    if ( ! $booking_id && $pending ) {
+        $name  = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
+        $phone = $order->get_billing_phone();
+        $ig    = (string) $order->get_meta( '_memora_ig' );
 
-    $order_id = $order->get_id();
+        $code = function_exists( 'memora_generate_unique_booking_code' )
+            ? memora_generate_unique_booking_code()
+            : strtoupper( substr( md5( uniqid() ), 0, 4 ) );
 
-    // Lien ket booking <-> WC order
-    update_post_meta( $booking_id, '_wc_order_id',    $order_id );
-    update_post_meta( $booking_id, '_booking_status', 'pending' );
+        $post_title = sprintf( '#%s - %s - %s %s', $code, $name, $pending['date'] ?? '', $pending['time'] ?? '' );
+        $booking_id = wp_insert_post( array(
+            'post_title'  => $post_title,
+            'post_status' => 'publish',
+            'post_type'   => 'memora_booking',
+        ) );
+
+        if ( ! $booking_id || is_wp_error( $booking_id ) ) return;
+
+        $deposit = ! empty( $pending['deposit_price'] ) ? floatval( $pending['deposit_price'] ) : floatval( $pending['total_price'] );
+
+        update_post_meta( $booking_id, '_booking_code',          $code );
+        update_post_meta( $booking_id, '_booking_customer_name', $name );
+        update_post_meta( $booking_id, '_booking_phone',         $phone );
+        update_post_meta( $booking_id, '_booking_contact_other', $ig );
+        update_post_meta( $booking_id, '_booking_date',          $pending['date']      ?? '' );
+        update_post_meta( $booking_id, '_booking_time',          $pending['time']      ?? '' );
+        update_post_meta( $booking_id, '_booking_package_name',  $pending['pkg_name']  ?? '' );
+        update_post_meta( $booking_id, '_booking_total_price',   $pending['total_price']  ?? 0 );
+        update_post_meta( $booking_id, '_booking_deposit_price', $deposit );
+        update_post_meta( $booking_id, '_booking_status',        'pending' );
+        update_post_meta( $booking_id, '_booking_created_at',    current_time( 'mysql' ) );
+        update_post_meta( $booking_id, '_wc_order_id',           $order_id );
+
+        if ( ! empty( $pending['room_id'] ) ) {
+            update_post_meta( $booking_id, '_booking_phong_id',   $pending['room_id'] );
+            update_post_meta( $booking_id, '_booking_phong_name', $pending['room_name'] ?? '' );
+            update_post_meta( $booking_id, '_booking_room_name',  $pending['room_name'] ?? '' );
+        }
+        if ( ! empty( $pending['dia_chi_id'] ) ) {
+            update_post_meta( $booking_id, '_booking_dia_chi_id',   $pending['dia_chi_id'] );
+            update_post_meta( $booking_id, '_booking_dia_chi_name', $pending['dia_chi_name'] ?? '' );
+        }
+
+        $booking_code = $code;
+        $order->add_order_note( sprintf(
+            'Dat lich tu dong (WC Checkout) | Code: #%s | %s %s | Goi: %s | Phone: %s',
+            $code, $pending['date'] ?? '', $pending['time'] ?? '', $pending['pkg_name'] ?? '', $phone
+        ) );
+    }
+
+    // =========================================================================
+    // FLOW CU: da co booking_id -> chi lien ket
+    // =========================================================================
+    if ( $booking_id && $booking_code ) {
+        update_post_meta( $booking_id, '_wc_order_id',    $order_id );
+        update_post_meta( $booking_id, '_booking_status', 'pending' );
+    }
 
     // Luu vao WC order meta
     $order->update_meta_data( '_memora_booking_id',   $booking_id );
     $order->update_meta_data( '_memora_booking_code', $booking_code );
-
-    // Luu IG / phuong thuc lien he khac
-    if ( ! empty( $pending['ig'] ) ) {
-        $order->update_meta_data( '_memora_ig', $pending['ig'] );
-    }
     $order->save();
 
-    // Xoa session sau khi luu xong
+    // Xoa session
     WC()->session->__unset( 'memora_booking_pending_id' );
     WC()->session->__unset( 'memora_booking_pending_code' );
     WC()->session->__unset( 'memora_booking_pending_data' );

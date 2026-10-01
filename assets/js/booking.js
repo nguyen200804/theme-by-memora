@@ -334,21 +334,43 @@
                 return;
             }
 
-            var redirectUrl = $(this).data('checkout-url') || '/thanh-toan/';
+            var $btn = $(this);
+            var origText = $btn.text();
+            $btn.prop('disabled', true).text('Đang xử lý...');
 
-            // Lưu trạng thái trước khi chuyển trang
+            // Lưu state trước khi chuyển trang
             state.saveToStorage();
 
-            // Nếu có thông tin phòng, gắn kèm lên URL để đảm bảo đồng bộ
-            if (state.roomId) {
-                redirectUrl += (redirectUrl.indexOf('?') !== -1 ? '&' : '?') + 'phong_id=' + encodeURIComponent(state.roomId);
-                if (state.roomName) {
-                    redirectUrl += '&phong=' + encodeURIComponent(state.roomName);
+            // Gọi AJAX để lưu session WC + thêm vào cart → nhận URL WC checkout
+            $.ajax({
+                url: memoraBooking.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action:       'memora_prepare_checkout_session',
+                    nonce:        memoraBooking.nonce,
+                    date:         state.bookingDate,
+                    time:         state.bookingTime,
+                    package_name: state.packageName,
+                    total_price:  state.totalPrice   || 0,
+                    deposit_price:state.depositPrice || 0,
+                    room_id:      state.roomId       || '',
+                    room_name:    state.roomName     || '',
+                    dia_chi_id:   state.diaChiId     || '',
+                },
+                success: function (response) {
+                    if (response.success && response.data.checkout_url) {
+                        window.location.href = response.data.checkout_url;
+                    } else {
+                        var msg = (response.data && response.data.message) ? response.data.message : 'Có lỗi xảy ra, vui lòng thử lại!';
+                        alert(msg);
+                        $btn.prop('disabled', false).text(origText);
+                    }
+                },
+                error: function () {
+                    alert('Lỗi kết nối máy chủ. Vui lòng thử lại sau!');
+                    $btn.prop('disabled', false).text(origText);
                 }
-            }
-
-            // Chuyển hướng sang trang thanh toán
-            window.location.href = redirectUrl;
+            });
         });
 
         // =========================================================================

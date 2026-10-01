@@ -318,6 +318,98 @@ function memora_create_wc_order_for_booking( $booking_id, $data ) {
 
 
 
+//====================================
+// START - AJAX CHUẨN BỊ SESSION CHO WC CHECKOUT (Flow mới)
+// Gọi từ nút "Thanh toán" ở bước xác nhận [choose_time]
+// Lưu booking data → WC session, add cart, return WC checkout URL
+//====================================
+add_action( 'wp_ajax_memora_prepare_checkout_session',        'memora_ajax_prepare_checkout_session' );
+add_action( 'wp_ajax_nopriv_memora_prepare_checkout_session', 'memora_ajax_prepare_checkout_session' );
+
+function memora_ajax_prepare_checkout_session() {
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'memora_booking_action' ) ) {
+        wp_send_json_error( array( 'message' => 'Phiên làm việc đã hết hạn. Vui lòng tải lại trang!' ) );
+    }
+
+    $date          = isset( $_POST['date'] )         ? sanitize_text_field( wp_unslash( $_POST['date'] ) )         : '';
+    $time          = isset( $_POST['time'] )         ? sanitize_text_field( wp_unslash( $_POST['time'] ) )         : '';
+    $pkg_name      = isset( $_POST['package_name'] ) ? sanitize_text_field( wp_unslash( $_POST['package_name'] ) ) : '';
+    $total_price   = isset( $_POST['total_price'] )  ? floatval( $_POST['total_price'] )  : 0;
+    $deposit_price = isset( $_POST['deposit_price'] )? floatval( $_POST['deposit_price'] ): 0;
+    $room_id       = isset( $_POST['room_id'] )      ? intval( $_POST['room_id'] )        : 0;
+    $room_name     = isset( $_POST['room_name'] )    ? sanitize_text_field( wp_unslash( $_POST['room_name'] ) )    : '';
+    $dia_chi_id    = isset( $_POST['dia_chi_id'] )   ? intval( $_POST['dia_chi_id'] )     : 0;
+
+    // Validation
+    if ( empty( $date ) || empty( $time ) ) {
+        wp_send_json_error( array( 'message' => 'Vui lòng chọn ngày và giờ chụp!' ) );
+    }
+    if ( empty( $pkg_name ) ) {
+        wp_send_json_error( array( 'message' => 'Vui lòng chọn gói chụp ảnh!' ) );
+    }
+
+    if ( $deposit_price <= 0 && $total_price > 0 ) {
+        $deposit_price = $total_price;
+    }
+
+    // Tra ngược thông tin phòng / địa chỉ nếu thiếu
+    if ( $room_id > 0 && empty( $room_name ) ) {
+        $room_name = get_the_title( $room_id );
+    }
+    if ( $dia_chi_id <= 0 && $room_id > 0 && function_exists( 'memora_get_location_id_from_room' ) ) {
+        $dia_chi_id = memora_get_location_id_from_room( $room_id );
+    }
+    $dia_chi_name = $dia_chi_id > 0 ? get_the_title( $dia_chi_id ) : '';
+
+    // Concurrency check: kiểm tra slot còn trống không
+    $booked_slots = memora_get_booked_slots( $date );
+    if ( in_array( $time, $booked_slots, true ) ) {
+        wp_send_json_error( array( 'message' => 'Rất tiếc! Khung giờ ' . $time . ' ngày ' . $date . ' vừa có người đặt. Vui lòng chọn giờ khác!' ) );
+    }
+
+    if ( ! class_exists( 'WooCommerce' ) || ! function_exists( 'WC' ) || ! WC()->session ) {
+        wp_send_json_error( array( 'message' => 'WooCommerce chưa sẵn sàng. Vui lòng thử lại!' ) );
+    }
+
+    if ( ! WC()->session->has_session() ) {
+        WC()->session->set_customer_session_cookie( true );
+    }
+
+    // Lưu booking data vào WC session (KHÔNG tạo booking post ở đây)
+    WC()->session->set( 'memora_booking_pending_data', array(
+        'date'         => $date,
+        'time'         => $time,
+        'pkg_name'     => $pkg_name,
+        'total_price'  => $total_price,
+        'deposit_price'=> $deposit_price,
+        'room_id'      => $room_id,
+        'room_name'    => $room_name,
+        'dia_chi_id'   => $dia_chi_id,
+        'dia_chi_name' => $dia_chi_name,
+    ) );
+    // Xóa booking_id cũ để flow mới tạo booking từ đầu
+    WC()->session->__unset( 'memora_booking_pending_id' );
+    WC()->session->__unset( 'memora_booking_pending_code' );
+
+    // Thêm sản phẩm ảo vào WC cart
+    if ( function_exists( 'memora_get_or_create_booking_product' ) ) {
+        $product_id = memora_get_or_create_booking_product();
+        if ( $product_id ) {
+            WC()->cart->empty_cart();
+            WC()->cart->add_to_cart( $product_id, 1, 0, array(), array( 'memora_booking_pending' => true ) );
+        }
+    }
+
+    wp_send_json_success( array(
+        'checkout_url' => wc_get_checkout_url(),
+    ) );
+}
+//====================================
+// END - AJAX CHUẨN BỊ SESSION CHO WC CHECKOUT
+//====================================
+
+
+
 
 //====================================
 // START - AJAX TRA CỨU ĐƠN ĐẶT LỊCH
