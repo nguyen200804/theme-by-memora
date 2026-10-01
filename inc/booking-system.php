@@ -75,13 +75,23 @@ function memora_booking_enqueue_assets() {
         true
     );
 
+    // Phát hiện dia-chi đang xem để truyền sang JS (lưu sessionStorage)
+    $current_dia_chi_id = 0;
+    if ( function_exists( 'get_queried_object_id' ) ) {
+        $qid = get_queried_object_id();
+        if ( $qid > 0 && get_post_type( $qid ) === 'dia-chi' ) {
+            $current_dia_chi_id = $qid;
+        }
+    }
+
     // Localize Script truyền URL AJAX và Nonce
     wp_localize_script(
         'memora-booking-script',
         'memora_booking_vars',
         array(
-            'ajax_url' => admin_url( 'admin-ajax.php' ),
-            'nonce'    => wp_create_nonce( 'memora_booking_action' ),
+            'ajax_url'   => admin_url( 'admin-ajax.php' ),
+            'nonce'      => wp_create_nonce( 'memora_booking_action' ),
+            'dia_chi_id' => $current_dia_chi_id, // ID trang dia-chi đang xem (0 nếu không phải)
         )
     );
 }

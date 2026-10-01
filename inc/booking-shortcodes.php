@@ -479,19 +479,26 @@ add_shortcode( 'url_dat_lich', 'memora_shortcode_booking_room_url' );
 
 function memora_shortcode_booking_room_url( $atts ) {
     $atts = shortcode_atts( array(
-        'page_url' => '/dat-lich/',
-        'room_id'  => '',
+        'page_url'   => '/dat-lich/',
+        'room_id'    => '',
+        'dia_chi_id' => '', // Tuỳ chọn: truyền rõ ID dia-chi nếu không tự bắt được
     ), $atts, 'booking_room_url' );
 
-    $post_id = ! empty( $atts['room_id'] ) ? intval( $atts['room_id'] ) : get_the_ID();
+    $post_id    = ! empty( $atts['room_id'] ) ? intval( $atts['room_id'] ) : get_the_ID();
     $room_title = get_the_title( $post_id );
 
-    // Trả về chuỗi URL thuần túy để có thể gán trực tiếp vào trường Link của Elementor
-    $url = add_query_arg( array(
+    // Tự phát hiện trang dia-chi hiện tại
+    $dia_chi_id = memora_detect_dia_chi_context( $atts['dia_chi_id'] );
+
+    $url_params = array(
         'phong_id' => $post_id,
         'phong'    => rawurlencode( $room_title ),
-    ), home_url( $atts['page_url'] ) );
+    );
+    if ( $dia_chi_id > 0 ) {
+        $url_params['dia_chi_id'] = $dia_chi_id;
+    }
 
+    $url = add_query_arg( $url_params, home_url( $atts['page_url'] ) );
     return esc_url( $url );
 }
 //====================================
@@ -510,11 +517,12 @@ add_shortcode( 'dat_lich_phong', 'memora_shortcode_booking_room_button' );
 
 function memora_shortcode_booking_room_button( $atts ) {
     $atts = shortcode_atts( array(
-        'id'       => '286',
-        'action'   => 'popup', // 'popup' (mở modal chứa template) hoặc 'link' (chuyển hướng)
-        'text'     => 'ĐẶT LỊCH CHỤP',
-        'page_url' => '/dat-lich/',
-        'class'    => '',
+        'id'         => '286',
+        'action'     => 'popup',
+        'text'       => 'ĐẶT LỊCH CHỤP',
+        'page_url'   => '/dat-lich/',
+        'class'      => '',
+        'dia_chi_id' => '', // Tuỳ chọn: truyền rõ ID dia-chi nếu không tự bắt được
     ), $atts, 'booking_room_button' );
 
     $post_id     = get_the_ID();
@@ -522,10 +530,17 @@ function memora_shortcode_booking_room_button( $atts ) {
     $template_id = intval( $atts['id'] );
     $modal_id    = 'memora-modal-room-' . $post_id . '-' . wp_rand( 100, 999 );
 
-    $booking_url = add_query_arg( array(
+    // Tự phát hiện trang dia-chi hiện tại
+    $dia_chi_id  = memora_detect_dia_chi_context( $atts['dia_chi_id'] );
+
+    $url_params = array(
         'phong_id' => $post_id,
         'phong'    => rawurlencode( $room_title ),
-    ), home_url( $atts['page_url'] ) );
+    );
+    if ( $dia_chi_id > 0 ) {
+        $url_params['dia_chi_id'] = $dia_chi_id;
+    }
+    $booking_url = add_query_arg( $url_params, home_url( $atts['page_url'] ) );
 
     ob_start();
 
@@ -536,7 +551,6 @@ function memora_shortcode_booking_room_button( $atts ) {
         </a>
         <?php
     else :
-        // Action = popup (Mở modal chứa Elementor Template ID 286)
         ?>
         <button type="button" class="memora-btn-brown memora-room-trigger-modal <?php echo esc_attr( $atts['class'] ); ?>" data-modal-target="<?php echo esc_attr( $modal_id ); ?>">
             <?php echo esc_html( $atts['text'] ); ?>
@@ -558,4 +572,46 @@ function memora_shortcode_booking_room_button( $atts ) {
 }
 //====================================
 // END - SHORTCODE 10: NÚT ĐẶT LỊCH PHÒNG CHỤP KÈM MODAL [booking_room_button]
+//====================================
+
+
+
+
+
+//====================================
+// START - HELPER: PHÁT HIỆN DIA-CHI ĐANG ĐƯỢC XEM
+//====================================
+/**
+ * Trả về ID post dia-chi hiện tại (nếu có).
+ *
+ * Ưu tiên:
+ *  1. $explicit_id  → do người dùng truyền rõ qua attribute
+ *  2. get_queried_object_id() → trang đơn (single) của post-type dia-chi
+ *  3. get_the_ID() trong loop → khi shortcode được render trong context dia-chi
+ *
+ * @param int|string $explicit_id  Giá trị từ shortcode attribute 'dia_chi_id'.
+ * @return int  ID post dia-chi, hoặc 0 nếu không xác định được.
+ */
+function memora_detect_dia_chi_context( $explicit_id = 0 ) {
+    // 1. Attribute rõ ràng
+    if ( intval( $explicit_id ) > 0 ) {
+        return intval( $explicit_id );
+    }
+
+    // 2. Trang đang xem là single post dia-chi
+    $queried_id = get_queried_object_id();
+    if ( $queried_id > 0 && get_post_type( $queried_id ) === 'dia-chi' ) {
+        return $queried_id;
+    }
+
+    // 3. Đang trong WordPress loop trên trang dia-chi
+    $loop_id = get_the_ID();
+    if ( $loop_id > 0 && get_post_type( $loop_id ) === 'dia-chi' ) {
+        return $loop_id;
+    }
+
+    return 0;
+}
+//====================================
+// END - HELPER: PHÁT HIỆN DIA-CHI ĐANG ĐƯỢC XEM
 //====================================

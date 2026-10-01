@@ -15,6 +15,7 @@
         depositPrice: 0,
         roomId: '',
         roomName: '',
+        diaChiId: '', // ID post dia-chi được lưu khi user xem trang địa chỉ
 
         saveToStorage: function () {
             try {
@@ -25,7 +26,8 @@
                     totalPrice: this.totalPrice,
                     depositPrice: this.depositPrice,
                     roomId: this.roomId,
-                    roomName: this.roomName
+                    roomName: this.roomName,
+                    diaChiId: this.diaChiId
                 }));
             } catch (e) { }
         },
@@ -42,6 +44,7 @@
                     this.depositPrice = data.depositPrice || 0;
                     this.roomId = data.roomId || '';
                     this.roomName = data.roomName || '';
+                    this.diaChiId = data.diaChiId || '';
                 }
             } catch (e) { }
         }
@@ -59,6 +62,20 @@
         if (urlParams.has('phong')) {
             state.roomName = decodeURIComponent(urlParams.get('phong'));
         }
+        // Đọc dia_chi_id từ URL (?dia_chi_id=...) khi có sẵn trên URL
+        if (urlParams.has('dia_chi_id') && urlParams.get('dia_chi_id') !== '0') {
+            state.diaChiId = urlParams.get('dia_chi_id');
+        }
+
+        // Nếu đang xem trang dia-chi, PHP truyền ID qua memora_booking_vars.dia_chi_id
+        // → Lưu vào sessionStorage để trang booking sau đó dùng
+        var serverDiaChiId = (typeof memora_booking_vars !== 'undefined' && memora_booking_vars.dia_chi_id)
+            ? String(memora_booking_vars.dia_chi_id)
+            : '0';
+        if (serverDiaChiId !== '0') {
+            state.diaChiId = serverDiaChiId;
+        }
+
         var $roomWrap = $('.memora-room-template-wrapper');
         if ($roomWrap.length) {
             state.roomId = $roomWrap.data('room-id') || state.roomId;
@@ -185,19 +202,24 @@
             var $slotsGrid = $('.memora-time-slots-grid');
             if (!$slotsGrid.length) return;
 
-            // Lấy phong_id từ state (đã đọc từ URL ?phong_id=...) để server tra ngược ra dia-chi
-            var locationId = state.roomId || $('.memora-choose-time-wrap').data('location-id') || 0;
+            // Ưu tiên dùng dia_chi_id từ state (URL hoặc sessionStorage)
+            // Fallback sang phong_id nếu chưa có (server sẽ tra ngược)
+            var diaChiId = state.diaChiId && state.diaChiId !== '0' ? state.diaChiId : null;
+            var phongId  = state.roomId || $('.memora-choose-time-wrap').data('location-id') || 0;
+
+            var ajaxData = { action: 'memora_get_slots', date: dateStr };
+            if (diaChiId) {
+                ajaxData.dia_chi_id = diaChiId;
+            } else if (phongId) {
+                ajaxData.phong_id = phongId;
+            }
 
             $slotsGrid.css('opacity', '0.5');
 
             $.ajax({
                 url: ajaxUrl,
                 type: 'POST',
-                data: {
-                    action: 'memora_get_slots',
-                    date: dateStr,
-                    phong_id: locationId
-                },
+                data: ajaxData,
                 success: function (response) {
                     $slotsGrid.css('opacity', '1');
                     if (response.success && response.data.slots) {
