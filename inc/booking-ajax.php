@@ -129,9 +129,9 @@ function memora_ajax_submit_booking() {
         wp_send_json_error( array( 'message' => 'Vui lòng chọn gói chụp ảnh!' ) );
     }
 
-    // Tự động tính cọc 50% nếu chưa có
+    // Tự động tính thanh toán 100% nếu chưa có
     if ( $deposit_price <= 0 && $total_price > 0 ) {
-        $deposit_price = $total_price * 0.5;
+        $deposit_price = $total_price * 1.0;
     }
 
     // Concurrency Check: Kiểm tra lại slot giờ tránh xung đột đặt cùng lúc

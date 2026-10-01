@@ -72,7 +72,7 @@ function memora_booking_columns( $columns ) {
         'schedule'       => __( 'Lịch Chụp', 'memora' ),
         'phong_dia_chi'  => __( 'Phòng / Địa chỉ', 'memora' ),
         'package'        => __( 'Gói Chụp', 'memora' ),
-        'payment'        => __( 'Thanh Toán (50%)', 'memora' ),
+        'payment'        => __( 'Thanh Toán (100%)', 'memora' ),
         'booking_status' => __( 'Trạng Thái', 'memora' ),
         'date'           => __( 'Ngày Đặt', 'memora' ),
     );
@@ -155,7 +155,7 @@ function memora_booking_column_content( $column, $post_id ) {
             $total   = get_post_meta( $post_id, '_booking_total_price', true );
             $deposit = get_post_meta( $post_id, '_booking_deposit_price', true );
             echo 'Tổng: <strong>' . esc_html( memora_format_price( $total ) ) . '</strong><br>';
-            echo '<span style="color:#d9534f; font-weight:600; font-size:12px;">Cọc 50%: ' . esc_html( memora_format_price( $deposit ) ) . '</span>';
+            echo '<span style="color:#d9534f; font-weight:600; font-size:12px;">Thanh toán 100%: ' . esc_html( memora_format_price( $deposit ) ) . '</span>';
             break;
 
         case 'booking_status':
@@ -166,7 +166,7 @@ function memora_booking_column_content( $column, $post_id ) {
 
             $badges = array(
                 'pending'      => array( 'label' => 'Chờ xác nhận', 'bg' => '#f0ad4e', 'color' => '#fff' ),
-                'deposit_paid' => array( 'label' => 'Đã cọc 50%', 'bg' => '#5cb85c', 'color' => '#fff' ),
+                'deposit_paid' => array( 'label' => 'Đã thanh toán 100%', 'bg' => '#5cb85c', 'color' => '#fff' ),
                 'completed'    => array( 'label' => 'Hoàn tất', 'bg' => '#337ab7', 'color' => '#fff' ),
                 'cancelled'    => array( 'label' => 'Đã hủy', 'bg' => '#d9534f', 'color' => '#fff' ),
             );
