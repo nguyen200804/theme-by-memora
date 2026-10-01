@@ -1,6 +1,6 @@
-/**
+﻿/**
  * Memora Booking Stylesheet
- * Thiết kế chuẩn pixel theo phong cách Memora Film
+ * Thiáº¿t káº¿ chuáº©n pixel theo phong cÃ¡ch Memora Film
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Quicksand:wght@500;600;700&display=swap');
@@ -22,7 +22,7 @@
     --memora-font-sans: 'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Khung hiển thị cố định chiều rộng (Fixed width theo yêu cầu không cần responsive) */
+/* Khung hiá»ƒn thá»‹ cá»‘ Ä‘á»‹nh chiá»u rá»™ng (Fixed width theo yÃªu cáº§u khÃ´ng cáº§n responsive) */
 .memora-booking-container {
 
     max-width: 100%;
@@ -231,7 +231,7 @@
 } */
 
 /* ==========================================================================
-   4. SHORTCODE [confirm_booking] (Khớp 100% Ảnh 1)
+   4. SHORTCODE [confirm_booking] (Khá»›p 100% áº¢nh 1)
    ========================================================================== */
 .memora-confirm-wrapper {
     font-size: 2px;
@@ -366,7 +366,7 @@
     transform: translateY(0);
 }
 
-/* Fallback nếu nút nằm bên trong card */
+/* Fallback náº¿u nÃºt náº±m bÃªn trong card */
 .memora-confirm-card>.memora-btn-confirm-pay {
     margin-top: 26px;
 }
@@ -374,7 +374,7 @@
 
 
 /* ==========================================================================
-   5. SHORTCODE [checkout_booking] (Khớp 100% Ảnh 2)
+   5. SHORTCODE [checkout_booking] (Khá»›p 100% áº¢nh 2)
    ========================================================================== */
 .memora-checkout-wrap {
     text-align: center;
@@ -508,7 +508,7 @@
     margin-top: 0.2em;
 }
 
-/* NÚT THANH TOÁN HÌNH TRÁI TIM */
+/* NÃšT THANH TOÃN HÃŒNH TRÃI TIM */
 .memora-heart-button-wrap {
     display: flex;
     justify-content: center;
@@ -571,7 +571,7 @@
 }
 
 /* ==========================================================================
-   6. TRANG THANH TOÁN THÀNH CÔNG (Khớp 100% Ảnh 3)
+   6. TRANG THANH TOÃN THÃ€NH CÃ”NG (Khá»›p 100% áº¢nh 3)
    ========================================================================== */
 .memora-thankyou-wrap {
     padding: 15px 0;
@@ -683,7 +683,7 @@
     color: #6f381e;
 }
 
-/* KHỐI RANDOM 4 SỐ */
+/* KHá»I RANDOM 4 Sá» */
 .memora-code-section {
     text-align: left;
     margin-bottom: 24px;
@@ -740,7 +740,7 @@
     margin-top: 0.8em;
 }
 
-/* THẺ LƯU Ý / NOTE CARD */
+/* THáºº LÆ¯U Ã / NOTE CARD */
 .memora-note-card {
     background: #ffffff;
     border: 1em solid var(--memora-brown);
@@ -809,7 +809,7 @@
     margin: 0 auto;
 }
 
-/* NÚT QUAY VỀ TRANG CHỦ */
+/* NÃšT QUAY Vá»€ TRANG CHá»¦ */
 .memora-home-btn-wrap {
     margin: 20px 0;
 }
@@ -858,7 +858,7 @@
 }
 
 /* ==========================================================================
-   7. SHORTCODE [lookup_booking] (Khớp 100% Ảnh 4)
+   7. SHORTCODE [lookup_booking] (Khá»›p 100% áº¢nh 4)
    ========================================================================== */
 .memora-lookup-wrap {
     padding: 10px 0;
@@ -929,7 +929,7 @@
     padding: 20em;
 }
 
-/* THÔNG BÁO LỖI / THÀNH CÔNG */
+/* THÃ”NG BÃO Lá»–I / THÃ€NH CÃ”NG */
 .memora-alert {
     padding: 10px 14px;
     border-radius: 12px;
@@ -971,7 +971,7 @@
 }
 
 /* ==========================================================================
-   8. MODAL / POPUP CHO PHÒNG CHỤP [booking_room_button]
+   8. MODAL / POPUP CHO PHÃ’NG CHá»¤P [booking_room_button]
    ========================================================================== */
 .memora-room-modal {
     position: fixed;
@@ -1035,17 +1035,5 @@
     padding: 4px;
     font-weight: 700;
 }
-/* Divider 'hoac' giua 2 truong tra cuu */
-.memora-lookup-or-divider {
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    font-family: var(--memora-font-sans);
-    font-size: 11px;
-    font-weight: 600;
-    color: #a0846c;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding-bottom: 12px;
-    flex-shrink: 0;
-}
+
+

@@ -397,12 +397,11 @@ function memora_shortcode_lookup_booking( $atts ) {
             <div class="memora-lookup-inputs-row">
                 <div class="memora-lookup-field">
                     <label for="memora_lookup_phone">Số điện thoại</label>
-                    <input type="tel" id="memora_lookup_phone" class="memora-lookup-input" placeholder="Nhập số điện thoại" />
+                    <input type="tel" id="memora_lookup_phone" class="memora-lookup-input" />
                 </div>
-                <div class="memora-lookup-or-divider">hoặc</div>
                 <div class="memora-lookup-field">
                     <label for="memora_lookup_code">Code chụp</label>
-                    <input type="text" id="memora_lookup_code" class="memora-lookup-input" maxlength="6" placeholder="VD: A3F8" />
+                    <input type="text" id="memora_lookup_code" class="memora-lookup-input" maxlength="6" />
                 </div>
             </div>
 
