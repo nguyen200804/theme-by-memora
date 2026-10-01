@@ -517,19 +517,17 @@ function memora_shortcode_booking_room_url( $atts ) {
 
     // --- Xác định dia_chi_id ---
     if ( $explicit_dia_chi_id > 0 ) {
-        // Truyền thủ công qua attribute
+        // Truyền thủ công qua attribute → dùng luôn
         $dia_chi_id = $explicit_dia_chi_id;
-    } elseif ( $explicit_room_id > 0 ) {
-        // Có room_id tường minh → tra ngược ra dia-chi cha
-        $dia_chi_id = function_exists( 'memora_get_location_id_from_room' )
-            ? memora_get_location_id_from_room( $explicit_room_id )
-            : 0;
     } elseif ( $queried_type === 'dia-chi' && $queried_id > 0 ) {
-        // Đang xem trang dia-chi → lấy queried object
+        // Đang xem trang dia-chi (queried object)
         $dia_chi_id = $queried_id;
     } elseif ( $loop_type === 'dia-chi' && $loop_id > 0 ) {
-        // Trong loop của dia-chi
+        // Đang trong loop của dia-chi
         $dia_chi_id = $loop_id;
+    } elseif ( $post_id > 0 && function_exists( 'memora_get_location_id_from_room' ) ) {
+        // Đang trên trang phòng (phong-chup-anh) → tra ngược sang dia-chi cha
+        $dia_chi_id = memora_get_location_id_from_room( $post_id );
     } else {
         $dia_chi_id = 0;
     }
@@ -581,8 +579,22 @@ function memora_shortcode_booking_room_button( $atts ) {
     $template_id = intval( $atts['id'] );
     $modal_id    = 'memora-modal-room-' . $post_id . '-' . wp_rand( 100, 999 );
 
-    // Tự phát hiện trang dia-chi hiện tại
-    $dia_chi_id  = memora_detect_dia_chi_context( $atts['dia_chi_id'] );
+    // Xác định dia_chi_id: ưu tiên attribute, sau đó detect context, cuối cùng tra ngược từ phòng
+    $explicit_dia_chi_id = intval( $atts['dia_chi_id'] );
+    if ( $explicit_dia_chi_id > 0 ) {
+        $dia_chi_id = $explicit_dia_chi_id;
+    } else {
+        // Thử detect từ context trang (nếu đang trên trang dia-chi)
+        $dia_chi_id = memora_detect_dia_chi_context( 0 );
+        // Nếu vẫn không có (đang trên trang phòng) → tra ngược từ post_id
+        if ( $dia_chi_id <= 0 && $post_id > 0 && function_exists( 'memora_get_location_id_from_room' ) ) {
+            $dia_chi_id = memora_get_location_id_from_room( $post_id );
+        }
+        // Safeguard: không để dia_chi_id = post_id
+        if ( $dia_chi_id === $post_id ) {
+            $dia_chi_id = 0;
+        }
+    }
 
     $url_params = array(
         'phong_id' => $post_id,

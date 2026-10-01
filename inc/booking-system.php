@@ -75,12 +75,21 @@ function memora_booking_enqueue_assets() {
         true
     );
 
-    // Phát hiện dia-chi đang xem để truyền sang JS (lưu sessionStorage)
+    // Phát hiện dia-chi để truyền sang JS (lưu sessionStorage)
     $current_dia_chi_id = 0;
     if ( function_exists( 'get_queried_object_id' ) ) {
-        $qid = get_queried_object_id();
-        if ( $qid > 0 && get_post_type( $qid ) === 'dia-chi' ) {
+        $qid       = get_queried_object_id();
+        $qid_type  = $qid > 0 ? get_post_type( $qid ) : '';
+
+        if ( $qid_type === 'dia-chi' ) {
+            // Đang xem trang dia-chi → dùng trực tiếp
             $current_dia_chi_id = $qid;
+        } elseif ( $qid > 0 && function_exists( 'memora_get_location_id_from_room' ) ) {
+            // Đang xem trang phòng (phong-chup-anh) → tra ngược sang dia-chi cha
+            $found = memora_get_location_id_from_room( $qid );
+            if ( $found > 0 ) {
+                $current_dia_chi_id = $found;
+            }
         }
     }
 
