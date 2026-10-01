@@ -185,43 +185,34 @@ function memora_ajax_submit_booking() {
         update_post_meta( $booking_id, '_booking_dia_chi_name', $dia_chi_name );
     }
 
-    // --- Lưu vào WC Session + Thêm vào WC Cart → redirect sang WC Checkout native ---
+    // --- Tạo đơn hàng WooCommerce để chuyển hướng đến trang Đơn hàng đã nhận (order-received / VietQR) ---
     $wc_order_url  = '';
     $thankyou_html = '';
 
-    if ( class_exists( 'WooCommerce' ) && function_exists( 'WC' ) && WC()->session ) {
-        // Đảm bảo có session
-        if ( ! WC()->session->has_session() ) {
-            WC()->session->set_customer_session_cookie( true );
-        }
+    if ( class_exists( 'WooCommerce' ) && function_exists( 'WC' ) ) {
+        $payment_method = isset( $_POST['payment_method'] ) ? sanitize_text_field( wp_unslash( $_POST['payment_method'] ) ) : 'bacs';
 
-        // Lưu thông tin booking vào WC session
-        WC()->session->set( 'memora_booking_pending_id',   $booking_id );
-        WC()->session->set( 'memora_booking_pending_code', $code );
-        WC()->session->set( 'memora_booking_pending_data', array(
-            'name'          => $name,
-            'phone'         => $phone,
-            'ig'            => $contact_other,
-            'date'          => $date,
-            'time'          => $time,
-            'pkg_name'      => $pkg_name,
-            'total_price'   => $total_price,
-            'deposit_price' => $deposit_price,
+        // Lấy số tiền cần thanh toán
+        $pay_price = $deposit_price > 0 ? $deposit_price : $total_price;
+
+        $order_result = memora_create_wc_order_for_booking( $booking_id, array(
+            'name'           => $name,
+            'phone'          => $phone,
+            'ig'             => $contact_other,
+            'date'           => $date,
+            'time'           => $time,
+            'pkg_name'       => $pkg_name,
+            'total_price'    => $pay_price,
+            'code'           => $code,
+            'payment_method' => $payment_method,
         ) );
 
-        // Xóa cart cũ và thêm sản phẩm ảo đặt lịch
-        if ( function_exists( 'memora_get_or_create_booking_product' ) ) {
-            $product_id = memora_get_or_create_booking_product();
-            if ( $product_id ) {
-                WC()->cart->empty_cart();
-                WC()->cart->add_to_cart( $product_id, 1, 0, array(), array( 'memora_booking_id' => $booking_id ) );
-            }
+        if ( ! empty( $order_result['order_url'] ) ) {
+            $wc_order_url = $order_result['order_url'];
         }
-
-        $wc_order_url = function_exists( 'wc_get_checkout_url' ) ? wc_get_checkout_url() : '';
     }
 
-    // Fallback: hiển thị Thank You HTML nếu không có WooCommerce
+    // Fallback: hiển thị Thank You HTML nếu không có WooCommerce hoặc không tạo được đơn
     if ( empty( $wc_order_url ) && function_exists( 'memora_render_thankyou_html' ) ) {
         $thankyou_html = memora_render_thankyou_html( $code );
     }
@@ -235,7 +226,7 @@ function memora_ajax_submit_booking() {
         'package_name'  => $pkg_name,
         'total_price'   => memora_format_price( $total_price ),
         'deposit_price' => memora_format_price( $deposit_price ),
-        'wc_order_url'  => $wc_order_url,   // ← URL trang thanh toán WC
+        'wc_order_url'  => $wc_order_url,   // ← URL trang thanh toán thành công (order-received)
         'html'          => $thankyou_html,
     ) );
 }
@@ -252,10 +243,9 @@ function memora_ajax_submit_booking() {
 //====================================
 /**
  * Tạo WC Order (phương thức BACS) từ dữ liệu booking.
- * Không cần sản phẩm WC — dùng WC_Order_Item_Fee để ghi số tiền động.
  *
  * @param int   $booking_id  ID của memora_booking post.
- * @param array $data        name, phone, pkg_name, total_price, date, time, code.
+ * @param array $data        name, phone, pkg_name, total_price, date, time, code, payment_method.
  * @return array             { order_id, order_key, order_url } hoặc mảng rỗng nếu lỗi.
  */
 function memora_create_wc_order_for_booking( $booking_id, $data ) {
@@ -268,16 +258,34 @@ function memora_create_wc_order_for_booking( $booking_id, $data ) {
 
     if ( is_wp_error( $order ) ) return array();
 
-    // --- Thêm fee item (không cần sản phẩm WC) ---
-    $item = new WC_Order_Item_Fee();
-    $item->set_name(
-        sprintf( 'Đặt lịch chụp ảnh — %s | %s %s', $data['pkg_name'], $data['date'], $data['time'] )
-    );
-    $item->set_amount( $data['total_price'] );
-    $item->set_total( $data['total_price'] );
-    $item->set_tax_status( 'none' );
-    $item->set_taxes( array() );
-    $order->add_item( $item );
+    $pay_amount = ! empty( $data['total_price'] ) ? floatval( $data['total_price'] ) : 0;
+
+    // --- Thêm sản phẩm đặt lịch vào đơn hàng ---
+    $product_id = function_exists( 'memora_get_or_create_booking_product' ) ? memora_get_or_create_booking_product() : 0;
+    if ( $product_id && function_exists( 'wc_get_product' ) ) {
+        $product = wc_get_product( $product_id );
+        if ( $product ) {
+            $item = new WC_Order_Item_Product();
+            $item->set_product( $product );
+            $item->set_quantity( 1 );
+            $item->set_name(
+                sprintf( 'Đặt lịch chụp ảnh — %s | %s %s', $data['pkg_name'], $data['date'], $data['time'] )
+            );
+            $item->set_subtotal( $pay_amount );
+            $item->set_total( $pay_amount );
+            $order->add_item( $item );
+        }
+    } else {
+        $item = new WC_Order_Item_Fee();
+        $item->set_name(
+            sprintf( 'Đặt lịch chụp ảnh — %s | %s %s', $data['pkg_name'], $data['date'], $data['time'] )
+        );
+        $item->set_amount( $pay_amount );
+        $item->set_total( $pay_amount );
+        $item->set_tax_status( 'none' );
+        $item->set_taxes( array() );
+        $order->add_item( $item );
+    }
 
     // --- Thông tin khách hàng ---
     $order->set_billing_first_name( $data['name'] );
@@ -286,24 +294,42 @@ function memora_create_wc_order_for_booking( $booking_id, $data ) {
     $safe_email = preg_replace( '/[^a-z0-9]/i', '', strtolower( $data['phone'] ) ) . '@memora.booking';
     $order->set_billing_email( $safe_email );
 
-    // --- Phương thức thanh toán: BACS ---
-    $order->set_payment_method( 'bacs' );
-    $order->set_payment_method_title( 'Scan VietQR — Chuyển khoản' );
-    $order->set_status( 'on-hold' ); // on-hold = chờ thanh toán
+    // --- Phương thức thanh toán: BACS / VietQR ---
+    $payment_method = ! empty( $data['payment_method'] ) ? $data['payment_method'] : 'bacs';
+    $gateways       = ( function_exists( 'WC' ) && WC()->payment_gateways ) ? WC()->payment_gateways()->payment_gateways() : array();
+    $chosen_gateway = isset( $gateways[ $payment_method ] ) ? $gateways[ $payment_method ] : null;
+    $payment_title  = $chosen_gateway ? $chosen_gateway->get_title() : 'Scan VietQR — Chuyển khoản';
+
+    $order->set_payment_method( $payment_method );
+    $order->set_payment_method_title( $payment_title );
 
     // --- Ghi chú nội bộ liên kết với booking ---
     $order->update_meta_data( '_memora_booking_id',   $booking_id );
     $order->update_meta_data( '_memora_booking_code', $data['code'] );
+    if ( ! empty( $data['ig'] ) ) {
+        $order->update_meta_data( '_memora_ig', $data['ig'] );
+    }
     $order->add_order_note(
         sprintf(
-            'Đặt lịch tự động | Code: #%s | Ngày: %s %s | Gói: %s | Phone: %s',
-            $data['code'], $data['date'], $data['time'], $data['pkg_name'], $data['phone']
+            'Đặt lịch tự động | Code: #%s | Ngày: %s %s | Gói: %s | SĐT: %s | IG: %s',
+            $data['code'], $data['date'], $data['time'], $data['pkg_name'], $data['phone'], $data['ig'] ?? ''
         )
     );
 
-    // --- Tính tổng và lưu ---
+    // --- Tính tổng và lưu trạng thái on-hold (Chờ chuyển khoản VietQR) ---
     $order->calculate_totals( false );
+    $order->set_status( 'on-hold', 'Đơn đặt lịch mới chờ chuyển khoản VietQR.' );
     $order->save();
+
+    // Dọn dẹp giỏ hàng sau khi tạo đơn thành công
+    if ( function_exists( 'WC' ) && WC()->cart ) {
+        WC()->cart->empty_cart();
+    }
+    if ( function_exists( 'WC' ) && WC()->session ) {
+        WC()->session->__unset( 'memora_booking_pending_id' );
+        WC()->session->__unset( 'memora_booking_pending_code' );
+        WC()->session->__unset( 'memora_booking_pending_data' );
+    }
 
     return array(
         'order_id'  => $order->get_id(),

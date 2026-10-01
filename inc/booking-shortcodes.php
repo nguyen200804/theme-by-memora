@@ -278,29 +278,13 @@ function memora_shortcode_checkout_booking( $atts ) {
                 // Khởi tạo WC Checkout object
                 WC()->checkout();
 
-                // Đảm bảo hook woocommerce_checkout_payment gắn hàm woocommerce_checkout_payment()
-                if ( ! has_action( 'woocommerce_checkout_payment', 'woocommerce_checkout_payment' ) && function_exists( 'woocommerce_checkout_payment' ) ) {
-                    add_action( 'woocommerce_checkout_payment', 'woocommerce_checkout_payment', 10 );
-                }
-
                 echo '<div class="memora-wc-payment-section" id="memora-wc-payment">';
 
-                ob_start();
-                do_action( 'woocommerce_checkout_payment' );
-                $payment_html = ob_get_clean();
-
-                // Fallback nếu do_action chưa xuất nội dung do cart filter hoặc gateway
-                if ( empty( trim( $payment_html ) ) && function_exists( 'wc_get_template' ) ) {
+                // Gọi hàm thanh toán WooCommerce chuẩn (chỉ xuất 1 lần)
+                if ( function_exists( 'woocommerce_checkout_payment' ) ) {
+                    woocommerce_checkout_payment();
+                } elseif ( function_exists( 'wc_get_template' ) ) {
                     $available_gateways = WC()->payment_gateways()->get_available_payment_gateways();
-                    if ( empty( $available_gateways ) ) {
-                        foreach ( WC()->payment_gateways()->payment_gateways() as $gw ) {
-                            if ( 'yes' === $gw->enabled ) {
-                                $available_gateways[ $gw->id ] = $gw;
-                            }
-                        }
-                    }
-
-                    ob_start();
                     wc_get_template(
                         'checkout/payment.php',
                         array(
@@ -309,10 +293,8 @@ function memora_shortcode_checkout_booking( $atts ) {
                             'order_button_text'  => apply_filters( 'woocommerce_order_button_text', __( 'Thanh toán', 'woocommerce' ) ),
                         )
                     );
-                    $payment_html = ob_get_clean();
                 }
 
-                echo $payment_html;
                 echo '</div>';
             }
             ?>
