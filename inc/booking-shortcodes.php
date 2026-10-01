@@ -381,26 +381,8 @@ function memora_render_thankyou_html( $code = '', $order_id = 0 ) {
         }
     }
 
-    // Fallback: Tìm trong CPT memora_booking cũ (nếu có đơn lịch cũ)
-    if ( ! $wc_order && ! empty( $code ) ) {
-        $posts = get_posts( array(
-            'post_type'      => 'memora_booking',
-            'post_status'    => 'publish',
-            'posts_per_page' => 1,
-            'meta_query'     => array(
-                array(
-                    'key'     => '_booking_code',
-                    'value'   => $code,
-                    'compare' => '=',
-                ),
-            ),
-        ) );
-        if ( ! empty( $posts ) ) {
-            $booking = $posts[0];
-        }
-    }
 
-    // Lấy thông tin từ WC Order hoặc memora_booking cũ
+    // Lấy thông tin từ WC Order
     if ( $wc_order ) {
         if ( empty( $code ) ) {
             $code = $wc_order->get_meta( '_memora_booking_code' ) ?: $wc_order->get_meta( '_booking_code' );
@@ -417,11 +399,6 @@ function memora_render_thankyou_html( $code = '', $order_id = 0 ) {
                 if ( ! empty( $pkg ) ) break;
             }
         }
-    } else {
-        $date        = $booking ? get_post_meta( $booking->ID, '_booking_date',         true ) : '';
-        $time        = $booking ? get_post_meta( $booking->ID, '_booking_time',         true ) : '';
-        $pkg         = $booking ? get_post_meta( $booking->ID, '_booking_package_name', true ) : '';
-        $total_price = $booking ? (int) get_post_meta( $booking->ID, '_booking_total_price', true ) : 0;
     }
 
     if ( empty( $date ) ) $date = current_time( 'd/m/Y' );

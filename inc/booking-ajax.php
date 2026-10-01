@@ -557,66 +557,8 @@ function memora_ajax_lookup_booking() {
             }
         }
 
-        // 1.2 Fallback: Tìm trong CPT memora_booking cũ
-        $args = array(
-            'post_type'      => 'memora_booking',
-            'post_status'    => 'publish',
-            'posts_per_page' => 1,
-            'meta_query'     => array(
-                'relation' => 'AND',
-                array(
-                    'key'     => '_booking_code',
-                    'value'   => $clean_code,
-                    'compare' => '=',
-                ),
-                array(
-                    'key'     => '_booking_status',
-                    'value'   => 'cancelled',
-                    'compare' => '!=',
-                ),
-            ),
-        );
-
-        $query = new WP_Query( $args );
-
-        if ( ! $query->have_posts() ) {
-            wp_send_json_error( array( 'message' => 'Không tìm thấy đơn lịch đặt nào với Code ' . esc_html( $clean_code ) . '. Bạn vui lòng kiểm tra lại nhaaa!' ) );
-        }
-
-        $found = false;
-        while ( $query->have_posts() ) {
-            $query->the_post();
-            $post_id        = get_the_ID();
-            $db_phone       = get_post_meta( $post_id, '_booking_phone', true );
-            $clean_db_phone = preg_replace( '/[^0-9]/', '', $db_phone );
-
-            $phone_ok = empty( $clean_phone )
-                || $clean_db_phone === $clean_phone
-                || strpos( $clean_db_phone, $clean_phone ) !== false
-                || strpos( $clean_phone, $clean_db_phone ) !== false;
-
-            if ( $phone_ok ) {
-                $found = true;
-                $result_data = array(
-                    'code'         => get_post_meta( $post_id, '_booking_code', true ),
-                    'name'         => get_post_meta( $post_id, '_booking_customer_name', true ),
-                    'phone'        => $db_phone,
-                    'date'         => get_post_meta( $post_id, '_booking_date', true ),
-                    'time'         => get_post_meta( $post_id, '_booking_time', true ),
-                    'package_name' => get_post_meta( $post_id, '_booking_package_name', true ),
-                    'total_price'  => function_exists( 'memora_format_price' ) ? memora_format_price( get_post_meta( $post_id, '_booking_total_price', true ) ) : '',
-                    'status'       => get_post_meta( $post_id, '_booking_status', true ),
-                );
-                break;
-            }
-        }
-        wp_reset_postdata();
-
-        if ( ! $found ) {
-            wp_send_json_error( array( 'message' => 'Số điện thoại không khớp với mã Code này. Bạn vui lòng kiểm tra lại số điện thoại nhaaa!' ) );
-        }
-
-        wp_send_json_success( array( 'data' => $result_data ) );
+        // Không tìm thấy trong WooCommerce Orders
+        wp_send_json_error( array( 'message' => 'Không tìm thấy đơn lịch đặt nào với Code ' . esc_html( $clean_code ) . '. Bạn vui lòng kiểm tra lại nhaaa!' ) );
     }
 
     // -------------------------------------------------------
@@ -663,59 +605,8 @@ function memora_ajax_lookup_booking() {
         }
     }
 
-    // 2.2 Fallback: Tìm trong CPT memora_booking cũ
-    $all_bookings_args = array(
-        'post_type'      => 'memora_booking',
-        'post_status'    => 'publish',
-        'posts_per_page' => -1,
-        'orderby'        => 'date',
-        'order'          => 'DESC',
-        'meta_query'     => array(
-            array(
-                'key'     => '_booking_status',
-                'value'   => 'cancelled',
-                'compare' => '!=',
-            ),
-        ),
-    );
-
-    $all_query = new WP_Query( $all_bookings_args );
-
-    if ( ! $all_query->have_posts() ) {
-        wp_send_json_error( array( 'message' => 'Không tìm thấy đơn lịch đặt nào. Bạn vui lòng kiểm tra lại nhaaa!' ) );
-    }
-
-    $found = false;
-    while ( $all_query->have_posts() ) {
-        $all_query->the_post();
-        $post_id        = get_the_ID();
-        $db_phone       = get_post_meta( $post_id, '_booking_phone', true );
-        $clean_db_phone = preg_replace( '/[^0-9]/', '', $db_phone );
-
-        if ( $clean_db_phone === $clean_phone
-            || strpos( $clean_db_phone, $clean_phone ) !== false
-            || strpos( $clean_phone, $clean_db_phone ) !== false ) {
-            $found = true;
-            $result_data = array(
-                'code'         => get_post_meta( $post_id, '_booking_code', true ),
-                'name'         => get_post_meta( $post_id, '_booking_customer_name', true ),
-                'phone'        => $db_phone,
-                'date'         => get_post_meta( $post_id, '_booking_date', true ),
-                'time'         => get_post_meta( $post_id, '_booking_time', true ),
-                'package_name' => get_post_meta( $post_id, '_booking_package_name', true ),
-                'total_price'  => function_exists( 'memora_format_price' ) ? memora_format_price( get_post_meta( $post_id, '_booking_total_price', true ) ) : '',
-                'status'       => get_post_meta( $post_id, '_booking_status', true ),
-            );
-            break;
-        }
-    }
-    wp_reset_postdata();
-
-    if ( ! $found ) {
-        wp_send_json_error( array( 'message' => 'Không tìm thấy đơn lịch đặt nào với số điện thoại này. Bạn vui lòng kiểm tra lại nhaaa!' ) );
-    }
-
-    wp_send_json_success( array( 'data' => $result_data ) );
+    // Không tìm thấy trong WooCommerce Orders
+    wp_send_json_error( array( 'message' => 'Không tìm thấy đơn lịch đặt nào với số điện thoại này. Bạn vui lòng kiểm tra lại nhaaa!' ) );
 }
 //====================================
 // END - AJAX TRA CỨU ĐƠN ĐẶT LỊCH
