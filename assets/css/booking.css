@@ -835,6 +835,41 @@
     color: var(--memora-brown);
 }
 
+.memora-wc-thankyou-hook {
+    font-size: 14px !important;
+    text-align: center;
+    margin: 20px 0;
+    background: #fdfbf7;
+    border: 1px solid #ebd9cb;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 2px 6px rgba(115, 62, 28, 0.04);
+}
+
+.memora-wc-thankyou-hook img {
+    max-width: 100% !important;
+    height: auto !important;
+    display: inline-block;
+    border-radius: 8px;
+}
+
+.memora-wc-thankyou-hook ul.order_details,
+.memora-wc-thankyou-hook .woocommerce-bacs-bank-details {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 15px 0 !important;
+    text-align: left !important;
+    font-size: 14px !important;
+}
+
+.memora-wc-thankyou-hook .woocommerce-notice {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--memora-brown, #733e1c);
+    margin-bottom: 12px;
+}
+
+
 
 .memora-thankyou-title {
     font-family: var(--memora-font-script);

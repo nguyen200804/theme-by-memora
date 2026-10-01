@@ -180,6 +180,27 @@ function memora_shortcode_confirm_booking( $atts ) {
 //====================================
 add_shortcode( 'checkout_booking', 'memora_shortcode_checkout_booking' );
 function memora_shortcode_checkout_booking( $atts ) {
+    // Nếu đang ở trang Đơn hàng đã nhận (order-received) của WooCommerce -> chuyển sang giao diện [thankyou_booking]
+    $is_order_received = ( function_exists( 'is_order_received_page' ) && is_order_received_page() )
+        || ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'order-received' ) )
+        || ! empty( get_query_var( 'order-received' ) );
+
+    if ( $is_order_received ) {
+        $order_id = absint( get_query_var( 'order-received' ) );
+        $code     = '';
+        if ( $order_id > 0 && function_exists( 'wc_get_order' ) ) {
+            $order = wc_get_order( $order_id );
+            if ( $order ) {
+                $code = $order->get_meta( '_memora_booking_code' );
+            }
+        }
+        if ( empty( $code ) && ! empty( $_GET['code'] ) ) {
+            $code = sanitize_text_field( wp_unslash( $_GET['code'] ) );
+        }
+
+        return memora_render_thankyou_html( $code, $order_id );
+    }
+
     $atts = shortcode_atts( array(
         'thankyou_url' => '',
     ), $atts, 'checkout_booking' );
@@ -330,9 +351,24 @@ function memora_shortcode_checkout_booking( $atts ) {
  * @param string $code Mã đặt lịch (4 số)
  * @return string Mã HTML hoàn chỉnh
  */
-function memora_render_thankyou_html( $code = '' ) {
-    $booking = null;
-    if ( ! empty( $code ) ) {
+function memora_render_thankyou_html( $code = '', $order_id = 0 ) {
+    $booking  = null;
+    $wc_order = null;
+
+    if ( $order_id > 0 && function_exists( 'wc_get_order' ) ) {
+        $wc_order = wc_get_order( $order_id );
+        if ( $wc_order ) {
+            if ( empty( $code ) ) {
+                $code = $wc_order->get_meta( '_memora_booking_code' );
+            }
+            $booking_id = (int) $wc_order->get_meta( '_memora_booking_id' );
+            if ( $booking_id > 0 ) {
+                $booking = get_post( $booking_id );
+            }
+        }
+    }
+
+    if ( ! $booking && ! empty( $code ) ) {
         $posts = get_posts( array(
             'post_type'      => 'memora_booking',
             'post_status'    => 'publish',
@@ -350,13 +386,22 @@ function memora_render_thankyou_html( $code = '' ) {
         }
     }
 
-    $date         = $booking ? get_post_meta( $booking->ID, '_booking_date',         true ) : '04/09/2026';
-    $time         = $booking ? get_post_meta( $booking->ID, '_booking_time',         true ) : '12:00';
-    $pkg          = $booking ? get_post_meta( $booking->ID, '_booking_package_name', true ) : '5p';
-    $total_price  = $booking ? (int) get_post_meta( $booking->ID, '_booking_total_price', true ) : 0;
-    $display_code = $code ? $code : '6640';
+    $date         = $booking ? get_post_meta( $booking->ID, '_booking_date',         true ) : '';
+    $time         = $booking ? get_post_meta( $booking->ID, '_booking_time',         true ) : '';
+    $pkg          = $booking ? get_post_meta( $booking->ID, '_booking_package_name', true ) : '';
+    $total_price  = 0;
+    if ( $wc_order ) {
+        $total_price = (int) $wc_order->get_total();
+    } elseif ( $booking ) {
+        $total_price = (int) get_post_meta( $booking->ID, '_booking_total_price', true );
+    }
 
-    // --- VietQR config từ ACF Options Page ---
+    if ( empty( $date ) ) $date = current_time( 'd/m/Y' );
+    if ( empty( $time ) ) $time = current_time( 'H:i' );
+    if ( empty( $pkg ) )  $pkg  = 'Gói chụp Memora';
+    $display_code = $code ? $code : ( $wc_order ? strval( $wc_order->get_id() ) : '6640' );
+
+    // --- VietQR config từ ACF Options Page (fallback) ---
     $bank_id      = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_bank_id',      'option' ) : '';
     $account_no   = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_account_no',   'option' ) : '';
     $account_name = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_account_name', 'option' ) : '';
@@ -423,7 +468,22 @@ function memora_render_thankyou_html( $code = '' ) {
             <div class="memora-code-notice">**Quý khách vui lòng lưu lại code chụp để tra cứu</div>
         </div>
 
-        <?php if ( $show_qr ) : ?>
+        <?php
+        // Gọi hook VietQR / BACS của WooCommerce nếu có order_id
+        $wc_thankyou_output = '';
+        if ( $order_id > 0 && $wc_order ) {
+            ob_start();
+            do_action( 'woocommerce_thankyou_' . $wc_order->get_payment_method(), $order_id );
+            do_action( 'woocommerce_thankyou', $order_id );
+            $wc_thankyou_output = ob_get_clean();
+        }
+        ?>
+
+        <?php if ( ! empty( trim( $wc_thankyou_output ) ) ) : ?>
+        <div class="memora-wc-thankyou-hook">
+            <?php echo $wc_thankyou_output; ?>
+        </div>
+        <?php elseif ( $show_qr ) : ?>
         <!-- PHẦN THANH TOÁN VIETQR -->
         <div class="memora-payment-section">
             <div class="memora-payment-title">Thanh toán qua chuyển khoản</div>
@@ -522,8 +582,22 @@ function memora_render_thankyou_html( $code = '' ) {
 
 add_shortcode( 'thankyou_booking', 'memora_shortcode_thankyou_booking' );
 function memora_shortcode_thankyou_booking( $atts ) {
-    $code = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '';
-    return memora_render_thankyou_html( $code );
+    $code     = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '';
+    $order_id = 0;
+
+    if ( ( function_exists( 'is_order_received_page' ) && is_order_received_page() )
+        || ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'order-received' ) )
+        || ! empty( get_query_var( 'order-received' ) ) ) {
+        $order_id = absint( get_query_var( 'order-received' ) );
+        if ( empty( $code ) && $order_id > 0 && function_exists( 'wc_get_order' ) ) {
+            $order = wc_get_order( $order_id );
+            if ( $order ) {
+                $code = $order->get_meta( '_memora_booking_code' );
+            }
+        }
+    }
+
+    return memora_render_thankyou_html( $code, $order_id );
 }
 //====================================
 // END - SHORTCODE 6: [thankyou_booking]
