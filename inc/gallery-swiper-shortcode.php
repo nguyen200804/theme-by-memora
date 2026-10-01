@@ -184,13 +184,22 @@ function memora_gallery_swiper_shortcode( $atts ) {
     $acf_source   = null; // Nguồn truyền vào get_field(): post_id (int) hoặc "term_{id}" (string)
 
     /* -------------------------------------------------------
-       PHÁT HIỆN TRANG TAXONOMY ARCHIVE
-       Nếu đang ở trang taxonomy (is_tax / is_category / is_tag),
-       và shortcode KHÔNG truyền post_id cụ thể →
-       dùng term hiện tại làm nguồn đọc ACF field.
+       PHÁT HIỆN NGUỒN ACF: term hoặc post
+       Thứ tự ưu tiên:
+         1. post_id="term_123" được truyền tường minh (từ dia_chi_noi_bat)
+         2. Đang ở trang taxonomy archive (is_tax / is_category / is_tag)
+         3. Resolve bình thường qua memora_resolve_gallery_post_id()
        ACF dùng cú pháp "term_{term_id}" để lấy field của taxonomy term.
     ------------------------------------------------------- */
-    if ( empty( $atts['post_id'] ) && ( is_tax() || is_category() || is_tag() ) ) {
+
+    // Trường hợp 1: post_id truyền vào dạng "term_xxx" (từ dia_chi_noi_bat)
+    if ( ! empty( $atts['post_id'] ) && preg_match( '/^term_(\d+)$/', trim( $atts['post_id'] ), $m ) ) {
+        $acf_source = trim( $atts['post_id'] ); // "term_123"
+        $post_id    = (int) $m[1];              // 123 (dùng cho error message)
+    }
+
+    // Trường hợp 2: đang ở trang taxonomy archive và shortcode không truyền post_id cụ thể
+    if ( $acf_source === null && empty( $atts['post_id'] ) && ( is_tax() || is_category() || is_tag() ) ) {
         $queried_term = get_queried_object();
         if ( $queried_term instanceof WP_Term && ! empty( $queried_term->term_id ) ) {
             $acf_source = 'term_' . $queried_term->term_id;
@@ -208,7 +217,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
             sanitize_key( $raw_field ),
         ] ) );
 
-        // Chỉ resolve post_id nếu KHÔNG phải đang ở taxonomy archive
+        // Trường hợp 3: Resolve bình thường (post, loop item, v.v.)
         if ( $acf_source === null ) {
             $post_id    = memora_resolve_gallery_post_id( $atts['post_id'], $field_candidates );
             $acf_source = $post_id;
