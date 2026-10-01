@@ -290,8 +290,8 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         }
     }
 
-    // Fallback: thử ACF field từ POST nếu term không có ảnh
-    if ( empty( $slide_ids ) && function_exists( 'get_field' ) ) {
+    // Fallback: thử ACF field từ POST nếu term không có ảnh (chỉ khi có post ID hợp lệ)
+    if ( empty( $slide_ids ) && $dc_id > 0 && function_exists( 'get_field' ) ) {
         foreach ( $gallery_candidates as $field_key ) {
             $gallery = get_field( $field_key, $dc_id );
             if ( ! empty( $gallery ) ) {
@@ -301,8 +301,8 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         }
     }
 
-    // Fallback: postmeta trực tiếp
-    if ( empty( $slide_ids ) ) {
+    // Fallback: postmeta trực tiếp (chỉ khi có post ID hợp lệ)
+    if ( empty( $slide_ids ) && $dc_id > 0 ) {
         foreach ( $gallery_candidates as $field_key ) {
             $meta_val = get_post_meta( $dc_id, $field_key, true );
             if ( ! empty( $meta_val ) ) {
@@ -313,8 +313,8 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         }
     }
 
-    // Fallback: Lấy ảnh đính kèm vào bài viết nếu gallery rỗng
-    if ( empty( $slide_ids ) ) {
+    // Fallback: Lấy ảnh đính kèm vào bài viết nếu gallery rỗng (chỉ khi có post ID hợp lệ)
+    if ( empty( $slide_ids ) && $dc_id > 0 ) {
         $attached = get_attached_media( 'image', $dc_id );
         if ( ! empty( $attached ) ) {
             foreach ( $attached as $att ) {
