@@ -31,10 +31,12 @@ function memora_ajax_get_slots() {
 
     // Lấy ID địa chỉ để generate đúng slot theo dia-chi
     $location_id = 0;
-    if ( isset( $_POST['dia_chi_id'] ) && intval( $_POST['dia_chi_id'] ) > 0 ) {
+    if ( ! empty( $_POST['dia_chi_id'] ) && intval( $_POST['dia_chi_id'] ) > 0 ) {
+        // dia_chi_id truyền thẳng → dùng ngay
         $location_id = intval( $_POST['dia_chi_id'] );
-    } elseif ( isset( $_POST['phong_id'] ) && intval( $_POST['phong_id'] ) > 0 ) {
-        $location_id = intval( $_POST['phong_id'] );
+    } elseif ( ! empty( $_POST['phong_id'] ) && intval( $_POST['phong_id'] ) > 0 ) {
+        // phong_id → tra ngược sang dia-chi cha
+        $location_id = memora_get_location_id_from_room( intval( $_POST['phong_id'] ) );
     }
 
     $all_slots    = memora_generate_time_slots( '', '', 15, $location_id );

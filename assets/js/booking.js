@@ -185,8 +185,8 @@
             var $slotsGrid = $('.memora-time-slots-grid');
             if (!$slotsGrid.length) return;
 
-            // Lấy location_id từ wrapper shortcode [choose_time]
-            var locationId = $('.memora-choose-time-wrap').data('location-id') || state.roomId || 0;
+            // Lấy phong_id từ state (đã đọc từ URL ?phong_id=...) để server tra ngược ra dia-chi
+            var locationId = state.roomId || $('.memora-choose-time-wrap').data('location-id') || 0;
 
             $slotsGrid.css('opacity', '0.5');
 
@@ -196,7 +196,7 @@
                 data: {
                     action: 'memora_get_slots',
                     date: dateStr,
-                    dia_chi_id: locationId
+                    phong_id: locationId
                 },
                 success: function (response) {
                     $slotsGrid.css('opacity', '1');

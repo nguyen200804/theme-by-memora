@@ -46,7 +46,118 @@ function memora_register_booking_options_page() {
 
 
 //====================================
-// START - LẤY CẤU HÌNH TỪ ACF (THEO ĐỊA CHỈ)
+// START - TRA NGƯỢC: LẤY ID ĐỊA CHỈ TỪ ID PHÒNG CHỤP
+//====================================
+/**
+ * Từ ID một post phòng chụp (post-type: phong-chup-anh),
+ * tìm ID post dia-chi cha chứa phòng đó qua ACF field "cac-phong-cua-dia-chi".
+ *
+ * Kết quả được cache tĩnh trong request để tránh query lặp.
+ *
+ * @param int $room_id  ID post phòng chụp.
+ * @return int  ID post dia-chi, hoặc 0 nếu không tìm thấy.
+ */
+function memora_get_location_id_from_room( $room_id ) {
+    $room_id = intval( $room_id );
+    if ( $room_id <= 0 ) {
+        return 0;
+    }
+
+    // Static cache trong cùng request
+    static $cache = array();
+    if ( isset( $cache[ $room_id ] ) ) {
+        return $cache[ $room_id ];
+    }
+
+    // Truy vấn tất cả post dia-chi, kiểm tra xem phòng có nằm trong field không
+    $dia_chi_posts = get_posts( array(
+        'post_type'      => 'dia-chi',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+    ) );
+
+    if ( empty( $dia_chi_posts ) ) {
+        $cache[ $room_id ] = 0;
+        return 0;
+    }
+
+    $field_candidates = array(
+        'cac-phong-cua-dia-chi',
+        'cac_phong_cua_dia_chi',
+    );
+
+    foreach ( $dia_chi_posts as $dc_id ) {
+        foreach ( $field_candidates as $field_key ) {
+            $rooms_val = function_exists( 'get_field' )
+                ? get_field( $field_key, $dc_id )
+                : get_post_meta( $dc_id, $field_key, true );
+
+            if ( empty( $rooms_val ) ) {
+                continue;
+            }
+
+            // Chuẩn hóa thành mảng ID
+            $room_ids_in_dc = array();
+            if ( is_array( $rooms_val ) ) {
+                foreach ( $rooms_val as $r ) {
+                    $room_ids_in_dc[] = is_object( $r ) ? intval( $r->ID ) : intval( $r );
+                }
+            } elseif ( is_object( $rooms_val ) ) {
+                $room_ids_in_dc[] = intval( $rooms_val->ID );
+            } elseif ( is_numeric( $rooms_val ) ) {
+                $room_ids_in_dc[] = intval( $rooms_val );
+            }
+
+            if ( in_array( $room_id, $room_ids_in_dc, true ) ) {
+                $cache[ $room_id ] = $dc_id;
+                return $dc_id;
+            }
+        }
+    }
+
+    $cache[ $room_id ] = 0;
+    return 0;
+}
+//====================================
+// END - TRA NGƯỢC: LẤY ID ĐỊA CHỈ TỪ ID PHÒNG CHỤP
+//====================================
+
+//====================================
+// START - RESOLVE: XÁC ĐỊNH ID ĐỊA CHỈ TỪ THAM SỐ URL
+//====================================
+/**
+ * Đọc tham số URL (?phong_id=... hoặc ?dia_chi_id=...) và trả về
+ * ID post dia-chi tương ứng.
+ *
+ * Ưu tiên:
+ *  1. ?dia_chi_id   → dùng trực tiếp (đã là ID dia-chi)
+ *  2. ?phong_id     → tra ngược qua ACF field để tìm dia-chi cha
+ *
+ * @return int  ID post dia-chi, hoặc 0 nếu không xác định được.
+ */
+function memora_resolve_booking_location_id() {
+    // 1. Có dia_chi_id trực tiếp trên URL → dùng ngay
+    if ( ! empty( $_GET['dia_chi_id'] ) && intval( $_GET['dia_chi_id'] ) > 0 ) {
+        return intval( $_GET['dia_chi_id'] );
+    }
+
+    // 2. Có phong_id → tra ngược sang dia-chi cha
+    if ( ! empty( $_GET['phong_id'] ) && intval( $_GET['phong_id'] ) > 0 ) {
+        $room_id     = intval( $_GET['phong_id'] );
+        $location_id = memora_get_location_id_from_room( $room_id );
+        if ( $location_id > 0 ) {
+            return $location_id;
+        }
+    }
+
+    return 0;
+}
+//====================================
+// END - RESOLVE: XÁC ĐỊNH ID ĐỊA CHỈ TỪ THAM SỐ URL
+//====================================
+
+
 //====================================
 /**
  * Lấy cấu hình giờ chụp & gói chụp theo địa chỉ (post-type: dia-chi).

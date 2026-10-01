@@ -60,15 +60,9 @@ function memora_shortcode_choose_date( $atts ) {
 //====================================
 add_shortcode( 'choose_time', 'memora_shortcode_choose_time' );
 function memora_shortcode_choose_time( $atts ) {
-    // Lấy ID địa chỉ từ URL query param (?dia_chi_id=... hoặc ?phong_id=...)
-    $location_id = 0;
-    if ( isset( $_GET['dia_chi_id'] ) && intval( $_GET['dia_chi_id'] ) > 0 ) {
-        $location_id = intval( $_GET['dia_chi_id'] );
-    } elseif ( isset( $_GET['phong_id'] ) && intval( $_GET['phong_id'] ) > 0 ) {
-        $location_id = intval( $_GET['phong_id'] );
-    }
-
-    $slots = memora_generate_time_slots( '', '', 15, $location_id );
+    // Tra ngược: tìm ID post dia-chi từ phong_id trên URL
+    $location_id = memora_resolve_booking_location_id();
+    $slots       = memora_generate_time_slots( '', '', 15, $location_id );
 
     ob_start();
     ?>
@@ -98,16 +92,10 @@ function memora_shortcode_choose_time( $atts ) {
 //====================================
 add_shortcode( 'choose_photography_package', 'memora_shortcode_choose_photography_package' );
 function memora_shortcode_choose_photography_package( $atts ) {
-    // Lấy ID địa chỉ từ URL query param (?dia_chi_id=... hoặc ?phong_id=...)
-    $location_id = 0;
-    if ( isset( $_GET['dia_chi_id'] ) && intval( $_GET['dia_chi_id'] ) > 0 ) {
-        $location_id = intval( $_GET['dia_chi_id'] );
-    } elseif ( isset( $_GET['phong_id'] ) && intval( $_GET['phong_id'] ) > 0 ) {
-        $location_id = intval( $_GET['phong_id'] );
-    }
-
-    $config   = memora_get_booking_config( $location_id );
-    $packages = $config['packages'];
+    // Tra ngược: tìm ID post dia-chi từ phong_id trên URL
+    $location_id = memora_resolve_booking_location_id();
+    $config      = memora_get_booking_config( $location_id );
+    $packages    = $config['packages'];
 
     ob_start();
     ?>
