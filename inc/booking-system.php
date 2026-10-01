@@ -39,6 +39,11 @@ if ( file_exists( $booking_inc_dir . 'booking-ajax.php' ) ) {
 if ( file_exists( $booking_inc_dir . 'booking-shortcodes.php' ) ) {
     require_once $booking_inc_dir . 'booking-shortcodes.php';
 }
+
+// 5. Nạp shortcodes thông tin Địa Chỉ (taxonomy dia-chi)
+if ( file_exists( $booking_inc_dir . 'dia-chi-shortcodes.php' ) ) {
+    require_once $booking_inc_dir . 'dia-chi-shortcodes.php';
+}
 //====================================
 // END - NẠP CÁC TẬP TIN CON CỦA HỆ THỐNG ĐẶT LỊCH
 //====================================

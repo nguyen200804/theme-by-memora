@@ -299,7 +299,7 @@ function memora_shortcode_checkout_booking( $atts ) {
                 // Khởi tạo WC Checkout object
                 WC()->checkout();
 
-                echo '<div class="memora-wc-payment-section" id="memora-wc-payment">';
+                echo '<div style="display: none;" class="memora-wc-payment-section" id="memora-wc-payment">';
 
                 // Gọi hàm thanh toán WooCommerce chuẩn (chỉ xuất 1 lần)
                 if ( function_exists( 'woocommerce_checkout_payment' ) ) {
