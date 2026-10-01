@@ -87,6 +87,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
 
     $atts = shortcode_atts( [
         'post_id'  => '',
+        'term_id'  => '',   // term_id="123" → dùng khi Loop Grid chạy mode Post Taxonomy
         'current'  => '',   // current="1" → tự dùng get_the_ID() (cho Elementor Loop Item)
         'autoplay' => 4000,
         'speed'    => 600,
@@ -101,65 +102,84 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         memora_gallery_swiper_assets();
     }
 
-    /* -- Xác định ID bài viết dia-chi -- */
-    $dc_id = 0;
+    /* ------------------------------------------------------------------
+       Chế độ A: term_id truyền trực tiếp (Loop Grid → Post Taxonomy)
+       Khi đó mỗi Loop Item là một term của taxonomy 'dia-chi'.
+       Dùng term đó luôn — không cần tìm qua post.
+    ------------------------------------------------------------------ */
+    $dc_term        = null;
+    $dc_term_url    = '';
+    $dc_term_source = null;
+    $dc_id          = 0;
+    $dc_title       = '';
 
-    if ( ! empty( $atts['current'] ) && $atts['current'] ) {
-        // current="1": Buộc dùng post hiện tại trong loop (tương thích ngược)
-        $dc_id = (int) get_the_ID();
+    if ( ! empty( $atts['term_id'] ) && is_numeric( $atts['term_id'] ) ) {
+        $t = get_term( (int) $atts['term_id'], 'dia-chi' );
+        if ( $t && ! is_wp_error( $t ) ) {
+            $dc_term        = $t;
+            $dc_term_source = 'term_' . $t->term_id;
+            $term_link      = get_term_link( $t, 'dia-chi' );
+            $dc_term_url    = ! is_wp_error( $term_link ) ? $term_link : '';
+            $dc_title       = $t->name;
+        }
+    }
 
-    } elseif ( ! empty( $atts['post_id'] ) && is_numeric( $atts['post_id'] ) ) {
-        $dc_id = (int) $atts['post_id'];
+    /* ------------------------------------------------------------------
+       Chế độ B: lookup qua post (cách hoạt động cũ)
+    ------------------------------------------------------------------ */
+    if ( ! $dc_term ) {
 
-    } elseif ( $atts['post_id'] === 'option' || $atts['post_id'] === 'options' ) {
-        if ( function_exists( 'get_field' ) ) {
-            $opt_post = get_field( 'dia_chi_co_so_noi_bat', 'option' );
-            if ( ! empty( $opt_post ) ) {
-                $dc_id = is_object( $opt_post ) ? (int) $opt_post->ID : (int) $opt_post;
+        if ( ! empty( $atts['current'] ) && $atts['current'] ) {
+            $dc_id = (int) get_the_ID();
+
+        } elseif ( ! empty( $atts['post_id'] ) && is_numeric( $atts['post_id'] ) ) {
+            $dc_id = (int) $atts['post_id'];
+
+        } elseif ( $atts['post_id'] === 'option' || $atts['post_id'] === 'options' ) {
+            if ( function_exists( 'get_field' ) ) {
+                $opt_post = get_field( 'dia_chi_co_so_noi_bat', 'option' );
+                if ( ! empty( $opt_post ) ) {
+                    $dc_id = is_object( $opt_post ) ? (int) $opt_post->ID : (int) $opt_post;
+                }
+            }
+
+        } else {
+            $loop_id = (int) get_the_ID();
+            if ( $loop_id > 0 && get_post_type( $loop_id ) === 'dia-chi' ) {
+                $dc_id = $loop_id;
+            }
+            if ( ! $dc_id && function_exists( 'get_field' ) && $loop_id ) {
+                $cur_post = get_field( 'dia_chi_co_so_noi_bat', $loop_id );
+                if ( ! empty( $cur_post ) ) {
+                    $dc_id = is_object( $cur_post ) ? (int) $cur_post->ID : (int) $cur_post;
+                }
             }
         }
 
-    } else {
-        // AUTO-DETECT Elementor Loop Item context:
-        // Nếu post đang active trong WordPress loop là 'dia-chi', dùng nó ngay.
-        // Điều này xảy ra khi Loop Grid của Elementor gọi the_post() cho từng item.
-        $loop_id = (int) get_the_ID();
-        if ( $loop_id > 0 && get_post_type( $loop_id ) === 'dia-chi' ) {
-            $dc_id = $loop_id;
+        if ( ! $dc_id && function_exists( 'memora_get_featured_dia_chi_id' ) ) {
+            $dc_id = memora_get_featured_dia_chi_id();
         }
 
-        // Fallback: Kiểm tra ACF field trên trang hiện tại
-        if ( ! $dc_id && function_exists( 'get_field' ) && $loop_id ) {
-            $cur_post = get_field( 'dia_chi_co_so_noi_bat', $loop_id );
-            if ( ! empty( $cur_post ) ) {
-                $dc_id = is_object( $cur_post ) ? (int) $cur_post->ID : (int) $cur_post;
-            }
+        if ( ! $dc_id ) {
+            return '<p style="color:#d9534f; font-size:14px; padding:10px 14px; background:#fff2f2; border:1px solid #fecaca; border-radius:4px;">[dia_chi_noi_bat] Không tìm thấy bài viết nào thuộc post type <code>dia-chi</code>.</p>';
         }
-    }
 
-    // MẶC ĐỊNH: Lấy bài viết post_type=dia-chi MỚI NHẤT (chỉ khi không ở trong loop)
-    if ( ! $dc_id && function_exists( 'memora_get_featured_dia_chi_id' ) ) {
-        $dc_id = memora_get_featured_dia_chi_id();
-    }
+    } // end Chế độ B
 
-    if ( ! $dc_id ) {
-        return '<p style="color:#d9534f; font-size:14px; padding:10px 14px; background:#fff2f2; border:1px solid #fecaca; border-radius:4px;">[dia_chi_noi_bat] Không tìm thấy bài viết nào thuộc post type <code>dia-chi</code>.</p>';
-    }
+    /* -- Sau Chế độ B: cập nhật các biến từ $dc_id (nếu không dùng term_id) -- */
+    if ( ! $dc_term ) {
+        $GLOBALS['memora_featured_dia_chi_id'] = $dc_id;
+        $dc_title = get_the_title( $dc_id );
 
-    $GLOBALS['memora_featured_dia_chi_id'] = $dc_id;
-    $dc_title = get_the_title( $dc_id );
-
-    /* -- Lấy term đầu tiên của taxonomy 'dia-chi' gắn với bài viết -- */
-    $dc_term     = null;
-    $dc_term_url = get_permalink( $dc_id ); // fallback
-    $dc_term_source = null; // dùng cho get_field / get_term_meta
-
-    $dc_terms = get_the_terms( $dc_id, 'dia-chi' );
-    if ( ! empty( $dc_terms ) && ! is_wp_error( $dc_terms ) ) {
-        $dc_term        = $dc_terms[0];
-        $term_link      = get_term_link( $dc_term, 'dia-chi' );
-        $dc_term_url    = ! is_wp_error( $term_link ) ? $term_link : $dc_term_url;
-        $dc_term_source = 'term_' . $dc_term->term_id;
+        /* Lấy term đầu tiên của taxonomy 'dia-chi' gắn với bài viết */
+        $dc_term_url = get_permalink( $dc_id ); // fallback
+        $dc_terms    = get_the_terms( $dc_id, 'dia-chi' );
+        if ( ! empty( $dc_terms ) && ! is_wp_error( $dc_terms ) ) {
+            $dc_term        = $dc_terms[0];
+            $term_link      = get_term_link( $dc_term, 'dia-chi' );
+            $dc_term_url    = ! is_wp_error( $term_link ) ? $term_link : $dc_term_url;
+            $dc_term_source = 'term_' . $dc_term->term_id;
+        }
     }
 
     /* -- Featured image (thumbnail trai) -- */
