@@ -1,4 +1,4 @@
-﻿name: 🚀 Deploy to FTP
+name: 🚀 Deploy to FTP
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           port: ${{ secrets.FTP_PORT }}
           local-dir: ./
-          server-dir: /public_html/wp-content/themes/theme-by-memora/
+          server-dir: /wp-content/themes/theme-by-memora/
           exclude: |
             **/.git*
             **/.git*/**
