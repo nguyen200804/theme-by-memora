@@ -54,26 +54,35 @@
         var state = window.MemoraBookingState;
         state.loadFromStorage();
 
-        // Nhận diện phòng chụp nếu có trên URL hoặc từ wrapper
+        // ---------------------------------------------------------------
+        // Xác định diaChiId theo thứ tự ưu tiên TĂNG DẦN:
+        //   1. sessionStorage  (thấp nhất – dữ liệu từ lần truy cập trước)
+        //   2. PHP server      (trang dia-chi hoặc phong-chup-anh đang xem)
+        //   3. URL param       (cao nhất – luôn thắng, không bao giờ bị override)
+        // ---------------------------------------------------------------
         var urlParams = new URLSearchParams(window.location.search);
+
+        // 1. Đọc URL params (phong_id, phong)
         if (urlParams.has('phong_id')) {
             state.roomId = urlParams.get('phong_id');
         }
         if (urlParams.has('phong')) {
             state.roomName = decodeURIComponent(urlParams.get('phong'));
         }
-        // Đọc dia_chi_id từ URL (?dia_chi_id=...) khi có sẵn trên URL
-        if (urlParams.has('dia_chi_id') && urlParams.get('dia_chi_id') !== '0') {
-            state.diaChiId = urlParams.get('dia_chi_id');
-        }
 
-        // Nếu đang xem trang dia-chi, PHP truyền ID qua memora_booking_vars.dia_chi_id
-        // → Lưu vào sessionStorage để trang booking sau đó dùng
+        // 2. PHP server value: cập nhật nếu đang trên trang dia-chi/phong-chup-anh
+        //    (chỉ dùng khi chưa có URL param dia_chi_id)
         var serverDiaChiId = (typeof memora_booking_vars !== 'undefined' && memora_booking_vars.dia_chi_id)
             ? String(memora_booking_vars.dia_chi_id)
             : '0';
         if (serverDiaChiId !== '0') {
+            // Chỉ ghi đè sessionStorage khi server biết chắc context (dia-chi/phong page)
             state.diaChiId = serverDiaChiId;
+        }
+
+        // 3. URL param ?dia_chi_id= – ưu tiên TUYỆT ĐỐI, ghi đè tất cả
+        if (urlParams.has('dia_chi_id') && urlParams.get('dia_chi_id') !== '0') {
+            state.diaChiId = urlParams.get('dia_chi_id');
         }
 
         var $roomWrap = $('.memora-room-template-wrapper');

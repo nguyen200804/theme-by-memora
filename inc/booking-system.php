@@ -84,13 +84,14 @@ function memora_booking_enqueue_assets() {
         if ( $qid_type === 'dia-chi' ) {
             // Đang xem trang dia-chi → dùng trực tiếp
             $current_dia_chi_id = $qid;
-        } elseif ( $qid > 0 && function_exists( 'memora_get_location_id_from_room' ) ) {
-            // Đang xem trang phòng (phong-chup-anh) → tra ngược sang dia-chi cha
+        } elseif ( $qid_type === 'phong-chup-anh' && function_exists( 'memora_get_location_id_from_room' ) ) {
+            // CHỈ tra ngược khi đang xem trang phòng chụp, không làm với page thường
             $found = memora_get_location_id_from_room( $qid );
             if ( $found > 0 ) {
                 $current_dia_chi_id = $found;
             }
         }
+        // Đối với page thường, post, custom post type khác: không set → để JS dùng sessionStorage hoặc URL param
     }
 
     // Localize Script truyền URL AJAX và Nonce
