@@ -484,16 +484,67 @@ function memora_shortcode_booking_room_url( $atts ) {
         'dia_chi_id' => '', // Tuỳ chọn: truyền rõ ID dia-chi nếu không tự bắt được
     ), $atts, 'booking_room_url' );
 
-    $post_id    = ! empty( $atts['room_id'] ) ? intval( $atts['room_id'] ) : get_the_ID();
-    $room_title = get_the_title( $post_id );
+    // -------------------------------------------------------
+    // Xác định phong_id và dia_chi_id không bị nhầm lẫn
+    // -------------------------------------------------------
+    $explicit_room_id    = intval( $atts['room_id'] );
+    $explicit_dia_chi_id = intval( $atts['dia_chi_id'] );
 
-    // Tự phát hiện trang dia-chi hiện tại
-    $dia_chi_id = memora_detect_dia_chi_context( $atts['dia_chi_id'] );
+    // Queried object (trang đang được xem trên trình duyệt)
+    $queried_id      = get_queried_object_id();
+    $queried_type    = get_post_type( $queried_id );
 
-    $url_params = array(
-        'phong_id' => $post_id,
-        'phong'    => rawurlencode( $room_title ),
-    );
+    // Loop post (get_the_ID() trong Elementor loop, WP_Query, v.v.)
+    $loop_id         = get_the_ID();
+    $loop_type       = $loop_id ? get_post_type( $loop_id ) : '';
+
+    // --- Xác định phong_id ---
+    if ( $explicit_room_id > 0 ) {
+        // Được truyền rõ → dùng luôn
+        $post_id = $explicit_room_id;
+    } elseif ( $loop_type && $loop_type !== 'dia-chi' && $loop_id > 0 ) {
+        // Đang trong loop của phòng (phong-chup-anh, page, v.v.)
+        $post_id = $loop_id;
+    } elseif ( $queried_type && $queried_type !== 'dia-chi' && $queried_id > 0 ) {
+        // Queried object là phòng hoặc post khác (không phải dia-chi)
+        $post_id = $queried_id;
+    } else {
+        // Không xác định được phòng cụ thể
+        $post_id = 0;
+    }
+
+    $room_title = $post_id > 0 ? get_the_title( $post_id ) : '';
+
+    // --- Xác định dia_chi_id ---
+    if ( $explicit_dia_chi_id > 0 ) {
+        // Truyền thủ công qua attribute
+        $dia_chi_id = $explicit_dia_chi_id;
+    } elseif ( $explicit_room_id > 0 ) {
+        // Có room_id tường minh → tra ngược ra dia-chi cha
+        $dia_chi_id = function_exists( 'memora_get_location_id_from_room' )
+            ? memora_get_location_id_from_room( $explicit_room_id )
+            : 0;
+    } elseif ( $queried_type === 'dia-chi' && $queried_id > 0 ) {
+        // Đang xem trang dia-chi → lấy queried object
+        $dia_chi_id = $queried_id;
+    } elseif ( $loop_type === 'dia-chi' && $loop_id > 0 ) {
+        // Trong loop của dia-chi
+        $dia_chi_id = $loop_id;
+    } else {
+        $dia_chi_id = 0;
+    }
+
+    // Tránh trường hợp phong_id = dia_chi_id (cùng là ID dia-chi)
+    if ( $post_id > 0 && $post_id === $dia_chi_id ) {
+        $dia_chi_id = 0;
+    }
+
+    // Xây dựng URL
+    $url_params = array();
+    if ( $post_id > 0 ) {
+        $url_params['phong_id'] = $post_id;
+        $url_params['phong']    = rawurlencode( $room_title );
+    }
     if ( $dia_chi_id > 0 ) {
         $url_params['dia_chi_id'] = $dia_chi_id;
     }
