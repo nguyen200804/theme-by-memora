@@ -412,16 +412,22 @@
                         var bookingData = response.data;
                         sessionStorage.setItem('memora_last_booking', JSON.stringify(bookingData));
 
-                        var thankyouUrl = $form.data('thankyou-url');
-                        if (thankyouUrl) {
-                            var redirectUrl = thankyouUrl + (thankyouUrl.indexOf('?') !== -1 ? '&' : '?') + 'code=' + bookingData.booking_code;
-                            window.location.href = redirectUrl;
-                        } else if (response.data && response.data.html) {
-                            // Hiển thị trực tiếp trang Thank You từ HTML của máy chủ PHP trả về (Single Source of Truth)
-                            var $checkout = $('.memora-checkout-wrap').closest('.memora-booking-container');
-                            if ($checkout.length) {
-                                $checkout.replaceWith(response.data.html);
-                                $('html, body').animate({ scrollTop: 0 }, 500);
+                        // Ưu tiên 1: Redirect đến WC order-received (có VietQR)
+                        if (bookingData.wc_order_url) {
+                            window.location.href = bookingData.wc_order_url;
+                        // Ưu tiên 2: Trang thankyou tùy chỉnh
+                        } else {
+                            var thankyouUrl = $form.data('thankyou-url');
+                            if (thankyouUrl) {
+                                var redirectUrl = thankyouUrl + (thankyouUrl.indexOf('?') !== -1 ? '&' : '?') + 'code=' + bookingData.booking_code;
+                                window.location.href = redirectUrl;
+                            } else if (response.data && response.data.html) {
+                                // Hiển thị trực tiếp trang Thank You từ HTML của máy chủ PHP trả về (Single Source of Truth)
+                                var $checkout = $('.memora-checkout-wrap').closest('.memora-booking-container');
+                                if ($checkout.length) {
+                                    $checkout.replaceWith(response.data.html);
+                                    $('html, body').animate({ scrollTop: 0 }, 500);
+                                }
                             }
                         }
                     } else {

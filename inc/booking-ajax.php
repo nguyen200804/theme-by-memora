@@ -185,23 +185,117 @@ function memora_ajax_submit_booking() {
         update_post_meta( $booking_id, '_booking_dia_chi_name', $dia_chi_name );
     }
 
+    // --- Tạo WooCommerce Order để hiển thị VietQR ---
+    $wc_order_url = '';
+    if ( class_exists( 'WooCommerce' ) && function_exists( 'wc_create_order' ) ) {
+        $wc_order_data = memora_create_wc_order_for_booking( $booking_id, array(
+            'name'        => $name,
+            'phone'       => $phone,
+            'pkg_name'    => $pkg_name,
+            'total_price' => $deposit_price > 0 ? $deposit_price : $total_price,
+            'date'        => $date,
+            'time'        => $time,
+            'code'        => $code,
+        ) );
+        if ( ! empty( $wc_order_data['order_url'] ) ) {
+            $wc_order_url = $wc_order_data['order_url'];
+            // Lưu WC order ID vào booking meta để tra cứu sau
+            update_post_meta( $booking_id, '_wc_order_id', $wc_order_data['order_id'] );
+        }
+    }
+
     // Tạo sẵn mã HTML giao diện Thank You từ PHP dùng chung
-    $thankyou_html = function_exists( 'memora_render_thankyou_html' ) ? memora_render_thankyou_html( $code ) : '';
+    $thankyou_html = ( empty( $wc_order_url ) && function_exists( 'memora_render_thankyou_html' ) )
+        ? memora_render_thankyou_html( $code )
+        : '';
 
     // Trả về dữ liệu thành công
     wp_send_json_success( array(
-        'booking_id'   => $booking_id,
-        'booking_code' => $code,
-        'date'         => $date,
-        'time'         => $time,
-        'package_name' => $pkg_name,
-        'total_price'  => memora_format_price( $total_price ),
-        'deposit_price'=> memora_format_price( $deposit_price ),
-        'html'         => $thankyou_html,
+        'booking_id'    => $booking_id,
+        'booking_code'  => $code,
+        'date'          => $date,
+        'time'          => $time,
+        'package_name'  => $pkg_name,
+        'total_price'   => memora_format_price( $total_price ),
+        'deposit_price' => memora_format_price( $deposit_price ),
+        'wc_order_url'  => $wc_order_url,   // ← URL trang thanh toán WC
+        'html'          => $thankyou_html,
     ) );
 }
 //====================================
 // END - AJAX TIẾP NHẬN ĐƠN ĐẶT LỊCH
+//====================================
+
+
+
+
+
+//====================================
+// START - TẠO WOOCOMMERCE ORDER CHO BOOKING
+//====================================
+/**
+ * Tạo WC Order (phương thức BACS) từ dữ liệu booking.
+ * Không cần sản phẩm WC — dùng WC_Order_Item_Fee để ghi số tiền động.
+ *
+ * @param int   $booking_id  ID của memora_booking post.
+ * @param array $data        name, phone, pkg_name, total_price, date, time, code.
+ * @return array             { order_id, order_key, order_url } hoặc mảng rỗng nếu lỗi.
+ */
+function memora_create_wc_order_for_booking( $booking_id, $data ) {
+    if ( ! class_exists( 'WooCommerce' ) ) return array();
+
+    $order = wc_create_order( array(
+        'status'      => 'pending',
+        'customer_id' => 0,
+    ) );
+
+    if ( is_wp_error( $order ) ) return array();
+
+    // --- Thêm fee item (không cần sản phẩm WC) ---
+    $item = new WC_Order_Item_Fee();
+    $item->set_name(
+        sprintf( 'Đặt lịch chụp ảnh — %s | %s %s', $data['pkg_name'], $data['date'], $data['time'] )
+    );
+    $item->set_amount( $data['total_price'] );
+    $item->set_total( $data['total_price'] );
+    $item->set_tax_status( 'none' );
+    $item->set_taxes( array() );
+    $order->add_item( $item );
+
+    // --- Thông tin khách hàng ---
+    $order->set_billing_first_name( $data['name'] );
+    $order->set_billing_phone( $data['phone'] );
+    // Placeholder email để WC không báo lỗi (không gửi email thật)
+    $safe_email = preg_replace( '/[^a-z0-9]/i', '', strtolower( $data['phone'] ) ) . '@memora.booking';
+    $order->set_billing_email( $safe_email );
+
+    // --- Phương thức thanh toán: BACS ---
+    $order->set_payment_method( 'bacs' );
+    $order->set_payment_method_title( 'Scan VietQR — Chuyển khoản' );
+    $order->set_status( 'on-hold' ); // on-hold = chờ thanh toán
+
+    // --- Ghi chú nội bộ liên kết với booking ---
+    $order->update_meta_data( '_memora_booking_id',   $booking_id );
+    $order->update_meta_data( '_memora_booking_code', $data['code'] );
+    $order->add_order_note(
+        sprintf(
+            'Đặt lịch tự động | Code: #%s | Ngày: %s %s | Gói: %s | Phone: %s',
+            $data['code'], $data['date'], $data['time'], $data['pkg_name'], $data['phone']
+        )
+    );
+
+    // --- Tính tổng và lưu ---
+    $order->calculate_totals( false );
+    $order->save();
+
+    return array(
+        'order_id'  => $order->get_id(),
+        'order_key' => $order->get_order_key(),
+        'order_url' => $order->get_checkout_order_received_url(),
+    );
+}
+//====================================
+// END - TẠO WOOCOMMERCE ORDER CHO BOOKING
 //====================================
 
 
