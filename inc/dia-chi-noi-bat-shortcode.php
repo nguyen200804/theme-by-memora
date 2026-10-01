@@ -127,22 +127,45 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
     }
 
     /* ------------------------------------------------------------------
-       Chế độ A2: AUTO-DETECT Elementor taxonomy Loop Grid
-       Elementor set get_the_ID() = term_id khi chạy "Post Taxonomy" loop.
-       Thử get_term(get_the_ID(), 'dia-chi') — nếu hợp lệ thì đang trong loop.
-       Chỉ chạy khi không có post_id/current/term_id tường minh.
+       Chế độ A2: AUTO-DETECT Elementor taxonomy Loop Grid (static counter)
+       Elementor KHÔNG thay đổi get_the_ID() khi render taxonomy loop —
+       nó luôn trả về page ID. Giải pháp: cache danh sách terms theo
+       đúng thứ tự query của Elementor (Name DESC), dùng static counter
+       để biết đang render term thứ mấy trong vòng lặp.
+       Chỉ chạy khi không có post_id / current / term_id tường minh.
     ------------------------------------------------------------------ */
     if ( ! $dc_term && empty( $atts['term_id'] ) && empty( $atts['post_id'] ) && empty( $atts['current'] ) ) {
-        $maybe_term_id = (int) get_the_ID();
-        if ( $maybe_term_id > 0 ) {
-            $t = get_term( $maybe_term_id, 'dia-chi' );
-            if ( $t && ! is_wp_error( $t ) ) {
-                $dc_term        = $t;
-                $dc_term_source = 'term_' . $t->term_id;
-                $term_link      = get_term_link( $t, 'dia-chi' );
-                $dc_term_url    = ! is_wp_error( $term_link ) ? $term_link : '';
-                $dc_title       = $t->name;
+
+        static $s_term_list  = null;   // danh sách WP_Term[] được cache
+        static $s_term_index = 0;      // con trỏ tới term hiện tại
+        static $s_page_id    = null;   // page ID lúc cache (reset khi đổi trang)
+
+        $current_page_id = get_the_ID(); // luôn là page ID trong Elementor taxonomy loop
+
+        // Reset cache khi sang request mới hoặc page khác
+        if ( $s_page_id !== $current_page_id || $s_term_list === null ) {
+            $s_term_list = get_terms( [
+                'taxonomy'   => 'dia-chi',
+                'hide_empty' => false,
+                'orderby'    => 'name',    // khớp cấu hình Elementor: Order By = Name
+                'order'      => 'DESC',    // khớp cấu hình Elementor: Order = DESC
+            ] );
+            if ( is_wp_error( $s_term_list ) || ! is_array( $s_term_list ) ) {
+                $s_term_list = [];
             }
+            $s_term_index = 0;
+            $s_page_id    = $current_page_id;
+        }
+
+        if ( ! empty( $s_term_list ) && isset( $s_term_list[ $s_term_index ] ) ) {
+            $t = $s_term_list[ $s_term_index ];
+            $s_term_index++;   // tăng để lần gọi tiếp lấy term kế tiếp
+
+            $dc_term        = $t;
+            $dc_term_source = 'term_' . $t->term_id;
+            $term_link      = get_term_link( $t, 'dia-chi' );
+            $dc_term_url    = ! is_wp_error( $term_link ) ? $term_link : '';
+            $dc_title       = $t->name;
         }
     }
 
