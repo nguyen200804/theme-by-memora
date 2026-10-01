@@ -179,8 +179,24 @@ function memora_gallery_swiper_shortcode( $atts ) {
     /* -------------------------------------------------------
        Lấy ảnh từ ACF Gallery field (hoặc ids)
     ------------------------------------------------------- */
-    $slides_data = []; // Mỗi phần tử: ['src' => '...', 'alt' => '...']
-    $post_id     = 0;  // Khởi tạo trước để error message luôn hiển thị đúng
+    $slides_data  = []; // Mỗi phần tử: ['src' => '...', 'alt' => '...']
+    $post_id      = 0;  // Khởi tạo trước để error message luôn hiển thị đúng
+    $acf_source   = null; // Nguồn truyền vào get_field(): post_id (int) hoặc "term_{id}" (string)
+
+    /* -------------------------------------------------------
+       PHÁT HIỆN TRANG TAXONOMY ARCHIVE
+       Nếu đang ở trang taxonomy (is_tax / is_category / is_tag),
+       và shortcode KHÔNG truyền post_id cụ thể →
+       dùng term hiện tại làm nguồn đọc ACF field.
+       ACF dùng cú pháp "term_{term_id}" để lấy field của taxonomy term.
+    ------------------------------------------------------- */
+    if ( empty( $atts['post_id'] ) && ( is_tax() || is_category() || is_tag() ) ) {
+        $queried_term = get_queried_object();
+        if ( $queried_term instanceof WP_Term && ! empty( $queried_term->term_id ) ) {
+            $acf_source = 'term_' . $queried_term->term_id;
+            $post_id    = $queried_term->term_id; // Dùng cho error message
+        }
+    }
 
     if ( ! empty( $atts['acf_gallery'] ) ) {
         $raw_field = trim( $atts['acf_gallery'] );
@@ -192,7 +208,11 @@ function memora_gallery_swiper_shortcode( $atts ) {
             sanitize_key( $raw_field ),
         ] ) );
 
-        $post_id = memora_resolve_gallery_post_id( $atts['post_id'], $field_candidates );
+        // Chỉ resolve post_id nếu KHÔNG phải đang ở taxonomy archive
+        if ( $acf_source === null ) {
+            $post_id    = memora_resolve_gallery_post_id( $atts['post_id'], $field_candidates );
+            $acf_source = $post_id;
+        }
 
         $acf_images = null;
 
@@ -218,7 +238,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
             $img_subfields = array_unique( $img_subfields );
 
             foreach ( $rp_variants as $rp ) {
-                $rows = get_field( $rp, $post_id );
+                $rows = get_field( $rp, $acf_source );
                 if ( empty( $rows ) || ! is_array( $rows ) ) {
                     // Fallback: đọc thẳng post meta rồi gọi get_field
                     $rp_count = get_post_meta( $post_id, $rp, true );
@@ -258,7 +278,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
         // TẦNG 1: Thử get_field() từ ACF (chạy khi không có param repeater hoặc repeater thất bại)
         if ( function_exists( 'get_field' ) ) {
             foreach ( $field_candidates as $candidate ) {
-                $val = get_field( $candidate, $post_id );
+                $val = get_field( $candidate, $acf_source );
                 if ( ! empty( $val ) ) {
                     $acf_images = $val;
                     break;
@@ -267,7 +287,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
 
             // TẦNG 2: Nếu get_field() rỗng, quét get_field_objects() tìm field gallery
             if ( empty( $acf_images ) && function_exists( 'get_field_objects' ) ) {
-                $f_objects = get_field_objects( $post_id );
+                $f_objects = get_field_objects( $acf_source );
                 if ( ! empty( $f_objects ) && is_array( $f_objects ) ) {
                     // Ưu tiên field có kiểu 'gallery'
                     foreach ( $f_objects as $f_obj ) {
