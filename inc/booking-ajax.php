@@ -143,70 +143,34 @@ function memora_ajax_submit_booking() {
     // Sinh mã code 4 số ngẫu nhiên duy nhất
     $code = memora_generate_unique_booking_code();
 
-    // Lưu vào Custom Post Type 'memora_booking'
-    $post_title = sprintf( '#%s - %s - %s %s', $code, $name, $date, $time );
-    $post_data  = array(
-        'post_title'  => $post_title,
-        'post_status' => 'publish',
-        'post_type'   => 'memora_booking',
-    );
-
-    $booking_id = wp_insert_post( $post_data );
-
-    if ( is_wp_error( $booking_id ) || ! $booking_id ) {
-        wp_send_json_error( array( 'message' => 'Có lỗi xảy ra khi lưu thông tin. Vui lòng thử lại!' ) );
-    }
-
-    // Lưu Meta dữ liệu cơ bản
-    update_post_meta( $booking_id, '_booking_code',            $code );
-    update_post_meta( $booking_id, '_booking_customer_name',   $name );
-    update_post_meta( $booking_id, '_booking_phone',           $phone );
-    update_post_meta( $booking_id, '_booking_contact_other',   $contact_other );
-    update_post_meta( $booking_id, '_booking_date',            $date );
-    update_post_meta( $booking_id, '_booking_time',            $time );
-    update_post_meta( $booking_id, '_booking_package_name',    $pkg_name );
-    update_post_meta( $booking_id, '_booking_total_price',     $total_price );
-    update_post_meta( $booking_id, '_booking_deposit_price',   $deposit_price );
-    update_post_meta( $booking_id, '_booking_status',          'deposit_paid' );
-    update_post_meta( $booking_id, '_booking_created_at',      current_time( 'mysql' ) );
-
-    // Lưu Phòng chụp
-    if ( $phong_id > 0 ) {
-        update_post_meta( $booking_id, '_booking_phong_id',   $phong_id );
-        update_post_meta( $booking_id, '_booking_phong_name', $phong_name );
-        // Tương thích ngược: field cũ _booking_room_name
-        update_post_meta( $booking_id, '_booking_room_name',  $phong_name );
-    }
-
-    // Lưu Địa chỉ
-    if ( $dia_chi_id > 0 ) {
-        $dia_chi_name = get_the_title( $dia_chi_id );
-        update_post_meta( $booking_id, '_booking_dia_chi_id',   $dia_chi_id );
-        update_post_meta( $booking_id, '_booking_dia_chi_name', $dia_chi_name );
-    }
-
-    // --- Tạo đơn hàng WooCommerce để chuyển hướng đến trang Đơn hàng đã nhận (order-received / VietQR) ---
+    // --- Tạo đơn hàng WooCommerce lưu trực tiếp thông tin đặt lịch ---
     $wc_order_url  = '';
     $thankyou_html = '';
+    $order_id      = 0;
 
     if ( class_exists( 'WooCommerce' ) && function_exists( 'WC' ) ) {
         $payment_method = isset( $_POST['payment_method'] ) ? sanitize_text_field( wp_unslash( $_POST['payment_method'] ) ) : 'bacs';
 
-        // Lấy số tiền cần thanh toán
-        $pay_price = $deposit_price > 0 ? $deposit_price : $total_price;
-
-        $order_result = memora_create_wc_order_for_booking( $booking_id, array(
+        $order_result = memora_create_wc_order_for_booking( array(
             'name'           => $name,
             'phone'          => $phone,
             'ig'             => $contact_other,
             'date'           => $date,
             'time'           => $time,
             'pkg_name'       => $pkg_name,
-            'total_price'    => $pay_price,
+            'total_price'    => $total_price,
+            'deposit_price'  => $deposit_price,
+            'room_id'        => $phong_id,
+            'room_name'      => $phong_name,
+            'dia_chi_id'     => $dia_chi_id,
+            'dia_chi_name'   => ! empty( $dia_chi_id ) ? get_the_title( $dia_chi_id ) : '',
             'code'           => $code,
             'payment_method' => $payment_method,
         ) );
 
+        if ( ! empty( $order_result['order_id'] ) ) {
+            $order_id = $order_result['order_id'];
+        }
         if ( ! empty( $order_result['order_url'] ) ) {
             $wc_order_url = $order_result['order_url'];
         }
@@ -214,19 +178,19 @@ function memora_ajax_submit_booking() {
 
     // Fallback: hiển thị Thank You HTML nếu không có WooCommerce hoặc không tạo được đơn
     if ( empty( $wc_order_url ) && function_exists( 'memora_render_thankyou_html' ) ) {
-        $thankyou_html = memora_render_thankyou_html( $code );
+        $thankyou_html = memora_render_thankyou_html( $code, $order_id );
     }
 
     // Trả về dữ liệu thành công
     wp_send_json_success( array(
-        'booking_id'    => $booking_id,
+        'booking_id'    => $order_id,
         'booking_code'  => $code,
         'date'          => $date,
         'time'          => $time,
         'package_name'  => $pkg_name,
         'total_price'   => memora_format_price( $total_price ),
         'deposit_price' => memora_format_price( $deposit_price ),
-        'wc_order_url'  => $wc_order_url,   // ← URL trang thanh toán thành công (order-received)
+        'wc_order_url'  => $wc_order_url,
         'html'          => $thankyou_html,
     ) );
 }
@@ -242,13 +206,12 @@ function memora_ajax_submit_booking() {
 // START - TẠO WOOCOMMERCE ORDER CHO BOOKING
 //====================================
 /**
- * Tạo WC Order (phương thức BACS) từ dữ liệu booking.
+ * Tạo WC Order trực tiếp từ dữ liệu booking.
  *
- * @param int   $booking_id  ID của memora_booking post.
- * @param array $data        name, phone, pkg_name, total_price, date, time, code, payment_method.
- * @return array             { order_id, order_key, order_url } hoặc mảng rỗng nếu lỗi.
+ * @param array $data Thông tin booking: name, phone, ig, date, time, pkg_name, total_price, deposit_price, room_id, dia_chi_id, code, payment_method.
+ * @return array      { order_id, order_key, order_url } hoặc mảng rỗng nếu lỗi.
  */
-function memora_create_wc_order_for_booking( $booking_id, $data ) {
+function memora_create_wc_order_for_booking( $data ) {
     if ( ! class_exists( 'WooCommerce' ) ) return array();
 
     $order = wc_create_order( array(
@@ -258,7 +221,15 @@ function memora_create_wc_order_for_booking( $booking_id, $data ) {
 
     if ( is_wp_error( $order ) ) return array();
 
-    $pay_amount = ! empty( $data['total_price'] ) ? floatval( $data['total_price'] ) : 0;
+    $pay_amount = ! empty( $data['deposit_price'] ) ? floatval( $data['deposit_price'] ) : ( ! empty( $data['total_price'] ) ? floatval( $data['total_price'] ) : 0 );
+
+    $item_title = sprintf( 'Đặt lịch chụp ảnh — %s | %s %s', $data['pkg_name'], $data['date'], $data['time'] );
+    if ( ! empty( $data['room_name'] ) ) {
+        $item_title .= ' | Phòng: ' . $data['room_name'];
+    }
+    if ( ! empty( $data['dia_chi_name'] ) ) {
+        $item_title .= ' | ' . $data['dia_chi_name'];
+    }
 
     // --- Thêm sản phẩm đặt lịch vào đơn hàng ---
     $product_id = function_exists( 'memora_get_or_create_booking_product' ) ? memora_get_or_create_booking_product() : 0;
@@ -268,18 +239,24 @@ function memora_create_wc_order_for_booking( $booking_id, $data ) {
             $item = new WC_Order_Item_Product();
             $item->set_product( $product );
             $item->set_quantity( 1 );
-            $item->set_name(
-                sprintf( 'Đặt lịch chụp ảnh — %s | %s %s', $data['pkg_name'], $data['date'], $data['time'] )
-            );
+            $item->set_name( $item_title );
             $item->set_subtotal( $pay_amount );
             $item->set_total( $pay_amount );
+            $item->update_meta_data( 'Mã đặt lịch', '#' . $data['code'] );
+            $item->update_meta_data( 'Ngày chụp', $data['date'] );
+            $item->update_meta_data( 'Giờ chụp', $data['time'] );
+            $item->update_meta_data( 'Gói chụp', $data['pkg_name'] );
+            if ( ! empty( $data['room_name'] ) ) {
+                $item->update_meta_data( 'Phòng chụp', $data['room_name'] );
+            }
+            if ( ! empty( $data['dia_chi_name'] ) ) {
+                $item->update_meta_data( 'Chi nhánh', $data['dia_chi_name'] );
+            }
             $order->add_item( $item );
         }
     } else {
         $item = new WC_Order_Item_Fee();
-        $item->set_name(
-            sprintf( 'Đặt lịch chụp ảnh — %s | %s %s', $data['pkg_name'], $data['date'], $data['time'] )
-        );
+        $item->set_name( $item_title );
         $item->set_amount( $pay_amount );
         $item->set_total( $pay_amount );
         $item->set_tax_status( 'none' );
@@ -290,7 +267,7 @@ function memora_create_wc_order_for_booking( $booking_id, $data ) {
     // --- Thông tin khách hàng ---
     $order->set_billing_first_name( $data['name'] );
     $order->set_billing_phone( $data['phone'] );
-    // Placeholder email để WC không báo lỗi (không gửi email thật)
+    // Placeholder email để WC không báo lỗi
     $safe_email = preg_replace( '/[^a-z0-9]/i', '', strtolower( $data['phone'] ) ) . '@memora.booking';
     $order->set_billing_email( $safe_email );
 
@@ -303,15 +280,37 @@ function memora_create_wc_order_for_booking( $booking_id, $data ) {
     $order->set_payment_method( $payment_method );
     $order->set_payment_method_title( $payment_title );
 
-    // --- Ghi chú nội bộ liên kết với booking ---
-    $order->update_meta_data( '_memora_booking_id',   $booking_id );
-    $order->update_meta_data( '_memora_booking_code', $data['code'] );
+    // --- Lưu toàn bộ dữ liệu đặt lịch vào WC Order meta ---
+    $order->update_meta_data( '_memora_booking_code',   $data['code'] );
+    $order->update_meta_data( '_booking_code',          $data['code'] );
+    $order->update_meta_data( '_booking_customer_name', $data['name'] );
+    $order->update_meta_data( '_booking_phone',         $data['phone'] );
+    $order->update_meta_data( '_booking_date',          $data['date'] );
+    $order->update_meta_data( '_memora_booking_date',   $data['date'] );
+    $order->update_meta_data( '_booking_time',          $data['time'] );
+    $order->update_meta_data( '_memora_booking_time',   $data['time'] );
+    $order->update_meta_data( '_booking_package_name',  $data['pkg_name'] );
+    $order->update_meta_data( '_booking_total_price',   $data['total_price'] );
+    $order->update_meta_data( '_booking_deposit_price', $pay_amount );
+    $order->update_meta_data( '_booking_created_at',    current_time( 'mysql' ) );
+
     if ( ! empty( $data['ig'] ) ) {
-        $order->update_meta_data( '_memora_ig', $data['ig'] );
+        $order->update_meta_data( '_memora_ig',             $data['ig'] );
+        $order->update_meta_data( '_booking_contact_other', $data['ig'] );
     }
+    if ( ! empty( $data['room_id'] ) ) {
+        $order->update_meta_data( '_booking_phong_id',   $data['room_id'] );
+        $order->update_meta_data( '_booking_phong_name', $data['room_name'] ?? '' );
+        $order->update_meta_data( '_booking_room_name',  $data['room_name'] ?? '' );
+    }
+    if ( ! empty( $data['dia_chi_id'] ) ) {
+        $order->update_meta_data( '_booking_dia_chi_id',   $data['dia_chi_id'] );
+        $order->update_meta_data( '_booking_dia_chi_name', $data['dia_chi_name'] ?? '' );
+    }
+
     $order->add_order_note(
         sprintf(
-            'Đặt lịch tự động | Code: #%s | Ngày: %s %s | Gói: %s | SĐT: %s | IG: %s',
+            'Đặt lịch tự động | Code: #%s | Ngày: %s %s | Gói: %s | SĐT: %s | Liên hệ: %s',
             $data['code'], $data['date'], $data['time'], $data['pkg_name'], $data['phone'], $data['ig'] ?? ''
         )
     );
@@ -466,10 +465,83 @@ function memora_ajax_lookup_booking() {
 
     $result_data = array();
 
+    // Helper dịch trạng thái đơn hàng sang tiếng Việt thân thiện
+    $get_status_label = function( $wc_status ) {
+        switch ( $wc_status ) {
+            case 'pending':
+            case 'on-hold':
+                return 'Chờ thanh toán';
+            case 'processing':
+                return 'Đã thanh toán / Chờ chụp';
+            case 'completed':
+                return 'Đã hoàn thành';
+            case 'cancelled':
+                return 'Đã hủy';
+            default:
+                return function_exists( 'wc_get_order_status_name' ) ? wc_get_order_status_name( $wc_status ) : $wc_status;
+        }
+    };
+
     // -------------------------------------------------------
-    // CASE 1: Có code (tìm theo code, optionally verify phone)
+    // CASE 1: Có code (tìm theo code, verify phone nếu có)
     // -------------------------------------------------------
     if ( ! empty( $clean_code ) ) {
+        // 1.1 Tìm trong WooCommerce Orders
+        if ( function_exists( 'wc_get_orders' ) ) {
+            $orders = wc_get_orders( array(
+                'limit'      => 1,
+                'status'     => array( 'wc-pending', 'wc-on-hold', 'wc-processing', 'wc-completed' ),
+                'meta_query' => array(
+                    'relation' => 'OR',
+                    array(
+                        'key'     => '_booking_code',
+                        'value'   => $clean_code,
+                        'compare' => '=',
+                    ),
+                    array(
+                        'key'     => '_memora_booking_code',
+                        'value'   => $clean_code,
+                        'compare' => '=',
+                    ),
+                ),
+            ) );
+
+            if ( ! empty( $orders ) ) {
+                $order    = $orders[0];
+                $db_phone = $order->get_billing_phone() ?: $order->get_meta( '_booking_phone' );
+                $clean_db = preg_replace( '/[^0-9]/', '', $db_phone );
+
+                $phone_ok = empty( $clean_phone )
+                    || $clean_db === $clean_phone
+                    || strpos( $clean_db, $clean_phone ) !== false
+                    || strpos( $clean_phone, $clean_db ) !== false;
+
+                if ( ! $phone_ok ) {
+                    wp_send_json_error( array( 'message' => 'Số điện thoại không khớp với mã Code này. Bạn vui lòng kiểm tra lại số điện thoại nhaaa!' ) );
+                }
+
+                $total = $order->get_meta( '_booking_total_price' ) ?: $order->get_total();
+                $name  = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
+                if ( empty( $name ) ) {
+                    $name = $order->get_meta( '_booking_customer_name' );
+                }
+
+                $result_data = array(
+                    'code'         => $clean_code,
+                    'name'         => $name,
+                    'phone'        => $db_phone,
+                    'date'         => $order->get_meta( '_booking_date' ) ?: $order->get_meta( '_memora_booking_date' ),
+                    'time'         => $order->get_meta( '_booking_time' ) ?: $order->get_meta( '_memora_booking_time' ),
+                    'package_name' => $order->get_meta( '_booking_package_name' ) ?: 'Gói chụp Memora',
+                    'total_price'  => function_exists( 'memora_format_price' ) ? memora_format_price( $total ) : number_format( floatval( $total ), 0, ',', '.' ) . 'vnd',
+                    'status'       => $get_status_label( $order->get_status() ),
+                );
+
+                wp_send_json_success( array( 'data' => $result_data ) );
+            }
+        }
+
+        // 1.2 Fallback: Tìm trong CPT memora_booking cũ
         $args = array(
             'post_type'      => 'memora_booking',
             'post_status'    => 'publish',
@@ -498,11 +570,10 @@ function memora_ajax_lookup_booking() {
         $found = false;
         while ( $query->have_posts() ) {
             $query->the_post();
-            $post_id      = get_the_ID();
-            $db_phone     = get_post_meta( $post_id, '_booking_phone', true );
+            $post_id        = get_the_ID();
+            $db_phone       = get_post_meta( $post_id, '_booking_phone', true );
             $clean_db_phone = preg_replace( '/[^0-9]/', '', $db_phone );
 
-            // Nếu có nhập phone → verify khớp; nếu chỉ nhập code → bỏ qua verify
             $phone_ok = empty( $clean_phone )
                 || $clean_db_phone === $clean_phone
                 || strpos( $clean_db_phone, $clean_phone ) !== false
@@ -517,7 +588,7 @@ function memora_ajax_lookup_booking() {
                     'date'         => get_post_meta( $post_id, '_booking_date', true ),
                     'time'         => get_post_meta( $post_id, '_booking_time', true ),
                     'package_name' => get_post_meta( $post_id, '_booking_package_name', true ),
-                    'total_price'  => memora_format_price( get_post_meta( $post_id, '_booking_total_price', true ) ),
+                    'total_price'  => function_exists( 'memora_format_price' ) ? memora_format_price( get_post_meta( $post_id, '_booking_total_price', true ) ) : '',
                     'status'       => get_post_meta( $post_id, '_booking_status', true ),
                 );
                 break;
@@ -535,6 +606,48 @@ function memora_ajax_lookup_booking() {
     // -------------------------------------------------------
     // CASE 2: Chỉ có phone → tìm theo phone, lấy lịch gần nhất
     // -------------------------------------------------------
+    // 2.1 Tìm trong WooCommerce Orders
+    if ( function_exists( 'wc_get_orders' ) ) {
+        $orders = wc_get_orders( array(
+            'limit'   => 50,
+            'orderby' => 'date',
+            'order'   => 'DESC',
+            'status'  => array( 'wc-pending', 'wc-on-hold', 'wc-processing', 'wc-completed' ),
+        ) );
+
+        if ( ! empty( $orders ) ) {
+            foreach ( $orders as $order ) {
+                $db_phone = $order->get_billing_phone() ?: $order->get_meta( '_booking_phone' );
+                $clean_db = preg_replace( '/[^0-9]/', '', $db_phone );
+
+                if ( ! empty( $clean_db ) && ( $clean_db === $clean_phone || strpos( $clean_db, $clean_phone ) !== false || strpos( $clean_phone, $clean_db ) !== false ) ) {
+                    $code = $order->get_meta( '_memora_booking_code' ) ?: $order->get_meta( '_booking_code' );
+                    if ( empty( $code ) ) continue;
+
+                    $total = $order->get_meta( '_booking_total_price' ) ?: $order->get_total();
+                    $name  = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
+                    if ( empty( $name ) ) {
+                        $name = $order->get_meta( '_booking_customer_name' );
+                    }
+
+                    $result_data = array(
+                        'code'         => $code,
+                        'name'         => $name,
+                        'phone'        => $db_phone,
+                        'date'         => $order->get_meta( '_booking_date' ) ?: $order->get_meta( '_memora_booking_date' ),
+                        'time'         => $order->get_meta( '_booking_time' ) ?: $order->get_meta( '_memora_booking_time' ),
+                        'package_name' => $order->get_meta( '_booking_package_name' ) ?: 'Gói chụp Memora',
+                        'total_price'  => function_exists( 'memora_format_price' ) ? memora_format_price( $total ) : number_format( floatval( $total ), 0, ',', '.' ) . 'vnd',
+                        'status'       => $get_status_label( $order->get_status() ),
+                    );
+
+                    wp_send_json_success( array( 'data' => $result_data ) );
+                }
+            }
+        }
+    }
+
+    // 2.2 Fallback: Tìm trong CPT memora_booking cũ
     $all_bookings_args = array(
         'post_type'      => 'memora_booking',
         'post_status'    => 'publish',
@@ -574,10 +687,10 @@ function memora_ajax_lookup_booking() {
                 'date'         => get_post_meta( $post_id, '_booking_date', true ),
                 'time'         => get_post_meta( $post_id, '_booking_time', true ),
                 'package_name' => get_post_meta( $post_id, '_booking_package_name', true ),
-                'total_price'  => memora_format_price( get_post_meta( $post_id, '_booking_total_price', true ) ),
+                'total_price'  => function_exists( 'memora_format_price' ) ? memora_format_price( get_post_meta( $post_id, '_booking_total_price', true ) ) : '',
                 'status'       => get_post_meta( $post_id, '_booking_status', true ),
             );
-            break; // orderby=DESC nên cái đầu tiên match là gần nhất
+            break;
         }
     }
     wp_reset_postdata();

@@ -188,104 +188,120 @@ add_action( 'woocommerce_checkout_order_created', 'memora_link_wc_order_to_booki
 function memora_link_wc_order_to_booking( $order ) {
     if ( ! function_exists( 'WC' ) || ! WC()->session ) return;
 
-    $booking_id   = (int) WC()->session->get( 'memora_booking_pending_id' );
-    $booking_code = WC()->session->get( 'memora_booking_pending_code' );
-    $pending      = WC()->session->get( 'memora_booking_pending_data' );
-    $order_id     = $order->get_id();
+    $pending = WC()->session->get( 'memora_booking_pending_data' );
+    if ( ! $pending ) return;
 
-    // =========================================================================
-    // FLOW MOI: khong co booking_id trong session -> tao memora_booking moi
-    // (user di tu [choose_time] -> WC checkout truc tiep)
-    // =========================================================================
-    if ( ! $booking_id && $pending ) {
-        $name  = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
-        $phone = $order->get_billing_phone();
-        $ig    = (string) $order->get_meta( '_memora_ig' );
+    $name  = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
+    $phone = $order->get_billing_phone();
+    $ig    = (string) $order->get_meta( '_memora_ig' );
 
-        $code = function_exists( 'memora_generate_unique_booking_code' )
-            ? memora_generate_unique_booking_code()
-            : strtoupper( substr( md5( uniqid() ), 0, 4 ) );
+    $code = function_exists( 'memora_generate_unique_booking_code' )
+        ? memora_generate_unique_booking_code()
+        : strtoupper( substr( md5( uniqid() ), 0, 4 ) );
 
-        $post_title = sprintf( '#%s - %s - %s %s', $code, $name, $pending['date'] ?? '', $pending['time'] ?? '' );
-        $booking_id = wp_insert_post( array(
-            'post_title'  => $post_title,
-            'post_status' => 'publish',
-            'post_type'   => 'memora_booking',
-        ) );
+    $deposit = ! empty( $pending['deposit_price'] ) ? floatval( $pending['deposit_price'] ) : floatval( $pending['total_price'] );
 
-        if ( ! $booking_id || is_wp_error( $booking_id ) ) return;
+    // Lưu toàn bộ thông tin đặt lịch trực tiếp vào WooCommerce Order meta
+    $order->update_meta_data( '_memora_booking_code',   $code );
+    $order->update_meta_data( '_booking_code',          $code );
+    $order->update_meta_data( '_booking_customer_name', $name );
+    $order->update_meta_data( '_booking_phone',         $phone );
+    $order->update_meta_data( '_booking_contact_other', $ig );
+    $order->update_meta_data( '_booking_date',          $pending['date']      ?? '' );
+    $order->update_meta_data( '_memora_booking_date',   $pending['date']      ?? '' );
+    $order->update_meta_data( '_booking_time',          $pending['time']      ?? '' );
+    $order->update_meta_data( '_memora_booking_time',   $pending['time']      ?? '' );
+    $order->update_meta_data( '_booking_package_name',  $pending['pkg_name']  ?? '' );
+    $order->update_meta_data( '_booking_total_price',   $pending['total_price'] ?? 0 );
+    $order->update_meta_data( '_booking_deposit_price', $deposit );
+    $order->update_meta_data( '_booking_created_at',    current_time( 'mysql' ) );
 
-        $deposit = ! empty( $pending['deposit_price'] ) ? floatval( $pending['deposit_price'] ) : floatval( $pending['total_price'] );
-
-        update_post_meta( $booking_id, '_booking_code',          $code );
-        update_post_meta( $booking_id, '_booking_customer_name', $name );
-        update_post_meta( $booking_id, '_booking_phone',         $phone );
-        update_post_meta( $booking_id, '_booking_contact_other', $ig );
-        update_post_meta( $booking_id, '_booking_date',          $pending['date']      ?? '' );
-        update_post_meta( $booking_id, '_booking_time',          $pending['time']      ?? '' );
-        update_post_meta( $booking_id, '_booking_package_name',  $pending['pkg_name']  ?? '' );
-        update_post_meta( $booking_id, '_booking_total_price',   $pending['total_price']  ?? 0 );
-        update_post_meta( $booking_id, '_booking_deposit_price', $deposit );
-        update_post_meta( $booking_id, '_booking_status',        'pending' );
-        update_post_meta( $booking_id, '_booking_created_at',    current_time( 'mysql' ) );
-        update_post_meta( $booking_id, '_wc_order_id',           $order_id );
-
-        if ( ! empty( $pending['room_id'] ) ) {
-            update_post_meta( $booking_id, '_booking_phong_id',   $pending['room_id'] );
-            update_post_meta( $booking_id, '_booking_phong_name', $pending['room_name'] ?? '' );
-            update_post_meta( $booking_id, '_booking_room_name',  $pending['room_name'] ?? '' );
-        }
-        if ( ! empty( $pending['dia_chi_id'] ) ) {
-            update_post_meta( $booking_id, '_booking_dia_chi_id',   $pending['dia_chi_id'] );
-            update_post_meta( $booking_id, '_booking_dia_chi_name', $pending['dia_chi_name'] ?? '' );
-        }
-
-        $booking_code = $code;
-        $order->add_order_note( sprintf(
-            'Dat lich tu dong (WC Checkout) | Code: #%s | %s %s | Goi: %s | Phone: %s',
-            $code, $pending['date'] ?? '', $pending['time'] ?? '', $pending['pkg_name'] ?? '', $phone
-        ) );
+    if ( ! empty( $pending['room_id'] ) ) {
+        $order->update_meta_data( '_booking_phong_id',   $pending['room_id'] );
+        $order->update_meta_data( '_booking_phong_name', $pending['room_name'] ?? '' );
+        $order->update_meta_data( '_booking_room_name',  $pending['room_name'] ?? '' );
+    }
+    if ( ! empty( $pending['dia_chi_id'] ) ) {
+        $order->update_meta_data( '_booking_dia_chi_id',   $pending['dia_chi_id'] );
+        $order->update_meta_data( '_booking_dia_chi_name', $pending['dia_chi_name'] ?? '' );
     }
 
-    // =========================================================================
-    // FLOW CU: da co booking_id -> chi lien ket
-    // =========================================================================
-    if ( $booking_id && $booking_code ) {
-        update_post_meta( $booking_id, '_wc_order_id',    $order_id );
-        update_post_meta( $booking_id, '_booking_status', 'pending' );
+    // Cập nhật tên và metadata cho line item sản phẩm trong đơn hàng
+    $product_id = function_exists( 'memora_get_or_create_booking_product' ) ? memora_get_or_create_booking_product() : 0;
+    foreach ( $order->get_items() as $item ) {
+        if ( ! $product_id || $item->get_product_id() == $product_id ) {
+            $item_title = sprintf( 'Đặt lịch chụp ảnh — %s | %s %s', $pending['pkg_name'] ?? '', $pending['date'] ?? '', $pending['time'] ?? '' );
+            if ( ! empty( $pending['room_name'] ) ) {
+                $item_title .= ' | Phòng: ' . $pending['room_name'];
+            }
+            if ( ! empty( $pending['dia_chi_name'] ) ) {
+                $item_title .= ' | ' . $pending['dia_chi_name'];
+            }
+            $item->set_name( $item_title );
+            $item->update_meta_data( 'Mã đặt lịch', '#' . $code );
+            $item->update_meta_data( 'Ngày chụp', $pending['date'] ?? '' );
+            $item->update_meta_data( 'Giờ chụp', $pending['time'] ?? '' );
+            $item->update_meta_data( 'Gói chụp', $pending['pkg_name'] ?? '' );
+            if ( ! empty( $pending['room_name'] ) ) {
+                $item->update_meta_data( 'Phòng chụp', $pending['room_name'] );
+            }
+            if ( ! empty( $pending['dia_chi_name'] ) ) {
+                $item->update_meta_data( 'Chi nhánh', $pending['dia_chi_name'] );
+            }
+            $item->save();
+        }
     }
 
-    // Luu vao WC order meta
-    $order->update_meta_data( '_memora_booking_id',   $booking_id );
-    $order->update_meta_data( '_memora_booking_code', $booking_code );
+    $order->add_order_note( sprintf(
+        'Đặt lịch thành công | Code: #%s | %s %s | Gói: %s | SĐT: %s | IG/Liên hệ: %s',
+        $code, $pending['date'] ?? '', $pending['time'] ?? '', $pending['pkg_name'] ?? '', $phone, $ig
+    ) );
+
     $order->save();
 
-    // Xoa session
+    // Dọn dẹp session
     WC()->session->__unset( 'memora_booking_pending_id' );
     WC()->session->__unset( 'memora_booking_pending_code' );
     WC()->session->__unset( 'memora_booking_pending_data' );
 }
 
 // =====================================================================
-// 7. HIEN IG TRONG WC ORDER ADMIN (de admin biet cach lien he)
+// 7. HIỂN THỊ THÔNG TIN ĐẶT LỊCH TRONG WC ORDER ADMIN
 // =====================================================================
-add_action( 'woocommerce_admin_order_data_after_billing_address', 'memora_show_ig_in_order_admin', 10 );
-function memora_show_ig_in_order_admin( $order ) {
-    $ig         = $order->get_meta( '_memora_ig' );
-    $booking_id = $order->get_meta( '_memora_booking_id' );
-    $code       = $order->get_meta( '_memora_booking_code' );
+add_action( 'woocommerce_admin_order_data_after_billing_address', 'memora_show_booking_info_in_order_admin', 10 );
+function memora_show_booking_info_in_order_admin( $order ) {
+    $code   = $order->get_meta( '_memora_booking_code' ) ?: $order->get_meta( '_booking_code' );
+    $date   = $order->get_meta( '_booking_date' ) ?: $order->get_meta( '_memora_booking_date' );
+    $time   = $order->get_meta( '_booking_time' ) ?: $order->get_meta( '_memora_booking_time' );
+    $pkg    = $order->get_meta( '_booking_package_name' );
+    $room   = $order->get_meta( '_booking_phong_name' ) ?: $order->get_meta( '_booking_room_name' );
+    $branch = $order->get_meta( '_booking_dia_chi_name' );
+    $ig     = $order->get_meta( '_memora_ig' ) ?: $order->get_meta( '_booking_contact_other' );
 
-    if ( $ig ) {
-        echo '<p><strong>Lien he khac (IG):</strong> ' . esc_html( $ig ) . '</p>';
-    }
-    if ( $code ) {
-        $edit_url = $booking_id ? get_edit_post_link( $booking_id ) : '';
-        echo '<p><strong>Ma dat lich:</strong> ';
-        if ( $edit_url ) echo '<a href="' . esc_url( $edit_url ) . '">';
-        echo '#' . esc_html( $code );
-        if ( $edit_url ) echo '</a>';
-        echo '</p>';
-    }
+    if ( ! $code && ! $date ) return;
+    ?>
+    <div class="order_data_column" style="margin-top:15px;padding:12px;background:#f9f9f9;border-left:4px solid #733e1c;border-radius:4px;">
+        <h3 style="margin:0 0 10px;font-size:14px;color:#733e1c;text-transform:uppercase;">Thông tin đặt lịch Memora</h3>
+        <?php if ( $code ) : ?>
+            <p style="margin:4px 0;"><strong>Mã đặt lịch:</strong> <span style="font-size:16px;font-weight:700;color:#733e1c;">#<?php echo esc_html( $code ); ?></span></p>
+        <?php endif; ?>
+        <?php if ( $date || $time ) : ?>
+            <p style="margin:4px 0;"><strong>Ngày giờ chụp:</strong> <?php echo esc_html( trim( "$date  $time" ) ); ?></p>
+        <?php endif; ?>
+        <?php if ( $pkg ) : ?>
+            <p style="margin:4px 0;"><strong>Gói chụp:</strong> <?php echo esc_html( $pkg ); ?></p>
+        <?php endif; ?>
+        <?php if ( $room ) : ?>
+            <p style="margin:4px 0;"><strong>Phòng chụp:</strong> <?php echo esc_html( $room ); ?></p>
+        <?php endif; ?>
+        <?php if ( $branch ) : ?>
+            <p style="margin:4px 0;"><strong>Địa chỉ chi nhánh:</strong> <?php echo esc_html( $branch ); ?></p>
+        <?php endif; ?>
+        <?php if ( $ig ) : ?>
+            <p style="margin:4px 0;"><strong>Liên hệ khác (IG/Zalo):</strong> <?php echo esc_html( $ig ); ?></p>
+        <?php endif; ?>
+    </div>
+    <?php
 }
 
 // =====================================================================

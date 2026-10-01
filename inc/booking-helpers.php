@@ -369,6 +369,40 @@ function memora_get_booked_slots( $date ) {
         return array();
     }
 
+    $booked_slots = array();
+    $sanitized_date = sanitize_text_field( $date );
+
+    // 1. Lấy danh sách giờ đã đặt từ WooCommerce Orders
+    if ( function_exists( 'wc_get_orders' ) ) {
+        $orders = wc_get_orders( array(
+            'limit'        => -1,
+            'status'       => array( 'wc-pending', 'wc-on-hold', 'wc-processing', 'wc-completed' ),
+            'meta_query'   => array(
+                'relation' => 'OR',
+                array(
+                    'key'     => '_booking_date',
+                    'value'   => $sanitized_date,
+                    'compare' => '=',
+                ),
+                array(
+                    'key'     => '_memora_booking_date',
+                    'value'   => $sanitized_date,
+                    'compare' => '=',
+                ),
+            ),
+        ) );
+
+        if ( ! empty( $orders ) ) {
+            foreach ( $orders as $order ) {
+                $time = $order->get_meta( '_booking_time' ) ?: $order->get_meta( '_memora_booking_time' );
+                if ( ! empty( $time ) ) {
+                    $booked_slots[] = trim( $time );
+                }
+            }
+        }
+    }
+
+    // 2. Tương thích ngược: Lấy từ CPT memora_booking cũ (nếu có bài viết cũ)
     $args = array(
         'post_type'      => 'memora_booking',
         'post_status'    => 'publish',
@@ -377,7 +411,7 @@ function memora_get_booked_slots( $date ) {
             'relation' => 'AND',
             array(
                 'key'     => '_booking_date',
-                'value'   => sanitize_text_field( $date ),
+                'value'   => $sanitized_date,
                 'compare' => '=',
             ),
             array(
@@ -390,8 +424,6 @@ function memora_get_booked_slots( $date ) {
     );
 
     $booking_ids = get_posts( $args );
-    $booked_slots = array();
-
     if ( ! empty( $booking_ids ) ) {
         foreach ( $booking_ids as $id ) {
             $time = get_post_meta( $id, '_booking_time', true );
@@ -422,22 +454,53 @@ function memora_generate_unique_booking_code() {
         $attempt++;
         // Sinh ngẫu nhiên từ 1000 đến 9999
         $code = strval( wp_rand( 1000, 9999 ) );
+        $is_taken = false;
 
-        $existing = get_posts( array(
-            'post_type'      => 'memora_booking',
-            'post_status'    => 'any',
-            'posts_per_page' => 1,
-            'meta_query'     => array(
-                array(
-                    'key'     => '_booking_code',
-                    'value'   => $code,
-                    'compare' => '=',
+        // 1. Kiểm tra trên WooCommerce Orders
+        if ( function_exists( 'wc_get_orders' ) ) {
+            $existing_orders = wc_get_orders( array(
+                'limit'      => 1,
+                'return'     => 'ids',
+                'meta_query' => array(
+                    'relation' => 'OR',
+                    array(
+                        'key'     => '_booking_code',
+                        'value'   => $code,
+                        'compare' => '=',
+                    ),
+                    array(
+                        'key'     => '_memora_booking_code',
+                        'value'   => $code,
+                        'compare' => '=',
+                    ),
                 ),
-            ),
-            'fields'         => 'ids',
-        ) );
+            ) );
+            if ( ! empty( $existing_orders ) ) {
+                $is_taken = true;
+            }
+        }
 
-        if ( empty( $existing ) ) {
+        // 2. Kiểm tra trên memora_booking cũ (nếu có)
+        if ( ! $is_taken ) {
+            $existing = get_posts( array(
+                'post_type'      => 'memora_booking',
+                'post_status'    => 'any',
+                'posts_per_page' => 1,
+                'meta_query'     => array(
+                    array(
+                        'key'     => '_booking_code',
+                        'value'   => $code,
+                        'compare' => '=',
+                    ),
+                ),
+                'fields'         => 'ids',
+            ) );
+            if ( ! empty( $existing ) ) {
+                $is_taken = true;
+            }
+        }
+
+        if ( ! $is_taken ) {
             return $code;
         }
     } while ( $attempt < $max_attempts );

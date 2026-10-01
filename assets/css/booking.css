@@ -617,7 +617,7 @@
     line-height: 1.4 !important;
 }
 
-.memora-wc-payment-section li.wc_payment_method > input:checked ~ .payment_box,
+.memora-wc-payment-section li.wc_payment_method>input:checked~.payment_box,
 .memora-wc-payment-section li.wc_payment_method:only-child .payment_box {
     display: block !important;
 }
@@ -1123,7 +1123,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    /* font-size: 12px; */
+    margin-bottom: -10px
+        /* font-size: 12px; */
+}
+
+.memora-home-icon svg {
+    width: 100%;
+    height: 100%;
 }
 
 .memora-home-text {
@@ -1131,6 +1137,7 @@
     border: 0.1em solid #733e1c;
     padding: 0.4em 1.2em;
     border-radius: 2000px;
+    background-color: #fff;
 }
 
 .memora-footer-text-wrap {
@@ -1140,6 +1147,8 @@
 
 .memora-footer-text {
     font-size: 17.5em;
+    font-family: 'Anastasia Script';
+    font-weight: 600;
 }
 
 /* ==========================================================================
