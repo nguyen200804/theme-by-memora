@@ -400,8 +400,17 @@ function memora_ajax_prepare_checkout_session() {
         }
     }
 
+    // Dung checkout_url tu JS (data-checkout-url) neu co, fallback ve WC checkout
+    $custom_checkout_url = ! empty( $_POST['checkout_url'] )
+        ? esc_url_raw( wp_unslash( $_POST['checkout_url'] ) )
+        : '';
+
+    $redirect_url = ! empty( $custom_checkout_url )
+        ? $custom_checkout_url
+        : ( function_exists( 'wc_get_checkout_url' ) ? wc_get_checkout_url() : '' );
+
     wp_send_json_success( array(
-        'checkout_url' => wc_get_checkout_url(),
+        'checkout_url' => $redirect_url,
     ) );
 }
 //====================================

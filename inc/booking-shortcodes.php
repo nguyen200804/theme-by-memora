@@ -233,6 +233,20 @@ function memora_shortcode_checkout_booking( $atts ) {
                 <span>Khi nhấn nút “Thanh Toán”, bạn xác nhận đã kiểm tra kỹ thông tin và đồng ý rằng lịch chụp không thể hủy dưới bất kỳ hình thức nào</span>
             </div>
 
+            <?php
+            // ============================================================
+            // Gọi WC Payment Methods (hiển phương thức thanh toán native WC)
+            // ============================================================
+            if ( class_exists( 'WooCommerce' ) && function_exists( 'WC' ) ) {
+                WC()->initialize_cart(); // đảm bảo cart khởi tạo
+                // Khởi tạo WC Checkout object
+                WC()->checkout();
+                echo '<div class="memora-wc-payment-section" id="memora-wc-payment">';
+                do_action( 'woocommerce_checkout_payment' );
+                echo '</div>';
+            }
+            ?>
+
             <div class="memora-heart-button-wrap">
                 <button type="submit" class="memora-heart-btn" title="Nhấn để Thanh Toán">
 					<svg class="memora-heart-svg"  fill="#dfb0bf" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" xml:space="preserve"><path d="M1176.629 250.347c54.502 168.401 8.89 339.761-87.232 468.872-63.446 87.553-139.273 163.012-216.796 228.983-71.322 66.39-230.933 197.753-273.241 201.402-37.394-7.148-79.353-49.433-109.039-71.196C323.503 951.599 143.93 797.388 52.878 628.779c-76.34-161.871-76.48-362.086 42.333-486.189C249.271 3.702 481.533 30.841 599.359 175.944q47.466-61.575 116.737-96.853c187.213-74.728 381.972 1.418 460.533 171.256"/></svg>

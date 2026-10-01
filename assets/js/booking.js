@@ -289,7 +289,7 @@
 
             state.packageName = pkgName;
             state.totalPrice = pkgPrice;
-            state.depositPrice = pkgPrice * 0.5;
+            state.depositPrice = pkgPrice; // 100% - thanh toan truoc toan bo
             state.saveToStorage();
             updatePillDisplays();
         });
@@ -341,7 +341,7 @@
             // Lưu state trước khi chuyển trang
             state.saveToStorage();
 
-            // Gọi AJAX để lưu session WC + thêm vào cart → nhận URL WC checkout
+            // Gọi AJAX để lưu session WC + thêm vào cart → nhận URL redirect
             $.ajax({
                 url: memora_booking_vars.ajax_url,
                 type: 'POST',
@@ -356,6 +356,7 @@
                     room_id:      state.roomId       || '',
                     room_name:    state.roomName     || '',
                     dia_chi_id:   state.diaChiId     || '',
+                    checkout_url: $btn.data('checkout-url') || '',
                 },
                 success: function (response) {
                     if (response.success && response.data.checkout_url) {
