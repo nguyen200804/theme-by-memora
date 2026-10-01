@@ -20,6 +20,9 @@ add_shortcode( 'danh_sach_phong', 'memora_danh_sach_phong_shortcode' );
 
 function memora_danh_sach_phong_shortcode( $atts ) {
 
+    // Thu thập tất cả attributes thô (bao gồm cả room_{id} chưa khai báo trong shortcode_atts)
+    $raw_atts = (array) $atts;
+
     $atts = shortcode_atts( [
         'post_id'          => '',      // Không còn dùng để đọc ACF, chỉ dự phòng fallback
         'term_slug'        => '',      // Slug term tường minh: term_slug="ha-noi"
@@ -31,12 +34,23 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         'orderby'          => 'menu_order', // menu_order | title | date
         'order'            => 'ASC',
         'booking_room_url' => '',      // URL đặt lịch dùng chung cho tất cả phòng
-        'room_urls'        => '',      // URL riêng từng phòng: "post_id:url|post_id:url" (VD: "267:/dat-lich/phong-1/|268:/dat-lich/phong-2/")
+        'room_urls'        => '',      // Fallback: "post_id:url|post_id:url"
     ], $atts, 'danh_sach_phong' );
 
-    // Parse room_urls thành map [ post_id => url ]
+    // Build $room_url_map từ 2 nguồn:
+    // 1) Attribute riêng từng phòng: room_267="/dat-lich/" room_268="/dat-lich/"
+    // 2) Fallback: room_urls="267:/dat-lich/|268:/dat-lich/"
     $room_url_map = [];
-    if ( ! empty( $atts['room_urls'] ) ) {
+
+    // Nguồn 1: Scan raw_atts tìm key có pattern room_{số}
+    foreach ( $raw_atts as $key => $val ) {
+        if ( preg_match( '/^room_(\d+)$/i', $key, $m ) && ! empty( $val ) ) {
+            $room_url_map[ (int) $m[1] ] = $val;
+        }
+    }
+
+    // Nguồn 2: Fallback room_urls nếu chưa có map nào
+    if ( empty( $room_url_map ) && ! empty( $atts['room_urls'] ) ) {
         foreach ( explode( '|', $atts['room_urls'] ) as $pair ) {
             $pair = trim( $pair );
             if ( strpos( $pair, ':' ) !== false ) {
