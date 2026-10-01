@@ -123,8 +123,20 @@ function memora_register_booking_options_page() {
                 'capability' => 'manage_options',
                 'icon_url'   => 'dashicons-clock',
                 'position'   => 29,
-        //====================================
-// START - TRA NGƯỢC: LẤY TERM ID ĐỊA CHỂ TỪ ID PHÒNG CHỤP
+                'redirect'   => false,
+            ) );
+        }
+    }
+}
+//====================================
+// END - ĐĂNG KÝ OPTIONS PAGE CẤU HÌNH THỜI GIAN
+//====================================
+
+
+
+
+//====================================
+// START - TRA NGƯỢC: LẤY TERM ID ĐỊA CHỈ TỪ ID PHÒNG CHỤP
 //====================================
 /**
  * Từ ID một post phòng chụp (post-type: phong-chup-anh),
