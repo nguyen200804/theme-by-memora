@@ -610,3 +610,92 @@ add_shortcode( 'memora_marquee', 'memora_render_marquee' );
 //====================================
 // END - RENDER VÀ SHORTCODE MARQUEE
 //====================================
+
+
+
+
+//====================================
+// START - FIELD GROUP: CẤU HÌNH VIETQR THANH TOÁN
+//====================================
+add_action( 'acf/init', 'memora_register_vietqr_field_group' );
+function memora_register_vietqr_field_group() {
+    if ( ! function_exists( 'acf_add_local_field_group' ) ) return;
+
+    acf_add_local_field_group( array(
+        'key'    => 'group_memora_vietqr',
+        'title'  => 'Cấu hình Thanh Toán VietQR',
+        'fields' => array(
+
+            array(
+                'key'   => 'field_vietqr_tab',
+                'label' => '💳 Thông Tin Ngân Hàng',
+                'name'  => '',
+                'type'  => 'tab',
+            ),
+
+            array(
+                'key'          => 'field_vietqr_bank_id',
+                'label'        => 'Mã ngân hàng (Bank BIN)',
+                'name'         => 'vietqr_bank_id',
+                'type'         => 'text',
+                'instructions' => 'Tra tại https://vietqr.io/danh-sach-ngan-hang — VD: 970422 (MB), 970436 (Vietcombank)',
+                'placeholder'  => 'VD: 970422',
+            ),
+
+            array(
+                'key'          => 'field_vietqr_account_no',
+                'label'        => 'Số tài khoản',
+                'name'         => 'vietqr_account_no',
+                'type'         => 'text',
+                'instructions' => 'Số tài khoản ngân hàng nhận tiền',
+                'placeholder'  => 'VD: 0123456789',
+            ),
+
+            array(
+                'key'          => 'field_vietqr_account_name',
+                'label'        => 'Tên chủ tài khoản',
+                'name'         => 'vietqr_account_name',
+                'type'         => 'text',
+                'instructions' => 'Viết hoa không dấu, VD: NGUYEN VAN A',
+                'placeholder'  => 'VD: NGUYEN VAN A',
+            ),
+
+            array(
+                'key'          => 'field_vietqr_bank_name',
+                'label'        => 'Tên ngân hàng (hiển thị cho khách)',
+                'name'         => 'vietqr_bank_name',
+                'type'         => 'text',
+                'placeholder'  => 'VD: MB Bank',
+            ),
+
+            array(
+                'key'           => 'field_vietqr_template',
+                'label'         => 'Template QR',
+                'name'          => 'vietqr_template',
+                'type'          => 'select',
+                'choices'       => array(
+                    'compact2' => 'compact2 (gọn, có logo ngân hàng) — Khuyên dùng',
+                    'compact'  => 'compact (nhỏ gọn)',
+                    'print'    => 'print (đầy đủ, phù hợp in)',
+                    'qr_only'  => 'qr_only (chỉ mã QR)',
+                ),
+                'default_value' => 'compact2',
+                'return_format' => 'value',
+            ),
+
+        ),
+        'location' => array(
+            array(
+                array(
+                    'param'    => 'options_page',
+                    'operator' => '==',
+                    'value'    => 'cau-hinh-thoi-gian-chup-anh',
+                ),
+            ),
+        ),
+        'active' => true,
+    ) );
+}
+//====================================
+// END - FIELD GROUP: CẤU HÌNH VIETQR THANH TOÁN
+//====================================

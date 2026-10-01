@@ -284,10 +284,31 @@ function memora_render_thankyou_html( $code = '' ) {
         }
     }
 
-    $date = $booking ? get_post_meta( $booking->ID, '_booking_date', true ) : '04/09/2026';
-    $time = $booking ? get_post_meta( $booking->ID, '_booking_time', true ) : '12:00';
-    $pkg  = $booking ? get_post_meta( $booking->ID, '_booking_package_name', true ) : '5p';
+    $date         = $booking ? get_post_meta( $booking->ID, '_booking_date',         true ) : '04/09/2026';
+    $time         = $booking ? get_post_meta( $booking->ID, '_booking_time',         true ) : '12:00';
+    $pkg          = $booking ? get_post_meta( $booking->ID, '_booking_package_name', true ) : '5p';
+    $total_price  = $booking ? (int) get_post_meta( $booking->ID, '_booking_total_price', true ) : 0;
     $display_code = $code ? $code : '6640';
+
+    // --- VietQR config từ ACF Options Page ---
+    $bank_id      = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_bank_id',      'option' ) : '';
+    $account_no   = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_account_no',   'option' ) : '';
+    $account_name = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_account_name', 'option' ) : '';
+    $bank_name    = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_bank_name',    'option' ) : '';
+    $template     = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_template',     'option' ) : 'compact2';
+    if ( empty( $template ) ) $template = 'compact2';
+
+    // Build VietQR image URL (miễn phí, không cần API key)
+    $show_qr  = ( ! empty( $bank_id ) && ! empty( $account_no ) );
+    $qr_url   = '';
+    if ( $show_qr ) {
+        $qr_params = http_build_query( array(
+            'amount'      => $total_price > 0 ? $total_price : '',
+            'addInfo'     => 'MEMORA ' . $display_code,
+            'accountName' => $account_name,
+        ) );
+        $qr_url = 'https://img.vietqr.io/image/' . rawurlencode( $bank_id ) . '-' . rawurlencode( $account_no ) . '-' . rawurlencode( $template ) . '.png?' . $qr_params;
+    }
 
     ob_start();
     ?>
@@ -295,7 +316,7 @@ function memora_render_thankyou_html( $code = '' ) {
         <div class="memora-header">
             <div class="memora-header-content">
                 <h2 class="memora-thankyou-title">Thank You!</h2>
-                <div class="memora-thankyou-subtitle">Thanh Toán Thành Công </div>
+                <div class="memora-thankyou-subtitle">Đặt Lịch Thành Công!</div>
             </div>
             <img src="/wp-content/uploads/2026/09/all-star.png">
 
@@ -335,6 +356,74 @@ function memora_render_thankyou_html( $code = '' ) {
             </div>
             <div class="memora-code-notice">**Quý khách vui lòng lưu lại code chụp để tra cứu</div>
         </div>
+
+        <?php if ( $show_qr ) : ?>
+        <!-- PHẦN THANH TOÁN VIETQR -->
+        <div class="memora-payment-section">
+            <div class="memora-payment-title">Thanh toán qua chuyển khoản</div>
+            <div class="memora-payment-body">
+                <div class="memora-payment-qr">
+                    <img
+                        src="<?php echo esc_url( $qr_url ); ?>"
+                        alt="QR chuyển khoản Memora <?php echo esc_attr( $display_code ); ?>"
+                        loading="lazy"
+                    />
+                </div>
+                <div class="memora-payment-info">
+                    <?php if ( ! empty( $bank_name ) ) : ?>
+                    <div class="memora-payment-row">
+                        <span class="memora-payment-label">Ngân hàng</span>
+                        <span class="memora-payment-value"><?php echo esc_html( $bank_name ); ?></span>
+                    </div>
+                    <?php endif; ?>
+                    <div class="memora-payment-row">
+                        <span class="memora-payment-label">Số TK</span>
+                        <span class="memora-payment-value memora-payment-copyable" data-copy="<?php echo esc_attr( $account_no ); ?>">
+                            <?php echo esc_html( $account_no ); ?>
+                            <button class="memora-copy-btn" type="button" title="Sao chép">📋</button>
+                        </span>
+                    </div>
+                    <?php if ( ! empty( $account_name ) ) : ?>
+                    <div class="memora-payment-row">
+                        <span class="memora-payment-label">Chủ TK</span>
+                        <span class="memora-payment-value"><?php echo esc_html( $account_name ); ?></span>
+                    </div>
+                    <?php endif; ?>
+                    <?php if ( $total_price > 0 ) : ?>
+                    <div class="memora-payment-row memora-payment-row--amount">
+                        <span class="memora-payment-label">Số tiền</span>
+                        <span class="memora-payment-value"><?php echo esc_html( number_format( $total_price, 0, ',', '.' ) ); ?>đ</span>
+                    </div>
+                    <?php endif; ?>
+                    <div class="memora-payment-row memora-payment-row--content">
+                        <span class="memora-payment-label">Nội dung CK</span>
+                        <span class="memora-payment-value memora-payment-copyable" data-copy="MEMORA <?php echo esc_attr( $display_code ); ?>">
+                            MEMORA <?php echo esc_html( $display_code ); ?>
+                            <button class="memora-copy-btn" type="button" title="Sao chép">📋</button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="memora-payment-note">
+                ⏱ Sau khi chuyển khoản, lịch chụp sẽ được xác nhận trong vòng <strong>15 phút</strong>.
+            </div>
+        </div>
+        <script>
+        (function(){
+            document.querySelectorAll('.memora-copy-btn').forEach(function(btn){
+                btn.addEventListener('click', function(){
+                    var row = btn.closest('.memora-payment-copyable');
+                    var text = row ? row.dataset.copy : '';
+                    if (!text) return;
+                    navigator.clipboard.writeText(text).then(function(){
+                        btn.textContent = '✅';
+                        setTimeout(function(){ btn.textContent = '📋'; }, 1500);
+                    });
+                });
+            });
+        })();
+        </script>
+        <?php endif; ?>
 
         <div class="memora-note-card">
             <div class="memora-note-tag"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#91c8f4">

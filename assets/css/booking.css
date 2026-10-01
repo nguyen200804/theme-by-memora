@@ -636,6 +636,124 @@
     object-fit: contain;
 }
 
+/* ==========================================================================
+   PHẦN THANH TOÁN VIETQR
+   ========================================================================== */
+.memora-payment-section {
+    background: #eef6fc;
+    border: 0.5px solid #b8d9f0;
+    border-radius: 4em;
+    padding: 8em 10em;
+    margin: 10em 0;
+    text-align: left;
+}
+
+.memora-payment-title {
+    font-family: var(--memora-font-body, 'Mulish', sans-serif);
+    font-size: 6em;
+    font-weight: 700;
+    color: var(--memora-brown);
+    text-align: center;
+    margin-bottom: 8em;
+    letter-spacing: 0.02em;
+}
+
+.memora-payment-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 8em;
+}
+
+.memora-payment-qr {
+    flex: 0 0 auto;
+}
+
+.memora-payment-qr img {
+    width: 80em;
+    height: auto;
+    border-radius: 2em;
+    display: block;
+}
+
+.memora-payment-info {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4em;
+    justify-content: center;
+}
+
+.memora-payment-row {
+    display: flex;
+    align-items: center;
+    gap: 3em;
+    padding: 3em 4em;
+    background: #ffffff;
+    border-radius: 2em;
+    border: 0.25px solid #cce4f5;
+}
+
+.memora-payment-row--amount {
+    background: #fff4ed;
+    border-color: #f0c8a8;
+}
+
+.memora-payment-row--content {
+    background: #fdf4f0;
+    border-color: #e8c4b0;
+}
+
+.memora-payment-label {
+    font-size: 4.5em;
+    font-weight: 600;
+    color: #8a7a72;
+    min-width: 18em;
+    flex-shrink: 0;
+}
+
+.memora-payment-value {
+    font-size: 5em;
+    font-weight: 700;
+    color: var(--memora-brown);
+    display: flex;
+    align-items: center;
+    gap: 2em;
+}
+
+.memora-payment-row--amount .memora-payment-value {
+    font-size: 5.5em;
+    color: #b03a00;
+}
+
+.memora-copy-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.75em;
+    padding: 1px 3px;
+    border-radius: 2px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    line-height: 1;
+}
+
+.memora-copy-btn:hover {
+    opacity: 1;
+}
+
+.memora-payment-note {
+    margin-top: 6em;
+    font-size: 4em;
+    color: #7a8e99;
+    text-align: center;
+    font-style: italic;
+}
+
+.memora-payment-note strong {
+    color: var(--memora-brown);
+}
+
+
 .memora-thankyou-title {
     font-family: var(--memora-font-script);
     font-size: 19.3em;
