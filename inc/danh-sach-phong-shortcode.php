@@ -189,12 +189,24 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         $index++;
         $title = get_the_title( $r_id );
 
-        // Ưu tiên: 1) room_urls theo post_id, 2) booking_room_url chung, 3) ACF field từng phòng, 4) permalink
+        // Ưu tiên: 1) room_{id} attribute, 2) booking_room_url + auto query params, 3) ACF field, 4) permalink
         if ( isset( $room_url_map[ $r_id ] ) ) {
+            // Cách 1: Attribute riêng room_808="/dat-lich/"
             $link = esc_url( $room_url_map[ $r_id ] );
+
+        } elseif ( ! empty( $atts['booking_room_url'] ) ) {
+            // Cách 2: booking_room_url chung → tự động append query params phòng
+            $base_url   = $atts['booking_room_url'];
+            $query_args = [ 'phong_id' => $r_id, 'phong' => $title ];
+            if ( ! empty( $resolved_term ) ) {
+                $query_args['dia_chi_id'] = $resolved_term->term_id;
+            }
+            $link = esc_url( add_query_arg( $query_args, $base_url ) );
+
         } else {
-            $booking_url = ! empty( $atts['booking_room_url'] ) ? $atts['booking_room_url'] : '';
-            if ( empty( $booking_url ) && function_exists( 'get_field' ) ) {
+            // Cách 3: ACF field từng phòng, fallback về permalink
+            $booking_url = '';
+            if ( function_exists( 'get_field' ) ) {
                 $booking_url = get_field( 'booking_room_url', $r_id )
                             ?: get_field( 'booking_url', $r_id )
                             ?: get_field( 'dat_lich_url', $r_id )
@@ -202,6 +214,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             }
             $link = ! empty( $booking_url ) ? esc_url( $booking_url ) : get_permalink( $r_id );
         }
+
 
 
         // Số phòng / Nhãn phòng
