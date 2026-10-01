@@ -547,40 +547,32 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             box-shadow: 0 8px 24px rgba(115, 62, 28, 0.12);
         }
 
-        /* Swiper tách khỏi flow bình thường bằng absolute để không gây loop tính toán chiều cao */
+        /* Swiper flow tự nhiên theo chiều cao ảnh */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster .swiper {
-            position: absolute;
-            inset: 0;
+            position: relative;
             width: 100%;
-            height: 100%;
             overflow: hidden;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster .swiper-wrapper {
-            position: relative;
-            width: 100%;
-            height: 100%;
             display: flex;
+            width: 100%;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster .swiper-slide {
             width: 100%;
-            height: 100%;
             flex-shrink: 0;
-            position: relative;
             overflow: hidden;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster .swiper-slide a {
             display: block;
             width: 100%;
-            height: 100%;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster .swiper-slide img {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            height: auto;
             display: block;
         }
 
@@ -719,38 +711,30 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-slider-wrap .swiper {
-            position: absolute;
-            inset: 0;
+            position: relative;
             width: 100%;
-            height: 100%;
             overflow: hidden;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-slider-wrap .swiper-wrapper {
-            position: relative;
-            width: 100%;
-            height: 100%;
             display: flex;
+            width: 100%;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-slider-wrap .swiper-slide {
             width: 100%;
-            height: 100%;
             flex-shrink: 0;
-            position: relative;
             overflow: hidden;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-slider-wrap .swiper-slide a {
             display: block;
             width: 100%;
-            height: 100%;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-slider-wrap .swiper-slide img {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            height: auto;
             display: block;
         }
 
