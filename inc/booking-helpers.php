@@ -15,6 +15,97 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
+//====================================
+// DEBUG SHORTCODE TẠM: [memora_debug_booking]
+// Đặt lên trang /dat-lich/ để chẩn đoán ACF, xóa sau khi debug xong
+//====================================
+add_shortcode( 'memora_debug_booking', function() {
+    if ( ! current_user_can( 'manage_options' ) ) {
+        return '<!-- debug: not admin -->';
+    }
+
+    $location_id = function_exists( 'memora_resolve_booking_location_id' )
+        ? memora_resolve_booking_location_id()
+        : 0;
+
+    ob_start();
+    echo '<div style="background:#1e1e2e;color:#cdd6f4;font-family:monospace;font-size:13px;padding:20px;border-radius:8px;margin:20px 0;white-space:pre-wrap;">';
+    echo "<strong style='color:#89b4fa;'>🔍 MEMORA BOOKING DEBUG</strong>\n\n";
+
+    // 1. GET params
+    echo "<strong style='color:#a6e3a1;'>1. $_GET params:</strong>\n";
+    echo '   phong_id   = ' . ( $_GET['phong_id'] ?? '(không có)' ) . "\n";
+    echo '   phong      = ' . ( $_GET['phong'] ?? '(không có)' ) . "\n";
+    echo '   dia_chi_id = ' . ( $_GET['dia_chi_id'] ?? '(không có)' ) . "\n\n";
+
+    // 2. Resolved location_id
+    echo "<strong style='color:#a6e3a1;'>2. memora_resolve_booking_location_id():</strong>\n";
+    echo '   location_id = ' . $location_id . "\n\n";
+
+    // 3. Post type của location_id
+    if ( $location_id > 0 ) {
+        $pt = get_post_type( $location_id );
+        $title = get_the_title( $location_id );
+        echo "<strong style='color:#a6e3a1;'>3. Post info (ID=" . $location_id . "):</strong>\n";
+        echo '   post_type = ' . ( $pt ?: '(không tìm thấy)' ) . "\n";
+        echo '   title     = ' . ( $title ?: '(trống)' ) . "\n\n";
+
+        // 4. Raw ACF values
+        if ( function_exists( 'get_field' ) ) {
+            echo "<strong style='color:#a6e3a1;'>4. Raw get_field() từ post " . $location_id . ":</strong>\n";
+            $fields = [
+                'thoi_gian_bat_dau_phuc_vu_hanh_chinh',
+                'thoi_gian_ket_thuc_phuc_vu_hanh_chinh',
+                'dan_cach_gio_chup_anh',
+                'cac_goi_chup_anh',
+            ];
+            foreach ( $fields as $f ) {
+                $val = get_field( $f, $location_id );
+                echo '   ' . $f . ' = ';
+                if ( is_array( $val ) ) {
+                    echo '[array, ' . count( $val ) . ' phần tử]';
+                } elseif ( $val === null ) {
+                    echo '<span style="color:#f38ba8;">NULL</span>';
+                } elseif ( $val === '' || $val === false ) {
+                    echo '<span style="color:#f38ba8;">EMPTY</span>';
+                } else {
+                    echo htmlspecialchars( print_r( $val, true ) );
+                }
+                echo "\n";
+            }
+
+            // 5. Raw post_meta
+            echo "\n<strong style='color:#a6e3a1;'>5. Raw get_post_meta() từ post " . $location_id . ":</strong>\n";
+            foreach ( $fields as $f ) {
+                $meta = get_post_meta( $location_id, $f, true );
+                echo '   ' . $f . ' = ';
+                echo ( $meta !== '' && $meta !== false ) ? htmlspecialchars( print_r( $meta, true ) ) : '<span style="color:#f38ba8;">EMPTY</span>';
+                echo "\n";
+            }
+        } else {
+            echo "<span style='color:#f38ba8;'>get_field() không tồn tại (ACF chưa active?)</span>\n";
+        }
+    } else {
+        echo "<strong style='color:#f38ba8;'>⚠️ location_id = 0 → Không xác định được địa chỉ từ URL!</strong>\n";
+        echo "   Kiểm tra lại URL có chứa ?dia_chi_id= hoặc ?phong_id= không.\n";
+    }
+
+    // 6. Config cuối cùng
+    echo "\n<strong style='color:#a6e3a1;'>6. memora_get_booking_config(" . $location_id . "):</strong>\n";
+    if ( function_exists( 'memora_get_booking_config' ) ) {
+        $cfg = memora_get_booking_config( $location_id );
+        echo '   start_time = ' . ( $cfg['start_time'] ?: '<span style="color:#f38ba8;">EMPTY → dùng default 10:00</span>' ) . "\n";
+        echo '   end_time   = ' . ( $cfg['end_time']   ?: '<span style="color:#f38ba8;">EMPTY → dùng default 22:00</span>' ) . "\n";
+        echo '   interval   = ' . $cfg['interval'] . " phút\n";
+        echo '   packages   = ' . ( ! empty( $cfg['packages'] ) ? count( $cfg['packages'] ) . ' gói' : '<span style="color:#f38ba8;">EMPTY → dùng default</span>' ) . "\n";
+    }
+
+    echo '</div>';
+    return ob_get_clean();
+} );
+//====================================
+// END - DEBUG SHORTCODE
+//====================================
 
 
 
