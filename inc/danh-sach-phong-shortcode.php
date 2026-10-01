@@ -156,7 +156,17 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
         $index++;
         $title = get_the_title( $r_id );
-        $link  = get_permalink( $r_id );
+
+        // Ưu tiên booking_room_url từ ACF, fallback về permalink bài viết
+        $booking_url = '';
+        if ( function_exists( 'get_field' ) ) {
+            $booking_url = get_field( 'booking_room_url', $r_id )
+                        ?: get_field( 'booking_url', $r_id )
+                        ?: get_field( 'dat_lich_url', $r_id )
+                        ?: get_field( 'url_dat_lich', $r_id );
+        }
+        $link = ! empty( $booking_url ) ? esc_url( $booking_url ) : get_permalink( $r_id );
+
 
         // Số phòng / Nhãn phòng
         $room_num_val = get_field( 'room_number', $r_id ) ?: get_field( 'so_phong', $r_id );
