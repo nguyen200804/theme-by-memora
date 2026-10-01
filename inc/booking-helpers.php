@@ -300,24 +300,6 @@ function memora_get_booking_config( $location_id = 0 ) {
     );
 }
 //====================================
-// END - LẤY CẤU HÌNH TỪ ACF (THEO ĐỊA CHỂ TAXONOMY)
-//====================================            ),
-            array(
-                'ten_goi_chup' => '10p',
-                'gia_goi_chup' => 350000,
-            ),
-        );
-    }
-
-    return array(
-        'start_time'  => $start_time,
-        'end_time'    => $end_time,
-        'interval'    => $interval,
-        'packages'    => $packages,
-        'location_id' => $location_id,
-    );
-}
-//====================================
 // END - LẤY CẤU HÌNH TỪ ACF (THEO ĐỊA CHỈ)
 //====================================
 
