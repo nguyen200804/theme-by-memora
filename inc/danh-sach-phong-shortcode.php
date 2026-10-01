@@ -667,24 +667,28 @@ function memora_danh_sach_phong_shortcode( $atts ) {
     position: relative;
         }
 
-        /* Badge "Special Room" pastel siêu xinh */
-        #<?php echo esc_attr( $uid ); ?> .memora-dsp-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.385em;
-            background: linear-gradient(135deg, #eaf4fb 0%, #edf6fc 100%);
-            border: 1px solid #c7e3f5;
-            color: #3f88b5;
-            padding: 0.385em 1.154em;
-            border-radius: 9999px;
-            font-size: 3.25em;
-            font-weight: 700;
-            margin-bottom: 0.923em;
-            box-shadow: 0 2px 8px rgba(63, 136, 181, 0.12);
+        /* Badge "Special Room" — overlay ảnh PNG lên slider */
+        #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-slider-wrap {
+            position: relative;
         }
-        #<?php echo esc_attr( $uid ); ?> .memora-dsp-badge-star {
-            font-size: 2.75em;
-            color: #559ec7;
+        #<?php echo esc_attr( $uid ); ?> .memora-dsp-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            z-index: 10;
+            display: block;
+            line-height: 0;
+            margin: 0;
+            padding: 0;
+            background: none;
+            border: none;
+            box-shadow: none;
+        }
+        #<?php echo esc_attr( $uid ); ?> .memora-dsp-badge img {
+            width: auto;
+            height: auto;
+            max-width: 120px;
+            display: block;
         }
 
         /* Tiêu đề phòng lớn */
