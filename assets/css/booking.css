@@ -129,7 +129,7 @@
 
 .memora-time-slots-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(9em, 1fr));
+    grid-template-columns: repeat(5, 1fr);
     gap: 7.5em;
     margin-top: 3em;
     max-height: 181.25em;
@@ -144,14 +144,18 @@
     background: #bad6ed;
     border: 0.077em solid var(--memora-brown);
     border-radius: 0.481em;
-    padding: 0.115em 0.269em;
+    padding: 0.115em 0;
     font-family: 'Montserrat';
     font-size: 13em;
     text-wrap: wrap;
+    text-align: center;
     font-weight: 400;
     color: var(--memora-brown);
     cursor: pointer;
     transition: all 0.2s ease;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
     aspect-ratio: 1;
 }
 
