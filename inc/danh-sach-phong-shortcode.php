@@ -21,15 +21,16 @@ add_shortcode( 'danh_sach_phong', 'memora_danh_sach_phong_shortcode' );
 function memora_danh_sach_phong_shortcode( $atts ) {
 
     $atts = shortcode_atts( [
-        'post_id'     => '',      // Không còn dùng để đọc ACF, chỉ dự phòng fallback
-        'term_slug'   => '',      // Slug term tường minh: term_slug="ha-noi"
-        'taxonomy'    => 'dia-chi',
-        'layout'      => 'auto',  // auto | grid | list
-        'button_text' => 'Tìm hiểu thêm',
-        'speed'       => 600,
-        'autoplay'    => 4000,
-        'orderby'     => 'menu_order', // menu_order | title | date
-        'order'       => 'ASC',
+        'post_id'          => '',      // Không còn dùng để đọc ACF, chỉ dự phòng fallback
+        'term_slug'        => '',      // Slug term tường minh: term_slug="ha-noi"
+        'taxonomy'         => 'dia-chi',
+        'layout'           => 'auto',  // auto | grid | list
+        'button_text'      => 'Tìm hiểu thêm',
+        'speed'            => 600,
+        'autoplay'         => 4000,
+        'orderby'          => 'menu_order', // menu_order | title | date
+        'order'            => 'ASC',
+        'booking_room_url' => '',      // URL đặt lịch dùng chung cho tất cả phòng
     ], $atts, 'danh_sach_phong' );
 
     // Enqueue Swiper assets
@@ -157,9 +158,9 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         $index++;
         $title = get_the_title( $r_id );
 
-        // Ưu tiên booking_room_url từ ACF, fallback về permalink bài viết
-        $booking_url = '';
-        if ( function_exists( 'get_field' ) ) {
+        // Ưu tiên: 1) booking_room_url từ shortcode attr, 2) ACF field từng phòng, 3) permalink
+        $booking_url = ! empty( $atts['booking_room_url'] ) ? $atts['booking_room_url'] : '';
+        if ( empty( $booking_url ) && function_exists( 'get_field' ) ) {
             $booking_url = get_field( 'booking_room_url', $r_id )
                         ?: get_field( 'booking_url', $r_id )
                         ?: get_field( 'dat_lich_url', $r_id )
