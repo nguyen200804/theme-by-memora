@@ -743,7 +743,6 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             min-width: 0;
             max-width: 100%;
             border-radius: 0;
-            overflow: hidden;
             background-color: #f7f3ef;
             box-shadow: 0 4px 18px rgba(115, 62, 28, 0.08);
             position: relative;
