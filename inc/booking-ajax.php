@@ -185,29 +185,46 @@ function memora_ajax_submit_booking() {
         update_post_meta( $booking_id, '_booking_dia_chi_name', $dia_chi_name );
     }
 
-    // --- Tạo WooCommerce Order để hiển thị VietQR ---
-    $wc_order_url = '';
-    if ( class_exists( 'WooCommerce' ) && function_exists( 'wc_create_order' ) ) {
-        $wc_order_data = memora_create_wc_order_for_booking( $booking_id, array(
-            'name'        => $name,
-            'phone'       => $phone,
-            'pkg_name'    => $pkg_name,
-            'total_price' => $deposit_price > 0 ? $deposit_price : $total_price,
-            'date'        => $date,
-            'time'        => $time,
-            'code'        => $code,
-        ) );
-        if ( ! empty( $wc_order_data['order_url'] ) ) {
-            $wc_order_url = $wc_order_data['order_url'];
-            // Lưu WC order ID vào booking meta để tra cứu sau
-            update_post_meta( $booking_id, '_wc_order_id', $wc_order_data['order_id'] );
+    // --- Lưu vào WC Session + Thêm vào WC Cart → redirect sang WC Checkout native ---
+    $wc_order_url  = '';
+    $thankyou_html = '';
+
+    if ( class_exists( 'WooCommerce' ) && function_exists( 'WC' ) && WC()->session ) {
+        // Đảm bảo có session
+        if ( ! WC()->session->has_session() ) {
+            WC()->session->set_customer_session_cookie( true );
         }
+
+        // Lưu thông tin booking vào WC session
+        WC()->session->set( 'memora_booking_pending_id',   $booking_id );
+        WC()->session->set( 'memora_booking_pending_code', $code );
+        WC()->session->set( 'memora_booking_pending_data', array(
+            'name'          => $name,
+            'phone'         => $phone,
+            'ig'            => $contact_other,
+            'date'          => $date,
+            'time'          => $time,
+            'pkg_name'      => $pkg_name,
+            'total_price'   => $total_price,
+            'deposit_price' => $deposit_price,
+        ) );
+
+        // Xóa cart cũ và thêm sản phẩm ảo đặt lịch
+        if ( function_exists( 'memora_get_or_create_booking_product' ) ) {
+            $product_id = memora_get_or_create_booking_product();
+            if ( $product_id ) {
+                WC()->cart->empty_cart();
+                WC()->cart->add_to_cart( $product_id, 1, 0, array(), array( 'memora_booking_id' => $booking_id ) );
+            }
+        }
+
+        $wc_order_url = function_exists( 'wc_get_checkout_url' ) ? wc_get_checkout_url() : '';
     }
 
-    // Tạo sẵn mã HTML giao diện Thank You từ PHP dùng chung
-    $thankyou_html = ( empty( $wc_order_url ) && function_exists( 'memora_render_thankyou_html' ) )
-        ? memora_render_thankyou_html( $code )
-        : '';
+    // Fallback: hiển thị Thank You HTML nếu không có WooCommerce
+    if ( empty( $wc_order_url ) && function_exists( 'memora_render_thankyou_html' ) ) {
+        $thankyou_html = memora_render_thankyou_html( $code );
+    }
 
     // Trả về dữ liệu thành công
     wp_send_json_success( array(
