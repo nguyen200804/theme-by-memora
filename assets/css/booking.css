@@ -148,6 +148,13 @@
     width: 8px;
 }
 
+/* Ẩn mũi tên đầu/cuối scrollbar */
+.memora-time-slots-grid::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
+}
+
 .memora-time-slots-grid::-webkit-scrollbar-track {
     background: #bad6ec;
     border-radius: 99px;
