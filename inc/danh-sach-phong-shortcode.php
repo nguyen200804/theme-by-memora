@@ -30,7 +30,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         'layout'           => 'auto',  // auto | grid | list
         'button_text'      => 'Tìm hiểu thêm',
         'speed'            => 600,
-        'autoplay'         => 4000,
+        'autoplay'         => 0,
         'orderby'          => 'menu_order', // menu_order | title | date
         'order'            => 'ASC',
         'booking_room_url' => '',      // URL đặt lịch dùng chung cho tất cả phòng

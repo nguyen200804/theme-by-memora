@@ -165,7 +165,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
         'ids'             => '',
         'placeholder'     => '', // Text hiển thị khi không có ảnh, VD: placeholder="Chưa có ảnh bảng giá"
         'speed'           => 600,
-        'autoplay'        => 4000,
+        'autoplay'        => 0,
         'loop'            => 'true',
         'effect'          => 'slide',
         'slides_per_view' => 1,

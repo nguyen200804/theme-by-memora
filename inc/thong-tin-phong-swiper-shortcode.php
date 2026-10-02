@@ -30,7 +30,7 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
         'post_id'      => '',
         'repeater'     => 'cac_hinh_anh_phong_chup',
         'speed'        => 600,
-        'autoplay'     => 4000,
+        'autoplay'     => 0,
         'loop'         => 'true',
         'effect'       => 'slide',
     ], $atts, 'thong_tin_phong_swiper' );

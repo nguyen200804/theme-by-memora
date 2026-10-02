@@ -89,7 +89,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         'post_id'  => '',
         'term_id'  => '',   // term_id="123" → dùng khi Loop Grid chạy mode Post Taxonomy
         'current'  => '',   // current="1" → tự dùng get_the_ID() (cho Elementor Loop Item)
-        'autoplay' => 4000,
+        'autoplay' => 0,
         'speed'    => 600,
     ], $atts, 'dia_chi_noi_bat' );
 
@@ -420,47 +420,44 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         }
 
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-brand-label {
-                font-family: "Anastasia Script", Sans-serif;
-                font-size: 1.25rem;
-                font-weight: 500;
-                color: #733e1c;
-                text-align: center;
-                line-height: 0.9;
+                    font-family: "Pinyon Script", Sans-serif;
+    font-size: 1.2em;
+    font-weight: 600;
+    color: #733e1c;
+    text-align: center;
+    line-height: 1em;
         }
-        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-brand-label em {
-            font-style: italic;
-            font-size: 1.05rem;
-        }
+       
 
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-map {
-            width: 130px;
-            height: 130px;
-            flex: 0 0 130px;
-            border-radius: 8px;
-            overflow: hidden;
+                width: 115px;
+    height: 130px;
+    flex: 0 0 130px;
+    /* border-radius: 8px; */
+    overflow: hidden;
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-map iframe {
-            width: 130px;
-            height: 130px;
+            width: 115px;
+    height: 130px;
             border: 0;
             display: block;
         }
 
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-book-btn {
-            display: inline-block;
-            font-family: "Cocomat Pro", Sans-serif;
-            font-size: 12px;
-            font-weight: 600;
-            color: #733E1C;
-            border-style: solid;
-            border-width: 1px;
-            border-color: #733E1C;
-            border-radius: 151px;
-            padding: 0.5em 1em 0.7em 1em;
-            text-decoration: none;
-            text-align: center;
-            line-height: 1.3;
-            transition: background 0.2s ease, color 0.2s ease;
+                display: inline-block;
+    font-family: "Cocomat Pro", Sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #733E1C;
+    border-style: solid;
+    border-width: 2px;
+    border-color: #733E1C;
+    border-radius: 151px;
+    padding: 0.1em 0.5em 0.3em 0.5em;
+    text-decoration: none;
+    text-align: center;
+    line-height: 1.3;
+    transition: background 0.2s ease, color 0.2s ease;
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-book-btn:hover {
             background: #733E1C;
