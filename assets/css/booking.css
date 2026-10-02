@@ -136,12 +136,13 @@
     overflow-x: hidden;
     overflow-y: auto;
     padding: 1em;
+    padding-right: 18px;
     width: 100%;
     box-sizing: border-box;
+    direction: ltr;
     /* Firefox */
     scrollbar-color: #693d21 #bad6ec;
     scrollbar-width: thin;
-    padding-right: 18px;
 }
 
 /* Custom scrollbar – Webkit (Chrome, Safari, Edge) */
