@@ -583,13 +583,14 @@ function memora_gallery_swiper_shortcode( $atts ) {
                 <?php echo $slides_html; ?>
             </div>
 
-            <!-- Navigation arrows -->
+            <?php /* TẠM ẨN: Navigation arrows
             <div class="swiper-button-prev" title="Slide trước">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </div>
             <div class="swiper-button-next" title="Slide tiếp theo">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </div>
+            */ ?>
 
             <!-- Star pagination -->
             <div class="swiper-pagination memora-star-pagination" id="<?php echo esc_attr( $uid ); ?>-pagination"></div>
@@ -753,10 +754,10 @@ function memora_gallery_swiper_shortcode( $atts ) {
                     el       : '#' + SWIPER_ID + '-pagination',
                     clickable: true,
                 },
-                navigation: {
+                /* TẠM ẨN: navigation: {
                     prevEl: '#' + SWIPER_ID + ' .swiper-button-prev, #' + SWIPER_ID + '-wrap .swiper-button-prev',
                     nextEl: '#' + SWIPER_ID + ' .swiper-button-next, #' + SWIPER_ID + '-wrap .swiper-button-next',
-                },
+                }, */
                 a11y: {
                     prevSlideMessage: 'Slide trước',
                     nextSlideMessage: 'Slide tiếp theo',
