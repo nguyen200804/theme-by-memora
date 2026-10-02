@@ -17,7 +17,7 @@
  *   post_id         – ID bài viết để lấy ACF field (mặc định: post hiện tại)
  *   ids             – Danh sách attachment ID cách nhau bởi dấu phẩy
  *   speed           – Tốc độ chuyển slide (ms), mặc định 600
- *   autoplay        – Thời gian tự động chuyển (ms), mặc định 4000 (0 = tắt)
+ *   speed           – Tốc độ chuyển slide (ms), mặc định 600
  *   loop            – true/false, mặc định true
  *   effect          – slide | fade | cube | coverflow | flip, mặc định "slide"
  *   slides_per_view – Số slide hiển thị cùng lúc, mặc định 1
@@ -165,7 +165,6 @@ function memora_gallery_swiper_shortcode( $atts ) {
         'ids'             => '',
         'placeholder'     => '', // Text hiển thị khi không có ảnh, VD: placeholder="Chưa có ảnh bảng giá"
         'speed'           => 600,
-        'autoplay'        => 0,
         'loop'            => 'true',
         'effect'          => 'slide',
         'slides_per_view' => 1,
@@ -563,13 +562,8 @@ function memora_gallery_swiper_shortcode( $atts ) {
     /* -- Tham số JS -- */
     $loop     = ( $atts['loop'] === 'false' || $atts['loop'] === '0' || $total_slides < 2 ) ? 'false' : 'true';
     $speed    = (int) $atts['speed'];
-    $autoplay = (int) $atts['autoplay'];
     $effect   = esc_js( $atts['effect'] );
     $spv      = (float) $atts['slides_per_view'];
-
-    $autoplay_js = $autoplay > 0
-        ? "autoplay: { delay: {$autoplay}, disableOnInteraction: false },"
-        : '';
 
     /* -- SVG ngôi sao encode cho CSS mask -- */
     $star_mask = "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m19.555 23.411-6.664-3.285a1.26 1.26 0 0 0-1.202.045l.006-.003-6.416 3.75a.61.61 0 0 1-.902-.626v.003l.994-7.542q.01-.075.011-.162c0-.364-.155-.691-.403-.92l-.001-.001-4.571-4.247a1.265 1.265 0 0 1 .648-2.17l.007-.001 5.987-1.108c.421-.078.765-.355.935-.727l.003-.008L10.478.746a1.272 1.272 0 0 1 2.271-.087l.003.007 2.881 5.471c.197.365.558.62.981.666h.006l6.045.681a1.265 1.265 0 0 1 .811 2.119l.001-.001-4.27 4.562a1.25 1.25 0 0 0-.315 1.116l-.001-.008 1.52 7.453q.014.061.015.134a.61.61 0 0 1-.875.549z'/%3E%3C/svg%3E\") no-repeat center / contain";
@@ -749,7 +743,6 @@ function memora_gallery_swiper_shortcode( $atts ) {
                 resizeObserver: true,
                 watchOverflow: true,
                 grabCursor   : true,
-                <?php echo $autoplay_js; ?>
                 pagination: {
                     el       : '#' + SWIPER_ID + '-pagination',
                     clickable: true,

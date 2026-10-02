@@ -17,7 +17,7 @@
  *   [thong_tin_phong_swiper]
  *   [thong_tin_phong_swiper post_id="42"]
  *   [thong_tin_phong_swiper aspect_ratio="1/1"]
- *   [thong_tin_phong_swiper autoplay="4000" speed="600"]
+ *   [thong_tin_phong_swiper speed="600"]
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -30,7 +30,6 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
         'post_id'      => '',
         'repeater'     => 'cac_hinh_anh_phong_chup',
         'speed'        => 600,
-        'autoplay'     => 0,
         'loop'         => 'true',
         'effect'       => 'slide',
     ], $atts, 'thong_tin_phong_swiper' );
@@ -213,7 +212,6 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
 
 
     $loop_val = ( $atts['loop'] === 'false' || $atts['loop'] === '0' || $total_slides < 2 ) ? 'false' : 'true';
-    $autoplay_speed = (int) $atts['autoplay'];
     $trans_speed    = (int) $atts['speed'];
 
     ob_start();
@@ -517,13 +515,6 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
                 speed    : <?php echo $trans_speed; ?>,
                 loop     : <?php echo $loop_val; ?>,
                 effect   : '<?php echo esc_js( $atts['effect'] ); ?>',
-                <?php if ( $autoplay_speed > 0 ) : ?>
-                autoplay : {
-                    delay: <?php echo $autoplay_speed; ?>,
-                    disableOnInteraction: false,
-                    pauseOnMouseEnter: true,
-                },
-                <?php endif; ?>
                 pagination: {
                     el       : '#' + SWIPER_ID + '-pagination',
                     clickable: true,

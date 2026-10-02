@@ -89,7 +89,6 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         'post_id'  => '',
         'term_id'  => '',   // term_id="123" → dùng khi Loop Grid chạy mode Post Taxonomy
         'current'  => '',   // current="1" → tự dùng get_the_ID() (cho Elementor Loop Item)
-        'autoplay' => 0,
         'speed'    => 600,
     ], $atts, 'dia_chi_noi_bat' );
 
@@ -349,7 +348,6 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         'acf_gallery' => 'cac-hinh-anh-cua-dia-chi',
         'post_id'     => $swiper_post_id,
         'ids'         => implode( ',', $slide_ids ),
-        'autoplay'    => $atts['autoplay'],
         'speed'       => $atts['speed'],
         'loop'        => $loop_val,
         'effect'      => 'slide',

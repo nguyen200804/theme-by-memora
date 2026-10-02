@@ -30,7 +30,6 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         'layout'           => 'auto',  // auto | grid | list
         'button_text'      => 'Tìm hiểu thêm',
         'speed'            => 600,
-        'autoplay'         => 0,
         'orderby'          => 'menu_order', // menu_order | title | date
         'order'            => 'ASC',
         'booking_room_url' => '',      // URL đặt lịch dùng chung cho tất cả phòng
@@ -925,11 +924,6 @@ function memora_danh_sach_phong_shortcode( $atts ) {
                 new Swiper(sliderEl, {
                     speed: <?php echo (int) $atts['speed']; ?>,
                     loop: shouldLoop,
-                    autoplay: {
-                        delay: <?php echo (int) $atts['autoplay']; ?>,
-                        disableOnInteraction: false,
-                        pauseOnMouseEnter: true,
-                    },
                     pagination: paginationEl ? {
                         el: paginationEl,
                         clickable: true,
