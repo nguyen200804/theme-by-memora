@@ -646,18 +646,35 @@ function memora_gallery_swiper_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination {
             bottom: 14px;
             z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         /* Ẩn background tròn mặc định của Swiper bullet */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet {
-            width: 20px;
-            height: 20px;
+            width: 14px;
+            height: 14px;
             background: transparent !important;
             opacity: 1;
             margin: 0 4px;
             border-radius: 0;
             position: relative;
             cursor: pointer;
+            transition: width 0.25s ease, height 0.25s ease;
+        }
+
+        /* Bullet kề bên active (trước và sau) */
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active + .swiper-pagination-bullet,
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet:has(+ .swiper-pagination-bullet-active) {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Bullet active */
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active {
+            width: 18px;
+            height: 18px;
         }
 
         /* Hiển thị ngôi sao qua CSS mask */
@@ -668,13 +685,12 @@ function memora_gallery_swiper_shortcode( $atts ) {
             background-color: rgba(115, 62, 28, 0.35);
             -webkit-mask: <?php echo $star_mask; ?>;
                     mask: <?php echo $star_mask; ?>;
-            transition: background-color 0.25s ease, transform 0.25s ease;
+            transition: background-color 0.25s ease;
         }
 
         /* Bullet đang active */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active::after {
             background-color: #733e1c;
-            transform: scale(1.3);
         }
     </style>
 

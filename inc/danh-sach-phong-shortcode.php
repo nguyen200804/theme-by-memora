@@ -859,14 +859,28 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet {
-            width: 18px;
-            height: 18px;
+            width: 14px;
+            height: 14px;
             background: transparent !important;
             opacity: 1;
             margin: 0 3px;
             border-radius: 0;
             position: relative;
             cursor: pointer;
+            transition: width 0.25s ease, height 0.25s ease;
+        }
+
+        /* Bullet kề bên active (trước và sau) */
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active + .swiper-pagination-bullet,
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet:has(+ .swiper-pagination-bullet-active) {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Bullet active */
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active {
+            width: 18px;
+            height: 18px;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet::after {
@@ -876,12 +890,11 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             background-color: rgba(115, 62, 28, 0.45);
             -webkit-mask: <?php echo $star_mask; ?>;
                     mask: <?php echo $star_mask; ?>;
-            transition: background-color 0.25s ease, transform 0.25s ease;
+            transition: background-color 0.25s ease;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active::after {
             background-color: #733e1c;
-            transform: scale(1.3);
         }
 
 
