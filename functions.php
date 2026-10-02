@@ -165,10 +165,14 @@ function memora_force_elementor_custom_fonts() {
 
 
 
-// Force desktop layout: inject JS viewport using window.innerWidth.
-// - window.screen.width = host monitor size (wrong in DevTools, right on real phones)
-// - window.innerWidth   = emulated viewport size (correct in BOTH DevTools AND real phones)
-// When viewport < 600px → force width=600 (desktop layout). Otherwise → normal device-width.
+// Force desktop layout on narrow viewports (mobile, DevTools).
+// Strategy: two layers of enforcement
+//   1. <meta viewport width=600>  → tells the browser to use a 600px layout viewport
+//      (browser scales the 600px content down to fit narrower physical screens)
+//   2. CSS min-width:600px on <html> → in case the browser ignores/overrides the meta,
+//      the CSS forces a minimum 600px render width and the user can scroll horizontally.
+// JS-based detection (innerWidth / screen.width) is unreliable in <head> because the
+// browser's layout viewport is not yet fully initialised when the script runs.
 function tocfl_force_desktop_viewport( $html ) {
     if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
         return $html;
@@ -180,21 +184,18 @@ function tocfl_force_desktop_viewport( $html ) {
     // Remove all existing viewport meta tags to avoid duplicates or overrides
     $html = preg_replace( '/<meta\s+name=["\']viewport["\'][^>]*>/i', '', $html );
 
-    // JS reads window.innerWidth which DevTools emulates correctly (unlike screen.width).
-    // Runs synchronously in <head> before any layout happens.
-    $viewport_script = '
-<script>
-(function(){
-    var w = window.innerWidth || document.documentElement.clientWidth || 9999;
-    var c = (w < 600) ? "width=600" : "width=device-width, initial-scale=1.0";
-    document.write(\'<meta name="viewport" content="\' + c + \'">\');
-})();
-</script>';
+    // Layer 1: static viewport meta — width=600 makes narrow browsers scale content to fit
+    $viewport_meta = '<meta name="viewport" content="width=600">';
+
+    // Layer 2: CSS min-width as a safety net
+    $min_width_css  = '<style id="memora-force-desktop">html,body{min-width:600px;}</style>';
+
+    $inject = $viewport_meta . $min_width_css;
 
     if ( stripos( $html, '<head>' ) !== false ) {
-        $html = str_ireplace( '<head>', '<head>' . $viewport_script, $html );
+        $html = str_ireplace( '<head>', '<head>' . $inject, $html );
     } elseif ( stripos( $html, '<head' ) !== false ) {
-        $html = preg_replace( '/(<head[^>]*>)/i', '$1' . $viewport_script, $html, 1 );
+        $html = preg_replace( '/(<head[^>]*>)/i', '$1' . $inject, $html, 1 );
     }
     return $html;
 }
