@@ -592,7 +592,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
             </div>
 
             <!-- Star pagination -->
-            <div class="swiper-pagination memora-star-pagination" id="<?php echo esc_attr( $uid ); ?>-pagination"></div>
+            <div class="swiper-pagination memora-star-pagination swiper-button-prev swiper-button-next" id="<?php echo esc_attr( $uid ); ?>-pagination"></div>
         </div>
 
     </div>

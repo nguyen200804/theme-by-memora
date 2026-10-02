@@ -249,7 +249,7 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
                 </div>
 
                 <!-- Pagination hình ngôi sao màu nâu #733e1c -->
-                <div class="swiper-pagination memora-star-pagination" id="<?php echo esc_attr( $uid ); ?>-pagination"></div>
+                <div class="swiper-pagination memora-star-pagination swiper-button-prev swiper-button-next" id="<?php echo esc_attr( $uid ); ?>-pagination"></div>
                 <?php endif; ?>
             </div>
         </div>

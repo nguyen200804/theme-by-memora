@@ -484,7 +484,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
                             <?php endif; ?>
                         </div>
                         <?php if ( count( $c_room['images'] ) > 1 ) : ?>
-                        <div class="swiper-pagination memora-star-pagination"></div>
+                        <div class="swiper-pagination memora-star-pagination swiper-button-prev swiper-button-next"></div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -555,7 +555,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
                             <?php endif; ?>
                         </div>
                         <?php if ( count( $w_room['images'] ) > 1 ) : ?>
-                        <div class="swiper-pagination memora-star-pagination"></div>
+                        <div class="swiper-pagination memora-star-pagination swiper-button-prev swiper-button-next"></div>
                         <?php endif; ?>
                     </div>
                 </div>
