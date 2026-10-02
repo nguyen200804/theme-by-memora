@@ -657,7 +657,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
             height: 16px;
             background: transparent !important;
             opacity: 1;
-            margin: 0 4px;
+            margin: 0 2px;
             border-radius: 0;
             position: relative;
             cursor: pointer;
