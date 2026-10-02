@@ -311,123 +311,26 @@ function memora_marquee_enqueue_assets() {
         null
     );
 
-    $css = '
-    .memora-marquee-wrap {
-        overflow: hidden;
-        width: 100%;
-        position: relative;
-        padding: 14px 0;
-        box-sizing: border-box;
-        line-height: normal;
-        font-family: inherit;
-    }
-    .memora-marquee-track {
-        display: flex;
-        align-items: center;
-        width: max-content;
-        will-change: transform;
-        user-select: none;
-    }
-    .memora-marquee-content {
-        display: flex;
-        align-items: center;
-        gap: var(--marquee-gap, 40px);
-        padding-right: var(--marquee-gap, 40px);
-        flex-shrink: 0;
-        animation: memora-scroll-left var(--marquee-speed, 25s) linear infinite;
-    }
-    .memora-marquee-wrap.direction-right .memora-marquee-content {
-        animation-name: memora-scroll-right;
-    }
-    .memora-marquee-wrap.has-pause-hover:hover .memora-marquee-content {
-        animation-play-state: paused;
-    }
-    .memora-marquee-item {
-        display: inline-flex;
-        align-items: center;
-        flex-shrink: 0;
-        white-space: nowrap;
-    }
-    .memora-marquee-link {
-        display: inline-flex;
-        align-items: center;
-        text-decoration: none;
-        color: inherit;
-        transition: opacity 0.2s ease, transform 0.2s ease;
-    }
-    .memora-marquee-link:hover {
-        opacity: 0.8;
-    }
-    .memora-marquee-img {
-        height: var(--marquee-img-height, 44px);
-        max-height: var(--marquee-img-height, 44px);
-        width: auto;
-        object-fit: contain;
-        display: block;
-        vertical-align: middle;
-    }
-    .memora-marquee-text {
-        font-weight: 500;
-        white-space: nowrap;
-        font-size: var(--marquee-font-size, 1rem);
-        line-height: 1.5;
-        letter-spacing: 0.02em;
-        font-family: inherit;
-    }
-    @keyframes memora-scroll-left {
-        from { transform: translateX(0); }
-        to { transform: translateX(-100%); }
-    }
-    @keyframes memora-scroll-right {
-        from { transform: translateX(-100%); }
-        to { transform: translateX(0); }
-    }';
+    // CSS Marquee (External file)
+    wp_enqueue_style(
+        'memora-marquee-style',
+        get_stylesheet_directory_uri() . '/assets/css/marquee.css',
+        array(),
+        '1.0.0'
+    );
 
-    wp_register_style( 'memora-marquee-style', false );
-    wp_enqueue_style( 'memora-marquee-style' );
-    wp_add_inline_style( 'memora-marquee-style', $css );
-
-    // Script hỗ trợ tự động clone nếu màn hình quá rộng (màn hình 2K, 4K)
-    $js = "
-    (function() {
-        function checkAndFillMarquees() {
-            var marquees = document.querySelectorAll('.memora-marquee-wrap');
-            marquees.forEach(function(wrap) {
-                var contents = wrap.querySelectorAll('.memora-marquee-content');
-                if (contents.length < 2) return;
-                var content1 = contents[0];
-                var content2 = contents[1];
-                var wrapWidth = wrap.clientWidth || window.innerWidth;
-                if (wrapWidth > 0 && content1.offsetWidth < wrapWidth * 1.2) {
-                    var times = Math.ceil((wrapWidth * 1.5) / (content1.offsetWidth || 1));
-                    if (times > 1) {
-                        var originalItems = Array.from(content1.children);
-                        for (var i = 1; i < times; i++) {
-                            originalItems.forEach(function(item) {
-                                content1.appendChild(item.cloneNode(true));
-                                content2.appendChild(item.cloneNode(true));
-                            });
-                        }
-                    }
-                }
-            });
-        }
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', checkAndFillMarquees);
-        } else {
-            checkAndFillMarquees();
-        }
-        window.addEventListener('resize', checkAndFillMarquees);
-    })();
-    ";
-    wp_register_script( 'memora-marquee-script', '', array(), false, true );
-    wp_enqueue_script( 'memora-marquee-script' );
-    wp_add_inline_script( 'memora-marquee-script', $js );
+    // Script hỗ trợ tự động clone nếu màn hình quá rộng (External file)
+    wp_enqueue_script(
+        'memora-marquee-script',
+        get_stylesheet_directory_uri() . '/assets/js/marquee.js',
+        array(),
+        '1.0.0',
+        true
+    );
 }
 //====================================
 // END - ENQUEUE CSS VÀ JS MARQUEE
 //====================================
-
 
 
 

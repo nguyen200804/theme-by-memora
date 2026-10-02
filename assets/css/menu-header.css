@@ -1,0 +1,330 @@
+/* =============================================================
+ * Memora Menu Header — External Stylesheet
+ * Component:  [menu__header] shortcode drilldown navigation
+ * Handle:     memora-menu-header-style
+ * Enqueued:   menu-header.php → memora_menu_header_scripts_styles()
+ * ============================================================= */
+
+:root {
+    --memora-menu-font-base: 18px;
+    --memora-menu-color-text: #733e1c;
+    --memora-menu-color-border: #cddce8;
+    --memora-menu-color-divider: #dfb0bf;
+    --memora-menu-bg: rgba(255, 255, 255, 0.85);
+}
+
+/* Container: Định vị relative để card menu con bám chính xác mép phải và trên của nút 3 gạch */
+.memora-menu-header-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    line-height: 1;
+    z-index: 9999;
+}
+.memora-menu-header-container.is-active {
+    z-index: 999999;
+}
+
+/* Reset triệt để background cho tất cả button và thẻ a */
+.memora-menu-header-container button,
+.memora-menu-header-container a,
+.memora-menu-modal-wrapper button,
+.memora-menu-modal-wrapper a {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+.memora-menu-header-container button:hover,
+.memora-menu-header-container a:hover,
+.memora-menu-modal-wrapper button:hover,
+.memora-menu-modal-wrapper a:hover {
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Nút 3 gạch ngang (Hamburger Button) */
+.memora-menu-hamburger {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 28px;
+    height: 19px;
+    padding: 0;
+    margin: 0;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+    user-select: none;
+}
+.memora-menu-hamburger:hover {
+    opacity: 0.75;
+    transform: scale(1.06);
+    background: transparent !important;
+    background-color: transparent !important;
+}
+.memora-menu-hamburger.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+.memora-menu-hamburger-line {
+    display: block;
+    width: 100%;
+    height: 2.5px;
+    background-color: var(--memora-menu-color-text, #733e1c);
+    border-radius: 2px;
+    transition: all 0.25s ease;
+}
+
+/* Modal Backdrop (Phủ toàn màn hình để bắt click ra ngoài) */
+.memora-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.08);
+    z-index: 999998;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+    pointer-events: none;
+}
+.memora-menu-backdrop.is-active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* Wrapper thẻ Menu Card kính mờ: Khớp chuẩn xác top: 0, right: 0 theo nút 3 gạch */
+.memora-menu-modal-wrapper {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1000000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px) scale(0.98);
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
+    pointer-events: none;
+}
+.memora-menu-modal-wrapper.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+/* Inline mode */
+.memora-menu-modal-wrapper.is-inline {
+    position: relative;
+    top: auto;
+    right: auto;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    pointer-events: auto;
+    display: inline-block;
+}
+
+/* Main Menu Card */
+.memora-menu-card {
+    font-size: var(--memora-menu-font-base);
+    font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif;
+    width: 16.5em;
+    max-width: calc(100vw - 24px);
+    background: var(--memora-menu-bg);
+    border: 0.08em solid var(--memora-menu-color-border);
+    border-radius: 1.1em;
+    box-shadow: 0 0.8em 2.2em rgba(60, 80, 110, 0.14), 0 0.2em 0.6em rgba(0, 0, 0, 0.04);
+    padding: 0.9em 0 1.2em 0;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    color: var(--memora-menu-color-text);
+    user-select: none;
+}
+
+/* Header Bar (Nút đóng X) */
+.memora-menu-topbar {
+    position: relative;
+    height: 1.6em;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 1.1em;
+    box-sizing: border-box;
+}
+
+.memora-menu-close-btn {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none;
+    outline: none;
+    color: var(--memora-menu-color-text);
+    font-size: 1.15em;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.1em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.22s ease, opacity 0.22s ease;
+    opacity: 0.88;
+}
+.memora-menu-close-btn:hover {
+    opacity: 1;
+    transform: rotate(90deg) scale(1.1);
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* Pink Dividers */
+.memora-menu-divider {
+    height: 0.1em;
+    background-color: var(--memora-menu-color-divider);
+    border-radius: 0.05em;
+    margin: 0.35em 1.1em;
+    box-sizing: border-box;
+}
+.memora-menu-divider--top {
+    margin-top: 0.2em;
+    margin-bottom: 0.4em;
+}
+.memora-menu-divider--sub {
+    margin-top: 0.3em;
+    margin-bottom: 0.4em;
+}
+
+/* Viewport Panels Container */
+.memora-menu-viewport {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    transition: height 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Individual Panel */
+.memora-menu-panel {
+    width: 100%;
+    box-sizing: border-box;
+    display: none;
+    opacity: 0;
+    transform: translateX(2em);
+    transition: opacity 0.28s cubic-bezier(0.25, 1, 0.5, 1), transform 0.28s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.memora-menu-panel.is-active {
+    display: block;
+    opacity: 1;
+    transform: translateX(0);
+}
+.memora-menu-panel.slide-out-left {
+    opacity: 0;
+    transform: translateX(-2em);
+}
+.memora-menu-panel.slide-out-right {
+    opacity: 0;
+    transform: translateX(2em);
+}
+
+/* Submenu Header (Back Row) */
+.memora-menu-subhead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.35em 1.1em;
+    background: transparent !important;
+    background-color: transparent !important;
+    cursor: pointer;
+    color: var(--memora-menu-color-text);
+    text-decoration: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.memora-menu-subhead:hover {
+    opacity: 0.82;
+    transform: translateX(-0.15em);
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+.memora-menu-back-title {
+    font-size: 1.15em;
+    font-weight: 500;
+    text-align: right;
+    margin-left: auto;
+    letter-spacing: 0.03em;
+}
+
+/* Menu Lists */
+.memora-menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0.3em 0 0.8em 0;
+    box-sizing: border-box;
+}
+
+.memora-menu-item {
+    margin: 0;
+    padding: 0;
+}
+
+/* Menu Item Interactive Element (Link or Drilldown Button) */
+.memora-menu-item-link,
+.memora-menu-item-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none;
+    outline: none;
+    padding: 0.36em 1.1em;
+    box-sizing: border-box;
+    color: var(--memora-menu-color-text);
+    text-decoration: none;
+    font-family: inherit;
+    font-size: 1.12em;
+    font-weight: 400;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    text-align: right;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.memora-menu-item-link:hover,
+.memora-menu-item-btn:hover {
+    opacity: 0.78;
+    transform: translateX(-0.18em);
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* Left Arrow < */
+.memora-menu-arrow {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--memora-menu-color-text);
+    margin-right: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: transform 0.2s ease;
+}
+.memora-menu-item-btn:hover .memora-menu-arrow,
+.memora-menu-subhead:hover .memora-menu-arrow {
+    transform: translateX(-0.15em);
+}
+
+/* Right Label */
+.memora-menu-label {
+    margin-left: auto;
+    text-align: right;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}

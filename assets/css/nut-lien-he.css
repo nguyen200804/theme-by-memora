@@ -1,0 +1,196 @@
+/* =============================================================
+ * Memora Nút Liên Hệ Nổi — External Stylesheet
+ * Component:  Floating Contact Widget
+ * Handle:     memora-contact-button-style
+ * Enqueued:   inc/nut-lien-he.php → memora_contact_button_scripts_styles()
+ * ============================================================= */
+
+/* --- MEMORA FLOATING CONTACT WIDGET --- */
+.memora-contact-widget {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 999999;
+    font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif;
+    user-select: none;
+    -webkit-user-select: none;
+    line-height: 1;
+    box-sizing: border-box;
+}
+
+.memora-contact-widget *,
+.memora-contact-widget *::before,
+.memora-contact-widget *::after {
+    box-sizing: border-box;
+}
+
+.memora-contact-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* Reset button mặc định */
+.memora-contact-widget button {
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+/* 1. Nút "Liên hệ" dạng viên thuốc (Pill Button) */
+.memora-contact-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.3em 1em !important;
+    background-color: #fbf7f4 !important;
+    color: #733e1c !important;
+    font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.2px;
+    border-radius: 9999px !important;
+    box-shadow: 0 4px 20px rgba(115, 62, 28, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
+    transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    white-space: nowrap;
+    text-decoration: none !important;
+}
+
+.memora-contact-pill:hover {
+    background-color: #ffffff !important;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 28px rgba(115, 62, 28, 0.18), 0 3px 8px rgba(0, 0, 0, 0.06);
+}
+
+.memora-contact-pill:active {
+    transform: translateY(-1px) scale(0.99);
+}
+
+/* 2. Nhóm 3 icon mạng xã hội + nút đóng X */
+.memora-contact-socials {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: scale(0.85) translateX(25px);
+    transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    position: absolute;
+    right: 0;
+}
+
+/* Định dạng chung nút tròn (Circle) */
+.memora-contact-circle {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: var(--memora-contact-icon-size, 54px) !important;
+    height: var(--memora-contact-icon-size, 54px) !important;
+    border-radius: 50% !important;
+    background-color: #fbf7f4 !important;
+    color: #733e1c !important;
+    text-decoration: none !important;
+    box-shadow: 0 4px 18px rgba(115, 62, 28, 0.12), 0 2px 5px rgba(0, 0, 0, 0.04);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background-color 0.2s ease;
+    position: relative;
+    flex-shrink: 0;
+    outline: none;
+}
+
+.memora-contact-circle:hover {
+    background-color: #ffffff !important;
+    transform: translateY(-4px) scale(1.08);
+    box-shadow: 0 8px 24px rgba(115, 62, 28, 0.2), 0 3px 8px rgba(0, 0, 0, 0.06);
+}
+
+.memora-contact-circle:active {
+    transform: translateY(-1px) scale(1.02);
+}
+
+/* Ảnh icon mạng xã hội & nút đóng */
+.memora-contact-icon-img {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+    border-radius: 50%;
+}
+
+/* Nút đóng tròn X (kích thước riêng theo cấu hình) */
+.memora-contact-close {
+    width: var(--memora-contact-close-size, 44px) !important;
+    height: var(--memora-contact-close-size, 44px) !important;
+    margin-left: 2px;
+    background-color: #fbf7f4 !important;
+}
+
+.memora-contact-close:hover {
+    background-color: #ffffff !important;
+    transform: translateY(-3px) rotate(90deg) scale(1.1) !important;
+}
+
+/* Gradient glow dưới widget khi mở */
+.memora-contact-container::after {
+    content: "";
+    position: fixed;
+    bottom: 0px;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0.4);
+    width: 100%;
+    height: 100px;
+    background: linear-gradient(to bottom, #fff0, #fff);
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0;
+}
+
+.memora-contact-widget.is-open .memora-contact-container::after {
+    opacity: 1;
+    transform: translateX(-50%) scaleX(1);
+}
+
+/* Trạng thái MỞ (.is-open) */
+.memora-contact-widget.is-open .memora-contact-pill {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: scale(0.7) translateX(20px);
+}
+
+.memora-contact-widget.is-open .memora-contact-socials {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: scale(1) translateX(0);
+    position: relative;
+}
+
+/* Hiệu ứng nảy pop-in từng icon */
+.memora-contact-widget.is-open .memora-contact-circle {
+    animation: memoraContactPopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+.memora-contact-widget.is-open .memora-contact-circle:nth-child(1) { animation-delay: 0.03s; }
+.memora-contact-widget.is-open .memora-contact-circle:nth-child(2) { animation-delay: 0.08s; }
+.memora-contact-widget.is-open .memora-contact-circle:nth-child(3) { animation-delay: 0.13s; }
+.memora-contact-widget.is-open .memora-contact-circle:nth-child(4) { animation-delay: 0.18s; }
+
+@keyframes memoraContactPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.35) translateY(15px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}

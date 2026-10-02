@@ -1,0 +1,88 @@
+/* =============================================================
+ * Memora Marquee — External Stylesheet
+ * Component:  [memora_marquee] / [marquee] shortcode
+ * Handle:     memora-marquee-style
+ * Enqueued:   custom-field-group.php → memora_marquee_enqueue_assets()
+ * ============================================================= */
+
+.memora-marquee-wrap {
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+    padding: 14px 0;
+    box-sizing: border-box;
+    line-height: normal;
+    font-family: inherit;
+}
+
+.memora-marquee-track {
+    display: flex;
+    align-items: center;
+    width: max-content;
+    will-change: transform;
+    user-select: none;
+}
+
+.memora-marquee-content {
+    display: flex;
+    align-items: center;
+    gap: var(--marquee-gap, 40px);
+    padding-right: var(--marquee-gap, 40px);
+    flex-shrink: 0;
+    animation: memora-scroll-left var(--marquee-speed, 25s) linear infinite;
+}
+
+.memora-marquee-wrap.direction-right .memora-marquee-content {
+    animation-name: memora-scroll-right;
+}
+
+.memora-marquee-wrap.has-pause-hover:hover .memora-marquee-content {
+    animation-play-state: paused;
+}
+
+.memora-marquee-item {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.memora-marquee-link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.memora-marquee-link:hover {
+    opacity: 0.8;
+}
+
+.memora-marquee-img {
+    height: var(--marquee-img-height, 44px);
+    max-height: var(--marquee-img-height, 44px);
+    width: auto;
+    object-fit: contain;
+    display: block;
+    vertical-align: middle;
+}
+
+.memora-marquee-text {
+    font-weight: 500;
+    white-space: nowrap;
+    font-size: var(--marquee-font-size, 1rem);
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+    font-family: inherit;
+}
+
+@keyframes memora-scroll-left {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-100%); }
+}
+
+@keyframes memora-scroll-right {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(0); }
+}
