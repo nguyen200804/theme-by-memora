@@ -605,12 +605,12 @@ function memora_danh_sach_phong_shortcode( $atts ) {
            HÀNG TRÊN: LƯỚI 2 CỘT COMPACT CARDS
         ------------------------------------------- */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 28px;
-            margin-bottom: 40px;
-            width: 100%;
-            max-width: 100%;
+                display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+    width: 100%;
+    max-width: 100%;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-card {
@@ -633,7 +633,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster {
             width: 100%;
             max-width: 100%;
-            border-radius: 0;
+            border-radius: 8px;
             overflow: hidden;
             background-color: #f7f3ef;
             position: relative;
@@ -647,9 +647,10 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
         /* Swiper flow tự nhiên theo chiều cao ảnh */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster .swiper {
-            position: relative;
-            width: 100%;
-            overflow: hidden;
+                position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster .swiper-wrapper {
@@ -851,18 +852,18 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         ------------------------------------------- */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination {
             bottom: 12px;
+            z-index: 10;
             display: flex;
             justify-content: center;
-            align-items: center;
-            pointer-events: auto;
+            align-items: flex-end;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet {
-            width: 14px;
-            height: 14px;
+            width: 15px;
+            height: 15px;
             background: transparent !important;
             opacity: 1;
-            margin: 0 3px;
+            margin: 0 2px;
             border-radius: 0;
             position: relative;
             cursor: pointer;
@@ -872,28 +873,35 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         /* Bullet kề bên active (trước và sau) */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active + .swiper-pagination-bullet,
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet:has(+ .swiper-pagination-bullet-active) {
-            width: 16px;
-            height: 16px;
+            width: 18.5px;
+            height: 18.5px;
         }
 
         /* Bullet active */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active {
-            width: 18px;
-            height: 18px;
+            width: 22px;
+            height: 22px;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet::after {
             content: '';
             position: absolute;
             inset: 0;
-            background-color: rgba(115, 62, 28, 0.45);
+            background-color: rgba(115, 62, 28, 0.5);
             -webkit-mask: <?php echo $star_mask; ?>;
                     mask: <?php echo $star_mask; ?>;
             transition: background-color 0.25s ease;
         }
 
+        /* Bullet đang active */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active::after {
-            background-color: #733e1c;
+            background-color: rgba(115, 62, 28, 1);
+        }
+
+        /* Bullet kề bên active (trước và sau) - mờ */
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active + .swiper-pagination-bullet::after,
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet:has(+ .swiper-pagination-bullet-active)::after {
+            background-color: rgba(115, 62, 28, 0.75);
         }
 
 
