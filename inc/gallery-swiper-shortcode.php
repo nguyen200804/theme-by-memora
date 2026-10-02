@@ -682,7 +682,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
             content: '';
             position: absolute;
             inset: 0;
-            background-color: rgba(115, 62, 28, 0.35);
+            background-color: rgba(115, 62, 28, 0.5);
             -webkit-mask: <?php echo $star_mask; ?>;
                     mask: <?php echo $star_mask; ?>;
             transition: background-color 0.25s ease;
@@ -690,7 +690,13 @@ function memora_gallery_swiper_shortcode( $atts ) {
 
         /* Bullet đang active */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active::after {
-            background-color: #733e1c;
+            background-color: rgba(115, 62, 28, 1);
+        }
+
+        /* Bullet kề bên active (trước và sau) - mờ */
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active + .swiper-pagination-bullet::after,
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet:has(+ .swiper-pagination-bullet-active)::after {
+            background-color: rgba(115, 62, 28, 0.75);
         }
     </style>
 
