@@ -589,16 +589,17 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-room-num {
             font-family: "Anastasia Script", cursive, Georgia, serif;
             color: #733e1c;
-            font-size: 6.5em;
+            font-size: 7.4em;
             line-height: 1.1;
-            font-weight: 700;
+            font-weight: 800;
             display: inline-block;
             letter-spacing: 0.5px;
         }
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-room-num--large {
-                font-size: 16em;
-    font-weight: 700;
+                   font-size: 16em;
+    font-weight: 800;
     margin-bottom: -0.05em;
+    margin-left: -12px;
         }
 
         /* -------------------------------------------
@@ -692,7 +693,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-meta .memora-dsp-room-name {
             font-family: "Cocomat Pro", sans-serif;
-            font-size: 4.5em;
+            font-size: 4.1em;
             font-weight: 700;
             color: #733e1c;
         }
@@ -703,7 +704,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-list {
             display: flex;
             flex-direction: column;
-            gap: 36px;
+            gap: 26px;
             width: 100%;
             max-width: 100%;
         }
@@ -764,31 +765,32 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
         /* Đoạn miêu tả concept */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-desc {
-                      margin: 0 0 1.129em 0;
-                    font-family: "Mulish", sans-serif;
-                    font-size: 4.6em;
-                    line-height: 1.4;
-                    color: #7a6a5f;
-                    max-width: 150px;
-                    white-space: wrap;
-                    text-align: center;
+                        margin: 0 0 0.929em 0;
+    font-family: "Mulish", sans-serif;
+    font-size: 4.6em;
+    line-height: 1.4;
+    color: #7a6a5f;
+    max-width: 150px;
+    white-space: wrap;
+    text-align: center;
         }
 
         /* Nút "Tìm hiểu thêm" viên thuốc màu nâu */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-btn-more {
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: center;
-                        background-color: #733e1c;
-                        color: #ffffff !important;
-                        padding: 0.443em 1.314em;
-                        border-radius: 9999px;
-                        font-family: "Cocomat Pro", Sans-serif;
-                        font-size: 4.8em;
-                        font-weight: 600;
-                        text-decoration: none;
-                        box-shadow: 0 4px 12px rgba(115, 62, 28, 0.22);
-                        transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #733e1c;
+            color: #ffffff !important;
+            padding: 0.1em 0.6em 0.4em 0.6em;
+            border: 3px solid #b1d2ed;
+            border-radius: 9999px;
+            font-family: "Cocomat Pro", Sans-serif;
+            font-size: 5.8em;
+            font-weight: 500;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(115, 62, 28, 0.22);
+            transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
         }
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-btn-more:hover {
             background-color: #572e14;
@@ -811,6 +813,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             position: relative;
             width: 100%;
             overflow: hidden;
+            border-radius: 8px;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-slider-wrap .swiper-wrapper {

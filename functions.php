@@ -165,7 +165,9 @@ function memora_force_elementor_custom_fonts() {
 
 
 
-// Force desktop layout on all devices by setting viewport width to 1200px on small screens, and standard viewport on large screens
+// Force desktop layout: inject static viewport width=600 (works on real phones AND DevTools).
+// window.screen.width always returns the HOST monitor size in DevTools, so the old JS trick
+// only worked on real devices. A plain PHP-injected <meta> tag is respected by both.
 function tocfl_force_desktop_viewport( $html ) {
     if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
         return $html;
@@ -176,29 +178,16 @@ function tocfl_force_desktop_viewport( $html ) {
 
     // Remove all existing viewport meta tags to avoid duplicates or overrides
     $html = preg_replace( '/<meta\s+name=["\']viewport["\'][^>]*>/i', '', $html );
-    
-    $target_width = 600;
-    if ( isset( $_SERVER['REQUEST_URI'] ) ) {
-        $path = strtok( $_SERVER['REQUEST_URI'], '?' );
-        if ( preg_match( '#^/paper_download/?$#', $path ) ) {
-            $target_width = 600;
-        }
-    }
-    
-    // Insert the dynamic desktop viewport script right after <head>
-    $dynamic_viewport_script = '
-<script type="text/javascript">
-(function() {
-    var screenWidth = window.screen.width;
-    var content = (screenWidth < ' . $target_width . ') ? "width=' . $target_width . '" : "width=device-width, initial-scale=1.0";
-    document.write(\'<meta name="viewport" content="\' + content + \'">\');
-})();
-</script>
-';
+
+    // Inject a static viewport tag. width=600 forces a "desktop-width" layout on
+    // narrow viewports (mobile, DevTools). Desktop browsers already have a viewport
+    // wider than 600 px so this has no visible effect on them.
+    $viewport_tag = '<meta name="viewport" content="width=600">';
+
     if ( stripos( $html, '<head>' ) !== false ) {
-        $html = str_ireplace( '<head>', '<head>' . $dynamic_viewport_script, $html );
+        $html = str_ireplace( '<head>', '<head>' . $viewport_tag, $html );
     } elseif ( stripos( $html, '<head' ) !== false ) {
-        $html = preg_replace( '/(<head[^>]*>)/i', '$1' . $dynamic_viewport_script, $html, 1 );
+        $html = preg_replace( '/(<head[^>]*>)/i', '$1' . $viewport_tag, $html, 1 );
     }
     return $html;
 }
