@@ -16,3 +16,8 @@ Updated: 2026-09-17 03:12:38
     max-width: 600px !important;
     width: 100%;
 }
+
+
+.swiper-custom {
+    container-type: inline-size;
+}

@@ -412,7 +412,7 @@
 .memora-checkout-wrap {
     text-align: center;
     font-size: 2px;
-    width: 250em;
+    width: 225em;
     margin: 0 auto;
 }
 
@@ -452,6 +452,7 @@
 .memora-input-icon svg {
     width: 20em;
     height: 20em;
+    padding: 2em;
     display: block;
     flex-shrink: 0;
 }

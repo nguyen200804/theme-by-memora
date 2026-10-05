@@ -570,7 +570,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
 
     ob_start();
     ?>
-    <div class="memora-gallery-swiper-wrap" id="<?php echo esc_attr( $uid ); ?>-wrap">
+    <div class="memora-gallery-swiper-wrap swiper-custom" id="<?php echo esc_attr( $uid ); ?>-wrap">
 
         <div class="swiper memora-gallery-swiper" id="<?php echo esc_attr( $uid ); ?>">
             <div class="swiper-wrapper">
@@ -648,8 +648,8 @@ function memora_gallery_swiper_shortcode( $atts ) {
 
         /* Ẩn background tròn mặc định của Swiper bullet */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet {
-            width: 15px;
-            height: 15px;
+            width: 1dvw;
+            height: 1dvw;
             background: transparent !important;
             opacity: 1;
             margin: 0 2px;
@@ -662,14 +662,14 @@ function memora_gallery_swiper_shortcode( $atts ) {
         /* Bullet kề bên active (trước và sau) */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active + .swiper-pagination-bullet,
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet:has(+ .swiper-pagination-bullet-active) {
-            width: 18.5px;
-            height: 18.5px;
+            width: 1.2dvw;
+            height: 1.2dvw;
         }
 
         /* Bullet active */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active {
-            width: 22px;
-            height: 22px;
+            width: 1.4dvw;
+            height: 1.4dvw;
         }
 
         /* Hiển thị ngôi sao qua CSS mask */
