@@ -648,8 +648,8 @@ function memora_gallery_swiper_shortcode( $atts ) {
 
         /* Ẩn background tròn mặc định của Swiper bullet */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet {
-            width: 1dvw;
-            height: 1dvw;
+            width: 2.5cqw;
+            height: 2.5cqw;
             background: transparent !important;
             opacity: 1;
             margin: 0 2px;
@@ -662,14 +662,14 @@ function memora_gallery_swiper_shortcode( $atts ) {
         /* Bullet kề bên active (trước và sau) */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active + .swiper-pagination-bullet,
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet:has(+ .swiper-pagination-bullet-active) {
-            width: 1.2dvw;
-            height: 1.2dvw;
+            width: 3.0833333333cqw;
+            height: 3.0833333333cqw;
         }
 
         /* Bullet active */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active {
-            width: 1.4dvw;
-            height: 1.4dvw;
+            width: 3.66666667cqw;
+            height: 3.66666667cqw;
         }
 
         /* Hiển thị ngôi sao qua CSS mask */
