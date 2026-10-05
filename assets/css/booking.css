@@ -72,10 +72,11 @@
 
 .memora-date-input {
     background-color: #fff9f3;
-    border: 0.0625em solid #733e1c !important;
+    border: 0.1225em solid #733e1c !important;
     border-radius: 2000px !important;
     color: #764525 !important;
     outline: 0 !important;
+    font-weight: 500;
     font-size: 12em;
     padding: 0.417em 0.833em !important;
 }
@@ -160,6 +161,12 @@
     border-radius: 5px;
     background-color: #693d21;
     border: 2px solid #eff1f5;
+}
+
+.memora-time-slots-grid::-webkit-scrollbar-button {
+    width: 0px;
+    height: 0px;
+    display: none !important;
 }
 
 .memora-time-slot-btn {
