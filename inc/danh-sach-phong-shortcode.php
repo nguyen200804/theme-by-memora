@@ -866,7 +866,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             height: 2.5cqw;
             background: transparent !important;
             opacity: 1;
-            margin: 0 0.3333333333333333cqw
+            margin: 0 0.3333333333333333cqw;
             border-radius: 0;
             position: relative;
             cursor: pointer;
