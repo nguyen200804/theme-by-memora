@@ -465,7 +465,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             ?>
             <div class="memora-dsp-compact-card">
                 <!-- SLIDER POSTER 1:1 -->
-                <div class="memora-dsp-compact-poster">
+                <div class="memora-dsp-compact-poster swiper-custom">
                     <div class="swiper memora-room-swiper" id="<?php echo esc_attr( $slider_id ); ?>" data-loop="<?php echo count( $c_room['images'] ) >= 2 ? 'true' : 'false'; ?>">
                         <div class="swiper-wrapper">
                             <?php if ( $has_slides ) : ?>
@@ -531,7 +531,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
                 </div>
 
                 <!-- CỘT PHẢI: SLIDER ẢNH -->
-                <div class="memora-dsp-wide-slider-wrap">
+                <div class="memora-dsp-wide-slider-wrap swiper-custom">
                     
                     <div class="memora-dsp-badge">
                         <img src="/wp-content/uploads/2026/10/special-room.png">
@@ -862,8 +862,8 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet {
-            width: 15px;
-            height: 15px;
+            width: 1dvw;
+            height: 1dvw;
             background: transparent !important;
             opacity: 1;
             margin: 0 2px;
@@ -876,14 +876,14 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         /* Bullet kề bên active (trước và sau) */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active + .swiper-pagination-bullet,
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet:has(+ .swiper-pagination-bullet-active) {
-            width: 18.5px;
-            height: 18.5px;
+            width: 1.2dvw;
+            height: 1.2dvw;
         }
 
         /* Bullet active */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active {
-            width: 22px;
-            height: 22px;
+            width: 1.4dvw;
+            height: 1.4dvw;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet::after {
