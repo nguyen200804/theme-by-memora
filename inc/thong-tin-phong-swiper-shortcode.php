@@ -378,7 +378,7 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
            PAGINATION NGÔI SAO MÀU NÂU #733e1c
         ------------------------------------------- */
         #<?php echo esc_attr( $uid ); ?>-wrap .memora-star-pagination {
-            bottom: 14px;
+            bottom: 2cqw;
             display: flex;
             justify-content: center;
             align-items: center;

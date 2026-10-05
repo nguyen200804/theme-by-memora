@@ -639,7 +639,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
 
         /* ===== Star Pagination ===== */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination {
-               bottom: 12px;
+               bottom: 2cqw;
     z-index: 10;
     display: flex;
     justify-content: center;
@@ -652,7 +652,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
             height: 2.5cqw;
             background: transparent !important;
             opacity: 1;
-            margin: 0 2px;
+            0 0.3333333333333333cqw;
             border-radius: 0;
             position: relative;
             cursor: pointer;
