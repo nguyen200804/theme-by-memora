@@ -739,7 +739,7 @@
 
 .memora-header {
     display: flex;
-    margin-bottom: 36em;
+    margin-bottom: 55px;
 }
 
 .memora-header-content+img {
@@ -921,13 +921,13 @@
 .memora-success-icon-wrap {
     display: flex;
     justify-content: center;
-    margin-bottom: 8em;
+    margin-bottom: 13.333333333px;
 }
 
 .memora-success-check-circle {
-    width: 95em;
-    height: 95em;
-    background: var(--memora-blue-light);
+    width: 79.1em;
+    height: 79.1em;
+    /* background: var(--memora-blue-light); */
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -952,12 +952,16 @@
 .memora-banner-pill {
     background: var(--memora-blue-light);
     border-radius: 30px;
-    padding: 0.3em 0.7em;
+    padding-bottom: 4px;
+    align-content: center;
     display: inline-block;
-    font-size: 9.5em;
+    font-size: 10.3em;
     font-weight: 700;
     color: var(--memora-brown-text);
-    margin-bottom: 22px;
+    /* margin-bottom: 22px; */
+    width: 311.333333333333px;
+    height: 46.33333333px;
+    font-family: 'Cocomat Pro';
 }
 
 .memora-lookup-wrap .memora-banner-pill {
@@ -971,13 +975,26 @@
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 23em;
-    margin-top: 25em;
+    margin-top: 63.3333333px;
 }
 
 .memora-info-col {
     flex: 1;
     display: flex;
     flex-direction: column;
+    height: 76px;
+}
+
+.memora-info-col:nth-of-type(1) {
+    flex: 94.9;
+}
+
+.memora-info-col:nth-of-type(2) {
+    flex: 115.3;
+}
+
+.memora-info-col:nth-of-type(3) {
+    flex: 67.1;
 }
 
 .memora-info-label {
