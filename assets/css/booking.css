@@ -432,14 +432,14 @@
 
 .memora-checkout-title {
     font-family: "The Silver Editorial";
-    font-size: 15.9em;
+    font-size: 17em;
     font-weight: 500;
     color: var(--memora-brown-text);
     margin: 0 0 0px 0;
 }
 
 .memora-checkout-subtitle {
-    font-size: 8.7em;
+    font-size: 9.3em;
     color: var(--memora-brown-text);
     margin: 0 0 28px 0;
     font-family: 'Cocomat Pro';
