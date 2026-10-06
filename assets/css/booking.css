@@ -739,13 +739,19 @@
     margin: 0 auto;
 }
 
+.memora-thankyou-wrap .memora-header-content {
+    width: 222px;
+}
+
 .memora-header {
     display: flex;
     margin-bottom: 55px;
+    gap: 35px;
+    margin-left: -12px;
 }
 
 .memora-header-content+img {
-    width: 106em;
+    width: 186.333px;
     height: auto;
     object-fit: contain;
 }
@@ -905,7 +911,7 @@
 
 .memora-thankyou-title {
     font-family: 'Anastasia Script';
-    font-size: 19.3em;
+    font-size: 46px;
     font-weight: 700;
     color: var(--memora-brown);
     margin: 0;
@@ -914,10 +920,10 @@
 
 .memora-thankyou-subtitle {
     font-family: 'Cocomat pro';
-    font-size: 7.9em;
+    font-size: 19px;
     font-weight: 600;
-    color: var(--memora-brown-text);
-    margin: -3px 0 24px 0;
+    color: #733e1c;
+    margin: -5px 0 0px 0;
 }
 
 .memora-success-icon-wrap {
