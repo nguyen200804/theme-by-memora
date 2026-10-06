@@ -109,8 +109,8 @@
 /* Wrapper thẻ Menu Card kính mờ: Khớp chuẩn xác top: 0, right: 0 theo nút 3 gạch */
 .memora-menu-modal-wrapper {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: -14px;
+    right: -26px;
     z-index: 1000000;
     opacity: 0;
     visibility: hidden;
@@ -145,7 +145,7 @@
     width: 16.5em;
     max-width: calc(100vw - 24px);
     background: var(--memora-menu-bg);
-    border: 0.08em solid var(--memora-menu-color-border);
+    border: 0.18em solid var(--memora-menu-color-border);
     border-radius: 1.1em;
     box-shadow: 0 0.8em 2.2em rgba(60, 80, 110, 0.14), 0 0.2em 0.6em rgba(0, 0, 0, 0.04);
     padding: 0.9em 0 1.2em 0;
@@ -201,8 +201,8 @@
 }
 
 .memora-menu-divider--top {
-    margin-top: 0.2em;
-    margin-bottom: 0.4em;
+    margin-top: 0.5em;
+    margin-bottom: 0.2em;
 }
 
 .memora-menu-divider--sub {
@@ -297,7 +297,7 @@
     background-color: transparent !important;
     border: none;
     outline: none;
-    padding: 0.36em 1.1em;
+    padding: 0.6em 1em;
     box-sizing: border-box;
     color: var(--memora-menu-color-text);
     text-decoration: none;
