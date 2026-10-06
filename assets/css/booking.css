@@ -178,7 +178,7 @@
 
 .memora-time-slot-btn {
     background: #bad6ed;
-    border: 2px solid var(--memora-brown);
+    border: 3px solid var(--memora-brown);
     border-radius: 0.3em;
     padding: 0.115em 0;
     font-family: 'Mulish';
@@ -234,7 +234,7 @@
 .memora-pkg-list {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 23em;
+    gap: 15em;
 }
 
 .memora-pkg-card {
@@ -301,7 +301,7 @@
     position: absolute;
     top: 0;
     left: 50%;
-    transform: translate(-50%, -55%);
+    transform: translate(-50%, -50%);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -431,22 +431,23 @@
 }
 
 .memora-checkout-title {
-    font-family: var(--memora-font-serif);
+    font-family: "The Silver Editorial";
     font-size: 15.9em;
-    font-weight: 700;
+    font-weight: 500;
     color: var(--memora-brown-text);
-    margin: 0 0 4px 0;
+    margin: 0 0 2px 0;
 }
 
 .memora-checkout-subtitle {
     font-size: 8.7em;
     color: var(--memora-brown-text);
     margin: 0 0 28px 0;
+    font-family: 'Cocomat Pro';
 }
 
 .memora-input-group {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     border-bottom: 2px solid var(--memora-brown);
     margin-bottom: 0;
     padding: 6em 0;
@@ -483,6 +484,7 @@
     color: var(--memora-brown-text);
     padding: 0 !important;
     font-weight: 500;
+    margin-bottom: 6px;
 }
 
 .memora-input-text::placeholder {
