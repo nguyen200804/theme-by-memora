@@ -248,7 +248,7 @@ function memora_shortcode_checkout_booking( $atts ) {
                     <span class="memora-pricing-value memora-price-total">200.000vnd</span>
                 </div>
                 <div class="memora-pricing-row">
-                    <span class="memora-pricing-label">Thanh toán trước 100%</span>
+                    <span class="memora-pricing-label">Thanh toán trước </span>
                     <span class="memora-pricing-value memora-price-deposit">100.000vnd</span>
                 </div>
             </div>

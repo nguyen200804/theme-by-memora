@@ -498,7 +498,7 @@
     gap: 10px;
     /* margin: 26px 0; */
     font-family: "Noto Sans";
-    margin: 25em 0 50em;
+    margin: 25em 0 46em;
 }
 
 .memora-blue-pill {
@@ -516,7 +516,7 @@
     /* margin: 24px 0; */
     display: flex;
     flex-direction: column;
-    gap: 18em;
+    gap: 14em;
     font-family: 'Mulish';
 }
 
@@ -531,7 +531,7 @@
     color: #733e1c;
     font-weight: 500;
     text-align: left;
-    font-size: 10em;
+    font-size: 11em;
     width: 8em !important;
     display: inline-block;
 }
