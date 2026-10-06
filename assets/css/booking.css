@@ -435,7 +435,7 @@
     font-size: 15.9em;
     font-weight: 500;
     color: var(--memora-brown-text);
-    margin: 0 0 2px 0;
+    margin: 0 0 0px 0;
 }
 
 .memora-checkout-subtitle {
@@ -498,7 +498,7 @@
     gap: 10px;
     /* margin: 26px 0; */
     font-family: "Noto Sans";
-    margin: 25em 0 46em;
+    margin: 25em 0 40em;
 }
 
 .memora-blue-pill {
@@ -544,16 +544,22 @@
 }
 
 .memora-disclaimer {
-    font-size: 6.1em;
+    font-size: 6.2em;
     color: #733e1c;
     line-height: 1.5;
-    margin: 6em 0 5em;
-    display: flex;
+    margin: 4.8em 0 3em;
+    display: inline-flex !important;
     align-items: flex-start;
     text-align: center;
     gap: 6px;
     font-weight: 700;
     font-family: 'Cocomat Pro';
+    width: fit-content;
+    justify-content: center;
+}
+
+.memora-disclaimer-icon {
+    padding-top: 1px;
 }
 
 .memora-disclaimer-icon svg {
@@ -561,6 +567,11 @@
     height: 1.1em;
     color: #555555;
     margin-top: 0.2em;
+}
+
+.memora-disclaimer-icon+span {
+    width: fit-content !important;
+    display: flex;
 }
 
 /* ==========================================================================
@@ -667,14 +678,6 @@
     align-items: center;
     justify-content: center;
     font-family: 'Pinyon Script';
-}
-
-.memora-heart-btn:hover {
-    transform: scale(1.08);
-}
-
-.memora-heart-btn:active {
-    transform: scale(0.96);
 }
 
 .memora-heart-svg {
