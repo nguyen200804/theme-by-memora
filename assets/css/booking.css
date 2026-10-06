@@ -426,23 +426,24 @@
 .memora-checkout-wrap {
     text-align: center;
     font-size: 2px;
-    width: 225em;
+    width: 445.333333333333px;
     margin: 0 auto;
 }
 
 .memora-checkout-title {
     font-family: "The Silver Editorial";
-    font-size: 17em;
+    font-size: 18.8em;
     font-weight: 500;
     color: var(--memora-brown-text);
     margin: 0 0 0px 0;
 }
 
 .memora-checkout-subtitle {
-    font-size: 9.3em;
+    font-size: 10.15em;
     color: var(--memora-brown-text);
-    margin: 0 0 28px 0;
+    margin: 0 auto 46px auto;
     font-family: 'Cocomat Pro';
+    width: fit-content;
 }
 
 .memora-input-group {
@@ -450,13 +451,13 @@
     align-items: flex-end;
     border-bottom: 2px solid var(--memora-brown);
     margin-bottom: 0;
-    padding: 5.5em 0;
+    padding: 9px 0;
     font-family: 'Cocomat Pro';
 }
 
 .memora-input-icon {
     /* font-size: 20px; */
-    margin-right: 22em;
+    margin-right: 33.33333333333px;
     color: var(--memora-brown);
     /* width: 24px; */
     text-align: center;
@@ -480,7 +481,7 @@
     border: 0 !important;
     outline: none !important;
     font-family: 'Cocomat Pro';
-    font-size: 7em !important;
+    font-size: 7.3em !important;
     color: var(--memora-brown-text);
     padding: 0 !important;
     font-weight: 500;
@@ -495,10 +496,10 @@
 .memora-checkout-pills {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
     /* margin: 26px 0; */
     font-family: "Noto Sans";
-    margin: 25em 0 40em;
+    margin: 41.666666667px 0 40.8em;
 }
 
 .memora-blue-pill {
@@ -516,7 +517,7 @@
     /* margin: 24px 0; */
     display: flex;
     flex-direction: column;
-    gap: 14em;
+    gap: 15em;
     font-family: 'Mulish';
 }
 
@@ -547,7 +548,7 @@
     font-size: 6.2em;
     color: #733e1c;
     line-height: 1.5;
-    margin: 4.8em 0 3em;
+    margin: 4.7em 0 3em;
     display: inline-flex !important;
     align-items: flex-start;
     text-align: center;
