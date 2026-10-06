@@ -140,20 +140,22 @@
     width: 100%;
     box-sizing: border-box;
     direction: ltr;
+    /* margin-right: -8px; */
+    /* margin-left: 0px; */
 }
 
 /* Firefox */
 @supports (-moz-appearance: none) {
     .memora-time-slots-grid {
-        scrollbar-color: #693d21 #bad6ec;
+        scrollbar-color: #693d21;
         scrollbar-width: thin;
     }
 }
 
 /* Custom scrollbar – Webkit (Chrome, Safari, Edge) */
 .memora-time-slots-grid::-webkit-scrollbar {
-    width: 8px;
-    background-color: #bad6ec;
+    width: 10px;
+    background-color: rgb(186 214 236 / 50%);
 }
 
 .memora-time-slots-grid::-webkit-scrollbar-button,
@@ -165,13 +167,13 @@
 }
 
 .memora-time-slots-grid::-webkit-scrollbar-track {
-    border-radius: 4px;
-    background-color: #bad6ec;
+    border-radius: 10px;
+    background-color: rgb(186 214 236 / 50%);
 }
 
 .memora-time-slots-grid::-webkit-scrollbar-thumb {
-    border-radius: 4px;
-    background-color: #693d21;
+    border-radius: 10px;
+    background-color: #693d2180;
 }
 
 .memora-time-slot-btn {
