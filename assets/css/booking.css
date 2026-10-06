@@ -1059,6 +1059,7 @@
     font-weight: 700;
     top: 0.5em;
     left: 0.6em;
+    font-family: 'Cocomat Pro';
 }
 
 .memora-code-brown-card {
@@ -1309,6 +1310,11 @@
     background: rgb(105 61 33 / 33%);
     border-radius: 12em;
     padding: 41.667px 38.333333px;
+}
+
+.memora-lookup-result-box .memora-code-yellow-badge {
+    background: transparent !important;
+    color: #fff;
 }
 
 /* THÃ”NG BÃO Lá»–I / THÃ€NH CÃ”NG */
