@@ -140,32 +140,38 @@
     width: 100%;
     box-sizing: border-box;
     direction: ltr;
-    /* Firefox */
-    scrollbar-color: #693d21 #bad6ec;
-    scrollbar-width: thin;
+}
+
+/* Firefox */
+@supports (-moz-appearance: none) {
+    .memora-time-slots-grid {
+        scrollbar-color: #693d21 #bad6ec;
+        scrollbar-width: thin;
+    }
 }
 
 /* Custom scrollbar – Webkit (Chrome, Safari, Edge) */
 .memora-time-slots-grid::-webkit-scrollbar {
-    width: 12px;
+    width: 8px;
     background-color: #bad6ec;
 }
 
-.memora-time-slots-grid::-webkit-scrollbar-button {
+.memora-time-slots-grid::-webkit-scrollbar-button,
+.memora-time-slots-grid::-webkit-scrollbar-button:start,
+.memora-time-slots-grid::-webkit-scrollbar-button:end {
     display: none;
     width: 0;
     height: 0;
 }
 
 .memora-time-slots-grid::-webkit-scrollbar-track {
-    border-radius: 3px;
-    background-color: transparent;
+    border-radius: 4px;
+    background-color: #bad6ec;
 }
 
 .memora-time-slots-grid::-webkit-scrollbar-thumb {
-    border-radius: 5px;
+    border-radius: 4px;
     background-color: #693d21;
-    border: 2px solid #eff1f5;
 }
 
 .memora-time-slot-btn {
