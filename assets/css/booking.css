@@ -870,7 +870,7 @@
 .memora-wc-thankyou-hook {
     font-size: 14px !important;
     text-align: center;
-    margin: 20px 0;
+    margin: 46.666667px 0 0;
     background: #fdfbf7;
     border: 1px solid #ebd9cb;
     border-radius: 12px;
@@ -1056,12 +1056,13 @@
 }
 
 .memora-code-brown-card {
-    background: #733e1c;
+    background: rgb(115 62 28 / 85%);
     border-radius: 12em;
     padding: 10em;
     text-align: center;
     box-shadow: 0 4px 12px rgba(115, 62, 28, 0.2);
     position: relative;
+    height: 113.5px;
 }
 
 .memora-code-digits {
@@ -1070,14 +1071,18 @@
     color: #ffffff;
     /* letter-spacing: 4px; */
     line-height: 1;
+    font-family: 'Noto Sans';
+    height: 100%;
+    align-content: center;
 }
 
 .memora-code-notice {
-    font-size: 7.2em;
+    font-size: 17px;
     color: var(--memora-brown-text);
     font-weight: 600;
     text-align: center;
-    margin-top: 0.8em;
+    margin-top: 8px;
+    font-family: 'Cocomat Pro';
 }
 
 /* THáºº LÆ¯U Ã / NOTE CARD */
@@ -1087,9 +1092,11 @@
     border-radius: 12em;
     padding: 12em;
     position: relative;
-    margin-top: 28em;
+    margin-top: 46.66666667px;
     margin-bottom: 31em;
     text-align: center;
+    color: #733e1c;
+    font-family: 'Mulish';
 }
 
 .memora-lookup-wrap .memora-note-card {
@@ -1124,11 +1131,9 @@
 }
 
 .memora-note-p1 {
-    font-size: 7.5em;
-    color: #333333;
-    line-height: 1.5;
-    margin: 0 0 14px 0;
-    width: 24em;
+    font-size: 17px;
+    line-height: 115%;
+    width: 377.1667px;
     margin: 0 auto;
 }
 
@@ -1137,16 +1142,20 @@
     font-size: 19em;
     font-style: italic;
     color: var(--memora-brown);
-    margin: 0 0 14px 0;
+    margin: 23px 0;
     font-weight: 600;
+    line-height: 130%;
 }
 
 .memora-note-p2 {
     font-size: 7.6em;
-    color: #444444;
     line-height: 1.3;
     margin: 0;
     width: 23em;
+    margin: 0 auto;
+    font-size: 17px;
+    line-height: 115%;
+    width: 385.1667px;
     margin: 0 auto;
 }
 
@@ -1172,15 +1181,17 @@
 }
 
 .memora-home-icon {
-    width: 28em;
-    height: 28em;
-    /* background: var(--memora-blue-light); */
+    width: 48px;
+    height: 48px;
+    background: #bbd6ec;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: -10px
+    margin-bottom: -9px
         /* font-size: 12px; */
+    ;
+    z-index: 1;
 }
 
 .memora-home-icon svg {
@@ -1189,22 +1200,27 @@
 }
 
 .memora-home-text {
-    font-size: 8.8em;
+    font-size: 20px;
     border: 0.1em solid #733e1c;
-    padding: 0.4em 1.2em;
+    padding-bottom: 5px;
     border-radius: 2000px;
     background-color: #fff;
+    width: 222.8333333px;
+    height: 44.3333px;
+    font-family: 'Cocomat Pro';
+    line-height: 100%;
+    align-content: center;
 }
 
 .memora-footer-text-wrap {
-    /* font-size: 17.5em; */
-    margin-top: 16em;
+    /* font-size: 3px; */
+    margin-top: 26.6666667px;
 }
 
 .memora-footer-text {
-    font-size: 17.5em;
+    font-size: 41px;
     font-family: 'Anastasia Script';
-    font-weight: 600;
+    font-weight: 500;
 }
 
 /* ==========================================================================
