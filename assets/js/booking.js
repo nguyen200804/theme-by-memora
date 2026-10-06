@@ -279,6 +279,14 @@
         // =========================================================================
         // 3. XỬ LÝ SHORTCODE [choose_photography_package]
         // =========================================================================
+        if (state.packageName) {
+            $('.memora-pkg-card').each(function () {
+                if (String($(this).data('pkg-name')) === String(state.packageName)) {
+                    $(this).addClass('is-selected');
+                }
+            });
+        }
+
         $(document).on('click', '.memora-pkg-card', function (e) {
             e.preventDefault();
             $('.memora-pkg-card').removeClass('is-selected');

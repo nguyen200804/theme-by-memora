@@ -178,7 +178,7 @@
 
 .memora-time-slot-btn {
     background: #bad6ed;
-    border: 3px solid var(--memora-brown);
+    border: 2px solid var(--memora-brown);
     border-radius: 0.3em;
     padding: 0.115em 0;
     font-family: 'Mulish';
@@ -234,7 +234,7 @@
 .memora-pkg-list {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 15em;
+    gap: 23em;
 }
 
 .memora-pkg-card {
@@ -301,7 +301,7 @@
     position: absolute;
     top: 0;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -55%);
     display: inline-flex;
     align-items: center;
     justify-content: center;

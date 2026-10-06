@@ -105,9 +105,8 @@ function memora_shortcode_choose_photography_package( $atts ) {
             <?php foreach ( $packages as $index => $pkg ) : 
                 $name  = isset( $pkg['ten_goi_chup'] ) ? $pkg['ten_goi_chup'] : 'Gói Chụp';
                 $price = isset( $pkg['gia_goi_chup'] ) ? floatval( $pkg['gia_goi_chup'] ) : 0;
-                $is_first = ( $index === 0 ) ? ' is-selected' : '';
             ?>
-                <div class="memora-pkg-card<?php echo esc_attr( $is_first ); ?>" data-pkg-name="<?php echo esc_attr( $name ); ?>" data-pkg-price="<?php echo esc_attr( $price ); ?>">
+                <div class="memora-pkg-card" data-pkg-name="<?php echo esc_attr( $name ); ?>" data-pkg-price="<?php echo esc_attr( $price ); ?>">
                     <span class="memora-pkg-name"><?php echo esc_html( $name ); ?></span>
 <!--                     <span class="memora-pkg-price"><?php echo esc_html( memora_format_price( $price ) ); ?></span> -->
                 </div>
