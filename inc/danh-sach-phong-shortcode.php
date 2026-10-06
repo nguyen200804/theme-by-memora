@@ -671,6 +671,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             width: 100%;
             height: auto;
             display: block;
+            aspect-ratio: 3/2;
         }
 
         /* Tiêu đề bên dưới poster: Room 1 Selfbooth Room */
@@ -791,8 +792,6 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         }
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-btn-more:hover {
             background-color: #572e14;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(115, 62, 28, 0.32);
         }
 
         /* Cột slider bên phải không bo góc */
