@@ -22,6 +22,7 @@
     line-height: 1;
     z-index: 9999;
 }
+
 .memora-menu-header-container.is-active {
     z-index: 999999;
 }
@@ -35,6 +36,7 @@
     background-color: transparent !important;
     box-shadow: none !important;
 }
+
 .memora-menu-header-container button:hover,
 .memora-menu-header-container a:hover,
 .memora-menu-modal-wrapper button:hover,
@@ -63,17 +65,20 @@
     transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
     user-select: none;
 }
+
 .memora-menu-hamburger:hover {
     opacity: 0.75;
     transform: scale(1.06);
     background: transparent !important;
     background-color: transparent !important;
 }
+
 .memora-menu-hamburger.is-hidden {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
 }
+
 .memora-menu-hamburger-line {
     display: block;
     width: 100%;
@@ -94,6 +99,7 @@
     transition: opacity 0.25s ease, visibility 0.25s ease;
     pointer-events: none;
 }
+
 .memora-menu-backdrop.is-active {
     opacity: 1;
     visibility: visible;
@@ -112,6 +118,7 @@
     transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
     pointer-events: none;
 }
+
 .memora-menu-modal-wrapper.is-open {
     opacity: 1;
     visibility: visible;
@@ -134,7 +141,7 @@
 /* Main Menu Card */
 .memora-menu-card {
     font-size: var(--memora-menu-font-base);
-    font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif;
+    font-family: "The Silver Editorial";
     width: 16.5em;
     max-width: calc(100vw - 24px);
     background: var(--memora-menu-bg);
@@ -176,6 +183,7 @@
     transition: transform 0.22s ease, opacity 0.22s ease;
     opacity: 0.88;
 }
+
 .memora-menu-close-btn:hover {
     opacity: 1;
     transform: rotate(90deg) scale(1.1);
@@ -191,10 +199,12 @@
     margin: 0.35em 1.1em;
     box-sizing: border-box;
 }
+
 .memora-menu-divider--top {
     margin-top: 0.2em;
     margin-bottom: 0.4em;
 }
+
 .memora-menu-divider--sub {
     margin-top: 0.3em;
     margin-bottom: 0.4em;
@@ -217,15 +227,18 @@
     transform: translateX(2em);
     transition: opacity 0.28s cubic-bezier(0.25, 1, 0.5, 1), transform 0.28s cubic-bezier(0.25, 1, 0.5, 1);
 }
+
 .memora-menu-panel.is-active {
     display: block;
     opacity: 1;
     transform: translateX(0);
 }
+
 .memora-menu-panel.slide-out-left {
     opacity: 0;
     transform: translateX(-2em);
 }
+
 .memora-menu-panel.slide-out-right {
     opacity: 0;
     transform: translateX(2em);
@@ -244,6 +257,7 @@
     text-decoration: none;
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
+
 .memora-menu-subhead:hover {
     opacity: 0.82;
     transform: translateX(-0.15em);
@@ -295,6 +309,7 @@
     text-align: right;
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
+
 .memora-menu-item-link:hover,
 .memora-menu-item-btn:hover {
     opacity: 0.78;
@@ -316,6 +331,7 @@
     line-height: 1;
     transition: transform 0.2s ease;
 }
+
 .memora-menu-item-btn:hover .memora-menu-arrow,
 .memora-menu-subhead:hover .memora-menu-arrow {
     transform: translateX(-0.15em);

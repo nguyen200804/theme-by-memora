@@ -50,7 +50,7 @@
     padding: 0.3em 1em !important;
     background-color: #fbf7f4 !important;
     color: #733e1c !important;
-    font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif !important;
+    font-family: 'Boston Angel' !important;
     font-size: 15px !important;
     font-weight: 700 !important;
     letter-spacing: 0.2px;
@@ -179,16 +179,29 @@
 .memora-contact-widget.is-open .memora-contact-circle {
     animation: memoraContactPopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
 }
-.memora-contact-widget.is-open .memora-contact-circle:nth-child(1) { animation-delay: 0.03s; }
-.memora-contact-widget.is-open .memora-contact-circle:nth-child(2) { animation-delay: 0.08s; }
-.memora-contact-widget.is-open .memora-contact-circle:nth-child(3) { animation-delay: 0.13s; }
-.memora-contact-widget.is-open .memora-contact-circle:nth-child(4) { animation-delay: 0.18s; }
+
+.memora-contact-widget.is-open .memora-contact-circle:nth-child(1) {
+    animation-delay: 0.03s;
+}
+
+.memora-contact-widget.is-open .memora-contact-circle:nth-child(2) {
+    animation-delay: 0.08s;
+}
+
+.memora-contact-widget.is-open .memora-contact-circle:nth-child(3) {
+    animation-delay: 0.13s;
+}
+
+.memora-contact-widget.is-open .memora-contact-circle:nth-child(4) {
+    animation-delay: 0.18s;
+}
 
 @keyframes memoraContactPopIn {
     0% {
         opacity: 0;
         transform: scale(0.35) translateY(15px);
     }
+
     100% {
         opacity: 1;
         transform: scale(1) translateY(0);
