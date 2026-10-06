@@ -641,10 +641,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             box-shadow: 0 4px 16px rgba(115, 62, 28, 0.06);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(115, 62, 28, 0.12);
-        }
+       
 
         /* Swiper flow tự nhiên theo chiều cao ảnh */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-poster .swiper {
