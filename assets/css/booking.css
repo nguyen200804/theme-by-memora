@@ -505,12 +505,27 @@
 .memora-blue-pill {
     background: var(--memora-blue-light);
     border-radius: 200px;
-    padding: 0.45em;
-    font-size: 10.6em;
+    padding: 0 0.55em;
+    align-content: center;
+    font-size: 18px;
     font-weight: 700;
+    line-height: 123%;
     color: #733e1c;
     width: 100%;
     text-align: center;
+    height: 43.33333333px;
+}
+
+.memora-pill-time {
+    flex: 68.3;
+}
+
+.memora-pill-date {
+    flex: 99.9;
+}
+
+.memora-pill-pkg {
+    flex: 92.7;
 }
 
 .memora-pricing-table {
@@ -545,15 +560,15 @@
 }
 
 .memora-disclaimer {
-    font-size: 6.2em;
+    font-size: 6.5em;
     color: #733e1c;
     line-height: 1.5;
-    margin: 4.7em 0 3em;
+    margin: 4.7em 0 4.025em;
     display: inline-flex !important;
     align-items: flex-start;
     text-align: center;
     gap: 6px;
-    font-weight: 700;
+    font-weight: 900;
     font-family: 'Cocomat Pro';
     width: fit-content;
     justify-content: center;
@@ -662,14 +677,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 20px 0 35px 0;
+    margin: 0px 0 35px 0;
 }
 
 .memora-heart-btn {
     position: relative;
     font-size: inherit !important;
-    width: 130em;
-    height: 130em;
+    width: 100%;
+    height: auto;
     background: none !important;
     border: none;
     cursor: pointer;
@@ -682,10 +697,10 @@
 }
 
 .memora-heart-svg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+    position: relative;
+    /* top: 0; */
+    /* left: 0; */
+    width: 230px;
     height: 100%;
     filter: drop-shadow(0 4px 10px rgba(223, 176, 191, 0.5));
 }
@@ -700,7 +715,7 @@
 }
 
 .memora-heart-text {
-    position: relative;
+    position: absolute;
     z-index: 2;
     font-family: "Pinyon Script";
     font-size: 19.2em;
@@ -708,7 +723,7 @@
     color: var(--memora-brown);
     line-height: 100%;
     text-align: center;
-    margin-top: -6px;
+    margin-top: 9px;
 }
 
 /* ==========================================================================
