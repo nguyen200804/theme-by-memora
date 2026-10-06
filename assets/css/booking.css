@@ -1214,20 +1214,26 @@
 .memora-lookup-header-pill {
     background: var(--memora-blue-light);
     border-radius: 2000px;
-    padding: 0.2em 2em;
+    padding: 0;
     display: inline-flex;
     align-items: center;
     gap: 0.5em;
-    font-family: var(--memora-font-serif);
-    font-size: 13.3em;
+    font-family: 'The Silver Editorial';
+    font-size: 30px;
     font-weight: 700;
-    color: var(--memora-brown-text);
+    color: #713e24;
     margin-bottom: 1.5em;
+    width: 421.83333333333px;
+    height: 57px;
+    justify-content: center;
+    padding-top: 7px;
+    padding-right: 32px;
 }
 
 .memora-lookup-header-pill svg {
-    width: 0.8em;
-    height: 0.8em;
+    width: 27px;
+    height: 27px;
+    margin-bottom: 5px;
 }
 
 .memora-lookup-inputs-row {
