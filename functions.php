@@ -165,60 +165,7 @@ function memora_force_elementor_custom_fonts() {
 
 
 
-// Force desktop layout on narrow viewports (mobile, DevTools).
-// Strategy: two layers of enforcement
-//   1. <meta viewport width=600>  → tells the browser to use a 600px layout viewport
-//      (browser scales the 600px content down to fit narrower physical screens)
-//   2. CSS min-width:600px on <html> → in case the browser ignores/overrides the meta,
-//      the CSS forces a minimum 600px render width and the user can scroll horizontally.
-// JS-based detection (innerWidth / screen.width) is unreliable in <head> because the
-// browser's layout viewport is not yet fully initialised when the script runs.
-function tocfl_force_desktop_viewport( $html ) {
-    if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
-        return $html;
-    }
-    if ( isset( $_GET['elementor-preview'] ) || ( isset( $_GET['action'] ) && $_GET['action'] === 'elementor' ) ) {
-        return $html;
-    }
 
-    // Remove all existing viewport meta tags to avoid duplicates or overrides
-    $html = preg_replace( '/<meta\s+name=["\']viewport["\'][^>]*>/i', '', $html );
-
-    // Detect phone vs tablet/desktop via User-Agent (server-side — no JS timing issues).
-    // Phones have narrow screens (< 600 CSS px); tablets/desktop are wider.
-    // UA detection: match common phone keywords, exclude tablet hints ("ipad", "tablet", "kindle"…).
-    $ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? strtolower( $_SERVER['HTTP_USER_AGENT'] ) : '';
-    $is_tablet = preg_match( '/ipad|tablet|kindle|silk|playbook|nexus\s?[0-9]?\s?(tab|tablet)/i', $ua );
-    $is_phone  = ! $is_tablet && preg_match( '/mobile|android|iphone|ipod|blackberry|windows phone|opera mini|iemobile/i', $ua );
-
-    if ( $is_phone ) {
-        // Phone: force 600px layout viewport so the desktop design is visible scaled-down.
-        // Browser scales 600px content to fit the physical screen (e.g. 390px → 65% zoom).
-        $viewport_meta = '<meta name="viewport" content="width=600">';
-        $min_width_css = '<style id="memora-force-desktop">html,body{min-width:600px;}</style>';
-        $inject = $viewport_meta . $min_width_css;
-    } else {
-        // Tablet / Desktop: standard responsive viewport — no forced width.
-        $inject = '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
-    }
-
-    if ( stripos( $html, '<head>' ) !== false ) {
-        $html = str_ireplace( '<head>', '<head>' . $inject, $html );
-    } elseif ( stripos( $html, '<head' ) !== false ) {
-        $html = preg_replace( '/(<head[^>]*>)/i', '$1' . $inject, $html, 1 );
-    }
-    return $html;
-}
-
-add_action( 'template_redirect', function() {
-    if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
-        return;
-    }
-    if ( isset( $_GET['elementor-preview'] ) || ( isset( $_GET['action'] ) && $_GET['action'] === 'elementor' ) ) {
-        return;
-    }
-    ob_start( 'tocfl_force_desktop_viewport' );
-} );
 
 
 /**
