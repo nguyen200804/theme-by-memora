@@ -186,7 +186,7 @@
     text-wrap: wrap;
     text-align: center;
     font-weight: 400;
-    color: var(--memora-brown);
+    color: var(--memora-brown) !important;
     cursor: pointer;
     transition: all 0.2s ease;
     min-width: 0;
@@ -229,13 +229,14 @@
     justify-content: center;
     text-align: center;
     padding: 0.2em;
-    font-family: 'Boston Angel', 'Mulish', sans-serif;
-    font-size: 5.2em;
-    font-weight: 600;
+    font-family: 'COCOMAT PRO';
+    font-size: 12px;
+    font-weight: 800;
     line-height: 1.15;
     text-transform: none;
     letter-spacing: -0.01em;
     cursor: pointer;
+    border-radius: 7.2px;
 }
 
 .memora-time-slot-btn.memora-slot-see-tomorrow span {
