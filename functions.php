@@ -165,14 +165,8 @@ function memora_force_elementor_custom_fonts() {
 
 
 
-// Force desktop layout on narrow viewports (mobile, DevTools).
-// Strategy: two layers of enforcement
-//   1. <meta viewport width=600>  → tells the browser to use a 600px layout viewport
-//      (browser scales the 600px content down to fit narrower physical screens)
-//   2. CSS min-width:600px on <html> → in case the browser ignores/overrides the meta,
-//      the CSS forces a minimum 600px render width and the user can scroll horizontally.
-// JS-based detection (innerWidth / screen.width) is unreliable in <head> because the
-// browser's layout viewport is not yet fully initialised when the script runs.
+// Ép giao diện desktop (width=600) trên điện thoại thật.
+// Khi kiểm tra trên Desktop / F12 DevTools: giữ viewport responsive chuẩn (width=device-width, 1.0) và không ép 600px.
 function tocfl_force_desktop_viewport( $html ) {
     if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
         return $html;
@@ -181,24 +175,44 @@ function tocfl_force_desktop_viewport( $html ) {
         return $html;
     }
 
-    // Remove all existing viewport meta tags to avoid duplicates or overrides
+    // Xóa tất cả các thẻ viewport meta cũ để tránh bị trùng lặp hoặc ghi đè
     $html = preg_replace( '/<meta\s+name=["\']viewport["\'][^>]*>/i', '', $html );
 
-    // Detect phone vs tablet/desktop via User-Agent (server-side — no JS timing issues).
-    // Phones have narrow screens (< 600 CSS px); tablets/desktop are wider.
-    // UA detection: match common phone keywords, exclude tablet hints ("ipad", "tablet", "kindle"…).
     $ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? strtolower( $_SERVER['HTTP_USER_AGENT'] ) : '';
-    $is_tablet = preg_match( '/ipad|tablet|kindle|silk|playbook|nexus\s?[0-9]?\s?(tab|tablet)/i', $ua );
-    $is_phone  = ! $is_tablet && preg_match( '/mobile|android|iphone|ipod|blackberry|windows phone|opera mini|iemobile/i', $ua );
+
+    // 1. Nhận diện Desktop qua Client Hints (Sec-CH-UA-Platform)
+    $ch_platform = isset( $_SERVER['HTTP_SEC_CH_UA_PLATFORM'] ) ? strtolower( trim( $_SERVER['HTTP_SEC_CH_UA_PLATFORM'], '"' ) ) : '';
+    $is_desktop_ch = in_array( $ch_platform, [ 'windows', 'macos', 'linux' ], true );
+
+    // 2. Nhận diện Desktop qua User-Agent
+    $is_desktop_ua = (bool) preg_match( '/windows nt|macintosh|mac os x|x11; linux x86_64/i', $ua );
+
+    // 3. Nhận diện Tablet (iPad, Android Tablet...)
+    $is_tablet = (bool) preg_match( '/ipad|tablet|kindle|silk|playbook|nexus\s?[0-9]?\s?(tab|tablet)/i', $ua );
+
+    // 4. Nhận diện Điện thoại thật (không phải Desktop PC và không phải Tablet)
+    $is_phone = ! $is_desktop_ch && ! $is_desktop_ua && ! $is_tablet && (bool) preg_match( '/mobile|android|iphone|ipod|blackberry|windows phone|opera mini|iemobile/i', $ua );
 
     if ( $is_phone ) {
-        // Phone: force 600px layout viewport so the desktop design is visible scaled-down.
-        // Browser scales 600px content to fit the physical screen (e.g. 390px → 65% zoom).
+        // Điện thoại thật: Ép viewport 600px để giao diện desktop thu nhỏ vừa màn hình.
+        // Kèm script bảo vệ: nếu người dùng đang dùng DevTools trên desktop (màn hình monitor >= 600px hoặc OS desktop),
+        // script sẽ lập tức gỡ bỏ min-width: 600px và đặt lại viewport chuẩn responsive.
         $viewport_meta = '<meta name="viewport" content="width=600">';
         $min_width_css = '<style id="memora-force-desktop">html,body{min-width:600px;}</style>';
-        $inject = $viewport_meta . $min_width_css;
+        $guard_script  = '<script id="memora-viewport-guard">'
+            . '(function(){'
+            . 'try{'
+            . 'var isDesktop=(Math.min(window.screen.width,window.screen.height)>=600)||/Win32|Win64|MacIntel|Linux x86_64/i.test(navigator.platform||"");'
+            . 'if(isDesktop){'
+            . 'var s=document.getElementById("memora-force-desktop");if(s&&s.parentNode)s.parentNode.removeChild(s);'
+            . 'var m=document.querySelector(\'meta[name="viewport"]\');if(m)m.setAttribute("content","width=device-width, initial-scale=1.0");'
+            . '}'
+            . '}catch(e){}'
+            . '})();'
+            . '</script>';
+        $inject = $viewport_meta . $min_width_css . $guard_script;
     } else {
-        // Tablet / Desktop: standard responsive viewport — no forced width.
+        // Desktop / Tablet / DevTools: viewport responsive tiêu chuẩn, không ép 600px.
         $inject = '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
     }
 
