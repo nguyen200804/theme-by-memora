@@ -178,13 +178,19 @@ function tocfl_force_desktop_viewport( $html ) {
     // Xóa tất cả các thẻ viewport meta cũ để tránh bị trùng lặp hoặc ghi đè
     $html = preg_replace( '/<meta\s+name=["\']viewport["\'][^>]*>/i', '', $html );
 
-    // Inject thẻ meta và style trước, sau đó script chỉ việc cập nhật thuộc tính bằng DOM API (tuyệt đối không dùng document.write để tránh trắng trang khi resize)
+    $ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? strtolower( $_SERVER['HTTP_USER_AGENT'] ) : '';
+    $is_tablet = (bool) preg_match( '/ipad|tablet|kindle|silk|playbook|nexus\s?[0-9]?\s?(tab|tablet)/i', $ua );
+    $is_phone  = ! $is_tablet && (bool) preg_match( '/mobile|android|iphone|ipod|blackberry|windows phone|opera mini|iemobile/i', $ua );
+    $default_meta = $is_phone ? 'width=600' : 'width=device-width, initial-scale=1.0';
+
+    // Thiết lập viewport và style một lần duy nhất khi load trang trong <head>
+    // Tuyệt đối không gắn resize listener để tránh xung đột vòng lặp với Elementor device-mode
     $viewport_script = '
-<meta name="viewport" id="memora-viewport-meta" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" id="memora-viewport-meta" content="' . $default_meta . '">
 <style id="memora-force-desktop-style"></style>
 <script id="memora-force-desktop-viewport">
 (function() {
-    function applyForcedViewport() {
+    try {
         var w = window.innerWidth || (document.documentElement && document.documentElement.clientWidth) || window.screen.width || 600;
         var meta = document.getElementById("memora-viewport-meta");
         var style = document.getElementById("memora-force-desktop-style");
@@ -205,24 +211,7 @@ function tocfl_force_desktop_viewport( $html ) {
                 style.textContent = "";
             }
         }
-    }
-
-    applyForcedViewport();
-
-    var resizeTicking = false;
-    window.addEventListener("resize", function() {
-        if (!resizeTicking) {
-            window.requestAnimationFrame(function() {
-                applyForcedViewport();
-                resizeTicking = false;
-            });
-            resizeTicking = true;
-        }
-    });
-
-    window.addEventListener("orientationchange", function() {
-        setTimeout(applyForcedViewport, 150);
-    });
+    } catch(e) {}
 })();
 </script>';
 
