@@ -672,6 +672,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             height: auto;
             display: block;
             aspect-ratio: 3/2;
+            object-fit: cover;
         }
 
         /* Tiêu đề bên dưới poster: Room 1 Selfbooth Room */

@@ -181,9 +181,32 @@ function tocfl_force_desktop_viewport($html) {
     $dynamic_viewport_script = '
 <script type="text/javascript">
 (function() {
-    var screenWidth = window.screen.width;
-    var content = (screenWidth < ' . $target_width . ') ? "width=' . $target_width . '" : "width=device-width, initial-scale=1.0";
-    document.write(\'<meta name="viewport" content="\' + content + \'">\');
+    var targetWidth = ' . $target_width . ';
+    function getViewportContent() {
+        var screenW = window.screen.width;
+        var innerW = window.innerWidth;
+        // visualViewport cho phép tính đúng kích thước thực tế kể cả khi đang scale hoặc co kéo trên DevTools Responsive
+        var actualWidth = (window.visualViewport && window.visualViewport.width && window.visualViewport.scale) 
+            ? (window.visualViewport.width * window.visualViewport.scale)
+            : ((innerW && innerW < screenW) ? innerW : screenW);
+
+        return (actualWidth < targetWidth) ? "width=" + targetWidth : "width=device-width, initial-scale=1.0";
+    }
+
+    var content = getViewportContent();
+    document.write(\'<meta name="viewport" id="memora-viewport" content="\' + content + \'">\');
+
+    function updateViewport() {
+        var meta = document.getElementById("memora-viewport") || document.querySelector(\'meta[name="viewport"]\');
+        if (!meta) return;
+        var newContent = getViewportContent();
+        if (meta.getAttribute("content") !== newContent) {
+            meta.setAttribute("content", newContent);
+        }
+    }
+
+    window.addEventListener("resize", updateViewport);
+    window.addEventListener("orientationchange", updateViewport);
 })();
 </script>
 ';
