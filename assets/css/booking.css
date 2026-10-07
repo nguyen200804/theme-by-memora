@@ -404,6 +404,12 @@
     height: 50px;
 }
 
+.memora-btn-confirm-pay {
+    font-family: 'Boston Angel';
+    width: 189.3333333px;
+    font-weight: 600;
+}
+
 .memora-btn-brown:hover {
     background: #472614;
     transform: translateY(-2px);
