@@ -21,3 +21,17 @@ Updated: 2026-09-17 03:12:38
 .swiper-custom {
     container-type: inline-size;
 }
+
+
+
+div:has(> .hn__danh_sach_dia_chi) {
+    display: flex;
+    max-height: max-content !important;
+    height: max-content !important;
+}
+
+.hn__danh_sach_dia_chi {
+    max-height: max-content;
+    height: max-content !important;
+    display: flex;
+}
