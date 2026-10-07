@@ -164,6 +164,41 @@ function memora_force_elementor_custom_fonts() {
 }
 
 
+// Force desktop layout on all devices by setting viewport width to 1200px on small screens, and standard viewport on large screens
+function tocfl_force_desktop_viewport($html) {
+    // Remove all existing viewport meta tags to avoid duplicates or overrides
+    $html = preg_replace('/<meta\s+name=["\']viewport["\'][^>]*>/i', '', $html);
+    
+    $target_width = 600;
+    if ( isset($_SERVER['REQUEST_URI']) ) {
+        $path = strtok($_SERVER['REQUEST_URI'], '?');
+        if ( preg_match( '#^/paper_download/?$#', $path ) ) {
+            $target_width = 600;
+        }
+    }
+    
+    // Insert the dynamic desktop viewport script right after <head>
+    $dynamic_viewport_script = '
+<script type="text/javascript">
+(function() {
+    var screenWidth = window.screen.width;
+    var content = (screenWidth < ' . $target_width . ') ? "width=' . $target_width . '" : "width=device-width, initial-scale=1.0";
+    document.write(\'<meta name="viewport" content="\' + content + \'">\');
+})();
+</script>
+';
+    if (stripos($html, '<head>') !== false) {
+        $html = str_ireplace('<head>', '<head>' . $dynamic_viewport_script, $html);
+    } elseif (stripos($html, '<head') !== false) {
+        $html = preg_replace('/(<head[^>]*>)/i', '$1' . $dynamic_viewport_script, $html);
+    }
+    return $html;
+}
+
+function tocfl_start_buffer() {
+    ob_start('tocfl_force_desktop_viewport');
+}
+add_action('template_redirect', 'tocfl_start_buffer', 1);
 
 
 
