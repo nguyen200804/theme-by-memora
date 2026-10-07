@@ -34,4 +34,9 @@ div:has(> .hn__danh_sach_dia_chi) {
     max-height: max-content;
     height: max-content !important;
     display: flex;
+    width: 100%;
+}
+
+.hn__danh_sach_dia_chi>div {
+    width: 100%;
 }
