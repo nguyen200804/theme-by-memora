@@ -165,8 +165,8 @@ function memora_force_elementor_custom_fonts() {
 
 
 
-// Ép giao diện desktop (width=600) trên điện thoại thật.
-// Khi kiểm tra trên Desktop / F12 DevTools: giữ viewport responsive chuẩn (width=device-width, 1.0) và không ép 600px.
+// Ép giao diện desktop (width=600) trên mọi màn hình hẹp < 600px (cả điện thoại thật lẫn Chrome DevTools).
+// Tự động tính toán initial-scale = width / 600 để co giãn vừa khít màn hình, không bị tràn và không bị thanh cuộn ngang.
 function tocfl_force_desktop_viewport( $html ) {
     if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
         return $html;
@@ -178,48 +178,55 @@ function tocfl_force_desktop_viewport( $html ) {
     // Xóa tất cả các thẻ viewport meta cũ để tránh bị trùng lặp hoặc ghi đè
     $html = preg_replace( '/<meta\s+name=["\']viewport["\'][^>]*>/i', '', $html );
 
-    $ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? strtolower( $_SERVER['HTTP_USER_AGENT'] ) : '';
+    // Script tính toán viewport động:
+    // Đọc độ rộng viewport thực tế (innerWidth của DevTools hoặc screen.width của phone).
+    // Nếu < 600px: ép width=600 kèm initial-scale tương ứng để layout desktop co nhỏ vừa vặn 100% màn hình.
+    $viewport_script = '
+<script id="memora-force-desktop-viewport">
+(function() {
+    function applyForcedViewport() {
+        var w = window.innerWidth || (document.documentElement && document.documentElement.clientWidth) || window.screen.width || 600;
+        var meta = document.querySelector("meta[name=\'viewport\']");
+        var style = document.getElementById("memora-force-desktop-style");
 
-    // 1. Nhận diện Desktop qua Client Hints (Sec-CH-UA-Platform)
-    $ch_platform = isset( $_SERVER['HTTP_SEC_CH_UA_PLATFORM'] ) ? strtolower( trim( $_SERVER['HTTP_SEC_CH_UA_PLATFORM'], '"' ) ) : '';
-    $is_desktop_ch = in_array( $ch_platform, [ 'windows', 'macos', 'linux' ], true );
-
-    // 2. Nhận diện Desktop qua User-Agent
-    $is_desktop_ua = (bool) preg_match( '/windows nt|macintosh|mac os x|x11; linux x86_64/i', $ua );
-
-    // 3. Nhận diện Tablet (iPad, Android Tablet...)
-    $is_tablet = (bool) preg_match( '/ipad|tablet|kindle|silk|playbook|nexus\s?[0-9]?\s?(tab|tablet)/i', $ua );
-
-    // 4. Nhận diện Điện thoại thật (không phải Desktop PC và không phải Tablet)
-    $is_phone = ! $is_desktop_ch && ! $is_desktop_ua && ! $is_tablet && (bool) preg_match( '/mobile|android|iphone|ipod|blackberry|windows phone|opera mini|iemobile/i', $ua );
-
-    if ( $is_phone ) {
-        // Điện thoại thật: Ép viewport 600px để giao diện desktop thu nhỏ vừa màn hình.
-        // Kèm script bảo vệ: nếu người dùng đang dùng DevTools trên desktop (màn hình monitor >= 600px hoặc OS desktop),
-        // script sẽ lập tức gỡ bỏ min-width: 600px và đặt lại viewport chuẩn responsive.
-        $viewport_meta = '<meta name="viewport" content="width=600">';
-        $min_width_css = '<style id="memora-force-desktop">html,body{min-width:600px;}</style>';
-        $guard_script  = '<script id="memora-viewport-guard">'
-            . '(function(){'
-            . 'try{'
-            . 'var isDesktop=(Math.min(window.screen.width,window.screen.height)>=600)||/Win32|Win64|MacIntel|Linux x86_64/i.test(navigator.platform||"");'
-            . 'if(isDesktop){'
-            . 'var s=document.getElementById("memora-force-desktop");if(s&&s.parentNode)s.parentNode.removeChild(s);'
-            . 'var m=document.querySelector(\'meta[name="viewport"]\');if(m)m.setAttribute("content","width=device-width, initial-scale=1.0");'
-            . '}'
-            . '}catch(e){}'
-            . '})();'
-            . '</script>';
-        $inject = $viewport_meta . $min_width_css . $guard_script;
-    } else {
-        // Desktop / Tablet / DevTools: viewport responsive tiêu chuẩn, không ép 600px.
-        $inject = '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
+        if (w < 600) {
+            var scale = Math.round((w / 600) * 10000) / 10000;
+            var content = "width=600, initial-scale=" + scale + ", minimum-scale=" + scale + ", maximum-scale=3.0, user-scalable=yes";
+            if (meta) {
+                meta.setAttribute("content", content);
+            } else {
+                document.write(\'<meta name="viewport" content="\' + content + \'">\');
+            }
+            if (!style) {
+                document.write(\'<style id="memora-force-desktop-style">html,body{width:600px!important;min-width:600px!important;max-width:600px!important;overflow-x:hidden!important;}</style>\');
+            }
+        } else {
+            if (meta) {
+                meta.setAttribute("content", "width=device-width, initial-scale=1.0");
+            } else {
+                document.write(\'<meta name="viewport" content="width=device-width, initial-scale=1.0">\');
+            }
+            if (style && style.parentNode) {
+                style.parentNode.removeChild(style);
+            }
+        }
     }
+    applyForcedViewport();
+    window.addEventListener("resize", applyForcedViewport);
+    window.addEventListener("orientationchange", function() {
+        setTimeout(applyForcedViewport, 150);
+    });
+})();
+</script>
+<noscript>
+    <meta name="viewport" content="width=600, initial-scale=0.65">
+    <style>html,body{width:600px!important;overflow-x:hidden!important;}</style>
+</noscript>';
 
     if ( stripos( $html, '<head>' ) !== false ) {
-        $html = str_ireplace( '<head>', '<head>' . $inject, $html );
+        $html = str_ireplace( '<head>', '<head>' . $viewport_script, $html );
     } elseif ( stripos( $html, '<head' ) !== false ) {
-        $html = preg_replace( '/(<head[^>]*>)/i', '$1' . $inject, $html, 1 );
+        $html = preg_replace( '/(<head[^>]*>)/i', '$1' . $viewport_script, $html, 1 );
     }
     return $html;
 }
