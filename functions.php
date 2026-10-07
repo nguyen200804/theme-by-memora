@@ -178,50 +178,53 @@ function tocfl_force_desktop_viewport( $html ) {
     // Xóa tất cả các thẻ viewport meta cũ để tránh bị trùng lặp hoặc ghi đè
     $html = preg_replace( '/<meta\s+name=["\']viewport["\'][^>]*>/i', '', $html );
 
-    // Script tính toán viewport động:
-    // Đọc độ rộng viewport thực tế (innerWidth của DevTools hoặc screen.width của phone).
-    // Nếu < 600px: ép width=600 kèm initial-scale tương ứng để layout desktop co nhỏ vừa vặn 100% màn hình.
+    // Inject thẻ meta và style trước, sau đó script chỉ việc cập nhật thuộc tính bằng DOM API (tuyệt đối không dùng document.write để tránh trắng trang khi resize)
     $viewport_script = '
+<meta name="viewport" id="memora-viewport-meta" content="width=device-width, initial-scale=1.0">
+<style id="memora-force-desktop-style"></style>
 <script id="memora-force-desktop-viewport">
 (function() {
     function applyForcedViewport() {
         var w = window.innerWidth || (document.documentElement && document.documentElement.clientWidth) || window.screen.width || 600;
-        var meta = document.querySelector("meta[name=\'viewport\']");
+        var meta = document.getElementById("memora-viewport-meta");
         var style = document.getElementById("memora-force-desktop-style");
 
         if (w < 600) {
             var scale = Math.round((w / 600) * 10000) / 10000;
-            var content = "width=600, initial-scale=" + scale + ", minimum-scale=" + scale + ", maximum-scale=3.0, user-scalable=yes";
             if (meta) {
-                meta.setAttribute("content", content);
-            } else {
-                document.write(\'<meta name="viewport" content="\' + content + \'">\');
+                meta.setAttribute("content", "width=600, initial-scale=" + scale + ", minimum-scale=" + scale + ", maximum-scale=5.0, user-scalable=yes");
             }
-            if (!style) {
-                document.write(\'<style id="memora-force-desktop-style">html,body{width:600px!important;min-width:600px!important;max-width:600px!important;overflow-x:hidden!important;}</style>\');
+            if (style) {
+                style.textContent = "html,body{width:600px!important;min-width:600px!important;max-width:600px!important;overflow-x:hidden!important;}";
             }
         } else {
             if (meta) {
                 meta.setAttribute("content", "width=device-width, initial-scale=1.0");
-            } else {
-                document.write(\'<meta name="viewport" content="width=device-width, initial-scale=1.0">\');
             }
-            if (style && style.parentNode) {
-                style.parentNode.removeChild(style);
+            if (style) {
+                style.textContent = "";
             }
         }
     }
+
     applyForcedViewport();
-    window.addEventListener("resize", applyForcedViewport);
+
+    var resizeTicking = false;
+    window.addEventListener("resize", function() {
+        if (!resizeTicking) {
+            window.requestAnimationFrame(function() {
+                applyForcedViewport();
+                resizeTicking = false;
+            });
+            resizeTicking = true;
+        }
+    });
+
     window.addEventListener("orientationchange", function() {
         setTimeout(applyForcedViewport, 150);
     });
 })();
-</script>
-<noscript>
-    <meta name="viewport" content="width=600, initial-scale=0.65">
-    <style>html,body{width:600px!important;overflow-x:hidden!important;}</style>
-</noscript>';
+</script>';
 
     if ( stripos( $html, '<head>' ) !== false ) {
         $html = str_ireplace( '<head>', '<head>' . $viewport_script, $html );
