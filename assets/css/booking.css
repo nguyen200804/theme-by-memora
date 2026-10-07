@@ -223,6 +223,38 @@
     transform: none !important;
 }
 
+.memora-time-slot-btn.memora-slot-see-tomorrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.2em;
+    font-family: 'Boston Angel', 'Mulish', sans-serif;
+    font-size: 5.2em;
+    font-weight: 600;
+    line-height: 1.15;
+    text-transform: none;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+}
+
+.memora-time-slot-btn.memora-slot-see-tomorrow span {
+    display: block;
+    line-height: 1.2;
+    pointer-events: none;
+}
+
+.memora-time-slot-btn.memora-slot-see-tomorrow:hover {
+    background: var(--memora-blue-light);
+    border-color: var(--memora-brown-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(115, 62, 28, 0.2);
+}
+
+.memora-time-slot-btn.memora-slot-see-tomorrow:active {
+    transform: scale(0.96);
+}
+
 /* ==========================================================================
    3. SHORTCODE [choose_photography_package]
    ========================================================================== */

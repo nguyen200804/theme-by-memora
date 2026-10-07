@@ -74,6 +74,9 @@ function memora_shortcode_choose_time( $atts ) {
                     <?php echo esc_html( $slot ); ?>
                 </button>
             <?php endforeach; ?>
+            <button type="button" class="memora-time-slot-btn memora-slot-see-tomorrow" title="Chuyển sang ngày mai">
+                <span>See you<br>tomorrow</span>
+            </button>
         </div>
     </div>
     <?php

@@ -249,6 +249,10 @@
                             $slotsGrid.append($btn);
                         });
 
+                        // Thêm ô "See you tomorrow" vào cuối lưới giờ
+                        var $seeTomorrow = $('<button type="button" class="memora-time-slot-btn memora-slot-see-tomorrow" title="Chuyển sang ngày mai"><span>See you<br>tomorrow</span></button>');
+                        $slotsGrid.append($seeTomorrow);
+
                         // Nếu slot cũ không còn available thì xóa khỏi state
                         if (!hasSelected && state.time) {
                             state.time = '';
@@ -263,7 +267,66 @@
             });
         }
 
-        $(document).on('click', '.memora-time-slot-btn', function (e) {
+        function goToTomorrow() {
+            var $selectDay   = $('#memora_select_day');
+            var $selectMonth = $('#memora_select_month');
+            var $selectYear  = $('#memora_select_year');
+
+            var d = parseInt($selectDay.val(), 10);
+            var m = parseInt($selectMonth.val(), 10);
+            var y = parseInt($selectYear.val(), 10);
+
+            if ((isNaN(d) || isNaN(m) || isNaN(y)) && state.date) {
+                var parts = state.date.split('/');
+                if (parts.length === 3) {
+                    d = parseInt(parts[0], 10);
+                    m = parseInt(parts[1], 10);
+                    y = parseInt(parts[2], 10);
+                }
+            }
+
+            var now = new Date();
+            if (isNaN(y) || y < 1900) y = now.getFullYear();
+            if (isNaN(m) || m < 1 || m > 12) m = now.getMonth() + 1;
+            if (isNaN(d) || d < 1) d = now.getDate();
+
+            var nextDate = new Date(y, m - 1, d);
+            nextDate.setDate(nextDate.getDate() + 1);
+
+            var nextD = nextDate.getDate();
+            var nextM = nextDate.getMonth() + 1;
+            var nextY = nextDate.getFullYear();
+
+            var dVal = (nextD < 10) ? '0' + nextD : '' + nextD;
+            var mVal = (nextM < 10) ? '0' + nextM : '' + nextM;
+            var yVal = '' + nextY;
+
+            // Xóa slot đã chọn ở ngày cũ để người dùng chọn giờ mới
+            state.time = '';
+            state.saveToStorage();
+            updatePillDisplays();
+
+            if ($selectDay.length) {
+                if ($selectDay.is('input')) {
+                    $selectYear.val(yVal);
+                    $selectMonth.val(mVal);
+                    $selectDay.val(dVal);
+                    $selectDay.trigger('input').trigger('change');
+                } else if ($selectDay.is('select')) {
+                    $selectYear.val(yVal).trigger('change');
+                    $selectMonth.val(mVal).trigger('change');
+                    $selectDay.val(dVal).trigger('change');
+                }
+            } else {
+                var formattedDate = dVal + '/' + mVal + '/' + yVal;
+                state.date = formattedDate;
+                state.saveToStorage();
+                updatePillDisplays();
+                fetchAvailableSlots(formattedDate);
+            }
+        }
+
+        $(document).on('click', '.memora-time-slot-btn:not(.memora-slot-see-tomorrow)', function (e) {
             e.preventDefault();
             if ($(this).is(':disabled')) return;
 
@@ -274,6 +337,11 @@
             state.time = time;
             state.saveToStorage();
             updatePillDisplays();
+        });
+
+        $(document).on('click', '.memora-slot-see-tomorrow', function (e) {
+            e.preventDefault();
+            goToTomorrow();
         });
 
         // =========================================================================
