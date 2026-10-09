@@ -163,6 +163,55 @@ function memora_force_elementor_custom_fonts() {
     }
 }
 
+/**
+ * Override font metrics cho font 'Cocomat Pro' để cân bằng vùng bôi đen (selection box) và căn giữa dọc tự nhiên.
+ * Trị tận gốc lỗi file font gốc có Ascent quá cao và Descent quá thấp làm chữ bị dính sát đáy vùng bôi đen.
+ */
+add_action( 'wp_head', 'memora_override_cocomat_metrics', 9999 );
+function memora_override_cocomat_metrics() {
+    $upload_dir = wp_get_upload_dir();
+    $font_url   = $upload_dir['baseurl'] . '/2026/09/CocomatPro-Regular.ttf';
+    ?>
+    <style id="memora-cocomat-metrics-fix">
+        @font-face {
+            font-family: 'Cocomat Pro';
+            font-style: normal;
+            src: url('<?php echo esc_url( $font_url ); ?>') format('truetype');
+            ascent-override: 85%;
+            descent-override: 20%;
+            line-gap-override: 0%;
+        }
+        @font-face {
+            font-family: 'Cocomat Pro';
+            font-weight: 400;
+            font-style: normal;
+            src: url('<?php echo esc_url( $font_url ); ?>') format('truetype');
+            ascent-override: 85%;
+            descent-override: 20%;
+            line-gap-override: 0%;
+        }
+        @font-face {
+            font-family: 'Cocomat Pro';
+            font-weight: 600;
+            font-style: normal;
+            src: url('<?php echo esc_url( $font_url ); ?>') format('truetype');
+            ascent-override: 85%;
+            descent-override: 20%;
+            line-gap-override: 0%;
+        }
+        @font-face {
+            font-family: 'Cocomat Pro';
+            font-weight: 700;
+            font-style: normal;
+            src: url('<?php echo esc_url( $font_url ); ?>') format('truetype');
+            ascent-override: 85%;
+            descent-override: 20%;
+            line-gap-override: 0%;
+        }
+    </style>
+    <?php
+}
+
 
 // Force desktop layout on all devices by setting viewport width to 1200px on small screens, and standard viewport on large screens
 function tocfl_force_desktop_viewport($html) {
