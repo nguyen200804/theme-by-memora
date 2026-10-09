@@ -460,7 +460,12 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-book-btn span {
             display: inline-block;
-            transform: translateY(-1.5px);
+            transform: translateY(-0.5px);
+        }
+        @media (max-width: 767px) {
+            #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-book-btn span {
+                transform: translateY(0.8px);
+            }
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-book-btn:hover {
             background: #733E1C;
