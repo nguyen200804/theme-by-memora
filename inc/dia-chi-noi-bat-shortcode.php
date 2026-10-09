@@ -442,20 +442,21 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         }
 
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-book-btn {
-                display: inline-block;
-    font-family: "Cocomat Pro", Sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    color: #733E1C;
-    border-style: solid;
-    border-width: 2px;
-    border-color: #733E1C;
-    border-radius: 151px;
-    padding: 0em 0.5em 0.3em 0.5em;
-    text-decoration: none;
-    text-align: center;
-    line-height: 1.3;
-    transition: background 0.2s ease, color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: "Cocomat Pro", Sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: #733E1C;
+            border: 2px solid #733E1C;
+            border-radius: 151px;
+            padding: 5px 12px;
+            line-height: 1;
+            text-decoration: none;
+            text-align: center;
+            -webkit-font-smoothing: antialiased;
+            transition: background 0.2s ease, color 0.2s ease;
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-book-btn:hover {
             background: #733E1C;
