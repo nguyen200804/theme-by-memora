@@ -376,7 +376,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
 
 
             <a href="<?php echo esc_url( $dc_term_url ); ?>" class="dcnb-book-btn">
-                Book lịch ngay
+                <span>Book lịch ngay</span>
             </a>
 
         </div>
@@ -457,6 +457,10 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             text-align: center;
             -webkit-font-smoothing: antialiased;
             transition: background 0.2s ease, color 0.2s ease;
+        }
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-book-btn span {
+            display: inline-block;
+            transform: translateY(1.5px);
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-book-btn:hover {
             background: #733E1C;
