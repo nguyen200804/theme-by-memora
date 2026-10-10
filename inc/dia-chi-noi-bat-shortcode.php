@@ -457,7 +457,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             text-align: center;
             -webkit-font-smoothing: antialiased;
             transition: background 0.2s ease, color 0.2s ease;
-            -webkit-text-stroke: 0.075em #733E1C;
+            -webkit-text-stroke: 0.05em #733E1C;
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-book-btn span {
             display: inline-block;
@@ -465,7 +465,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-book-btn:hover {
             background: #733E1C;
             color: #fff;
-            -webkit-text-stroke: 0.075em #ffffffff;
+            -webkit-text-stroke: 0.05em #ffffffff;
         }
 
         /* === Cot phai (2/3) === */
