@@ -40,3 +40,8 @@ div:has(> .hn__danh_sach_dia_chi) {
 .hn__danh_sach_dia_chi>div {
     width: 100%;
 }
+
+
+.effect-text-stroke .elementor-button {
+    -webkit-text-stroke: 0.025em #733E1C;
+}
