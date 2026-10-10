@@ -465,7 +465,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-book-btn:hover {
             background: #733E1C;
             color: #fff;
-            -webkit-text-stroke: 0.05em #ffffffff;
+            -webkit-text-stroke: 0.025em #ffffffff;
         }
 
         /* === Cot phai (2/3) === */
