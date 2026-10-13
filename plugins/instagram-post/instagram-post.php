@@ -140,26 +140,47 @@ if ( ! class_exists( 'Memora_Instagram_Post' ) ) {
 
 
 //====================================
+// START - ĐĂNG KÝ CRON SCHEDULE WEEKLY
+//====================================
+if ( ! function_exists( 'memora_ig_add_cron_schedules' ) ) {
+    add_filter( 'cron_schedules', 'memora_ig_add_cron_schedules' );
+    function memora_ig_add_cron_schedules( $schedules ) {
+        if ( ! isset( $schedules['weekly'] ) ) {
+            $schedules['weekly'] = array(
+                'interval' => 7 * DAY_IN_SECONDS,
+                'display'  => __( 'Mỗi tuần một lần', 'instagram-post' ),
+            );
+        }
+        return $schedules;
+    }
+}
+//====================================
+// END - ĐĂNG KÝ CRON SCHEDULE WEEKLY
+//====================================
+
+
+
+
+
+//====================================
 // START - KÍCH HOẠT VÀ HỦY KÍCH HOẠT PLUGIN
 //====================================
-/**
- * Khi kích hoạt plugin: Đăng ký lịch Cron hàng tuần để tự động làm mới token
- */
-register_activation_hook( __FILE__, 'memora_ig_activate_plugin' );
-function memora_ig_activate_plugin() {
-    if ( ! wp_next_scheduled( 'memora_ig_weekly_token_refresh' ) ) {
-        wp_schedule_event( time(), 'weekly', 'memora_ig_weekly_token_refresh' );
+if ( ! function_exists( 'memora_ig_activate_plugin' ) ) {
+    register_activation_hook( __FILE__, 'memora_ig_activate_plugin' );
+    function memora_ig_activate_plugin() {
+        if ( ! wp_next_scheduled( 'memora_ig_weekly_token_refresh' ) ) {
+            wp_schedule_event( time(), 'weekly', 'memora_ig_weekly_token_refresh' );
+        }
     }
 }
 
-/**
- * Khi hủy kích hoạt: Hủy lịch Cron
- */
-register_deactivation_hook( __FILE__, 'memora_ig_deactivate_plugin' );
-function memora_ig_deactivate_plugin() {
-    $timestamp = wp_next_scheduled( 'memora_ig_weekly_token_refresh' );
-    if ( $timestamp ) {
-        wp_unschedule_event( $timestamp, 'memora_ig_weekly_token_refresh' );
+if ( ! function_exists( 'memora_ig_deactivate_plugin' ) ) {
+    register_deactivation_hook( __FILE__, 'memora_ig_deactivate_plugin' );
+    function memora_ig_deactivate_plugin() {
+        $timestamp = wp_next_scheduled( 'memora_ig_weekly_token_refresh' );
+        if ( $timestamp ) {
+            wp_unschedule_event( $timestamp, 'memora_ig_weekly_token_refresh' );
+        }
     }
 }
 //====================================

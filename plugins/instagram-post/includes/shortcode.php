@@ -15,18 +15,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 //====================================
 // START - ĐĂNG KÝ VÀ RENDER SHORTCODE [instagram_post]
 //====================================
-add_shortcode( 'instagram_post', 'memora_ig_shortcode_handler' );
-add_shortcode( 'memora_instagram_post', 'memora_ig_shortcode_handler' );
+if ( ! function_exists( 'memora_ig_shortcode_handler' ) ) {
+    add_shortcode( 'instagram_post', 'memora_ig_shortcode_handler' );
+    add_shortcode( 'memora_instagram_post', 'memora_ig_shortcode_handler' );
 
-/**
- * Xử lý Shortcode [instagram_post]
- *
- * @param array $atts Các thuộc tính truyền vào từ shortcode
- * @return string HTML hiển thị danh sách bài viết Instagram
- */
-function memora_ig_shortcode_handler( $atts ) {
-    // Đảm bảo enqueue CSS frontend khi shortcode được gọi
-    wp_enqueue_style( 'memora-instagram-post' );
+    /**
+     * Xử lý Shortcode [instagram_post]
+     *
+     * @param array $atts Các thuộc tính truyền vào từ shortcode
+     * @return string HTML hiển thị danh sách bài viết Instagram
+     */
+    function memora_ig_shortcode_handler( $atts ) {
+        // Đảm bảo enqueue CSS frontend khi shortcode được gọi
+        wp_enqueue_style( 'memora-instagram-post' );
 
     $settings = memora_ig_get_settings();
 
@@ -200,6 +201,7 @@ function memora_ig_shortcode_handler( $atts ) {
     </div>
     <?php
     return ob_get_clean();
+}
 }
 //====================================
 // END - ĐĂNG KÝ VÀ RENDER SHORTCODE [instagram_post]

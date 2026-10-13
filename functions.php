@@ -69,11 +69,6 @@ if ( file_exists( get_stylesheet_directory() . '/inc/wc-checkout-booking.php' ) 
     require_once get_stylesheet_directory() . '/inc/wc-checkout-booking.php';
 }
 
-// Nạp plugin Instagram Post [instagram_post] (nếu chưa được kích hoạt độc lập trong wp-content/plugins)
-if ( ! class_exists( 'Memora_Instagram_Post' ) && file_exists( get_stylesheet_directory() . '/plugins/instagram-post/instagram-post.php' ) ) {
-    require_once get_stylesheet_directory() . '/plugins/instagram-post/instagram-post.php';
-}
-
 
 
 /**
