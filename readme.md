@@ -46,6 +46,7 @@ Code chức năng 2
 | `custom-field-group.php` | Định nghĩa các Field Group (ACF), trang Options, CSS hiệu ứng và Shortcode hiển thị. |
 | `menu-header.php` | Định nghĩa Shortcode `[menu__header]` xuất menu đa tầng (drill-down) dạng thẻ kính mờ (Frosted Glass). |
 | `inc/nut-lien-he.php` | Nút liên hệ nổi ở góc dưới bên phải, click mở 3 icon mạng xã hội (Điện thoại, Zalo, Instagram) và nút Đóng. |
+| `plugins/instagram-post/` | Plugin Instagram Post: Kết nối Instagram Graph API, trang Setting Instagram, Shortcode `[instagram_post]`. |
 | `style.css` | Khai báo thông tin Child Theme Hello Elementor và các CSS ghi đè. |
 | `readme.md` | Tài liệu hướng dẫn sử dụng và quy chuẩn kỹ thuật của dự án. |
 
@@ -191,4 +192,49 @@ Nút liên hệ cố định ở góc dưới bên phải màn hình website:
   - Tự động đóng khi người dùng nhấp ra ngoài hoặc bấm phím `ESC`.
   - Quản lý & chỉnh sửa thông tin trong **WP Admin > Chỉnh sửa chung**: Bật/Tắt, Chữ nút, Số điện thoại, Link Zalo, Link Instagram, tải lên ảnh icon riêng cho từng nút, và tùy chỉnh **Kích thước icon liên hệ** (mặc định: `54px`), **Kích thước icon X** (mặc định: `44px`).
   - Hỗ trợ Shortcode: `[nut_lien_he]` hoặc `[nut_lien_he phone="0901234567" zalo="0901234567" instagram="https://instagram.com/memora" icon_size="54" close_size="44"]`.
- 
+
+---
+
+## 7. Plugin Instagram Post (`[instagram_post]`)
+
+Plugin độc lập chuẩn WordPress kết nối **Instagram Graph API**, hiển thị feed bài viết Instagram hiện đại phong cách Memora, quản lý toàn diện trong trang quản trị **Setting Instagram**.
+
+### 7.1. Quản lý trong Admin (Setting Instagram)
+* **Đường dẫn quản trị:** `/wp-admin/admin.php?page=setting-instagram` (Menu: **Setting Instagram** trên thanh admin).
+* **Các thiết lập chính:**
+  * **Instagram Access Token:** Nhập User Token từ Meta Developers (hỗ trợ nút Ẩn/Hiện mật khẩu).
+  * **Nút kiểm tra kết nối:** Kiểm tra token ngay lập tức qua AJAX và hiển thị thông tin tài khoản `@username`, tổng số bài viết.
+  * **Nút xóa Cache:** Xóa toàn bộ bộ nhớ tạm (Transient Cache) để nạp ngay bài viết mới nhất.
+  * **Nút gia hạn Token:** Gửi yêu cầu gia hạn Long-Lived Token thêm 60 ngày chỉ với 1 cú click.
+  * **Link Profile Instagram:** Đường dẫn trang cá nhân (VD: `https://instagram.com/memora_film`) dùng để gắn link nút Follow.
+  * **Số bài viết xuất ra:** Mặc định `6` bài (tùy chỉnh từ 1 đến 50 bài).
+  * **Số cột hiển thị:** `2, 3, 4, 5, 6 cột` (mặc định: 4 cột trên Desktop, tự động co giãn 2-3 cột trên Tablet và 2 cột trên Mobile).
+  * **Khoảng cách (Gap):** Khoảng cách pixel giữa các ảnh (mặc định: `16px`).
+  * **Tỉ lệ ảnh (Aspect Ratio):** `1:1 (Vuông chuẩn)` hoặc `4:5 (Khổ dọc thời trang)`.
+  * **Bo góc:** Mặc định `10px`.
+  * **Nút Theo dõi Instagram (CTA Button):** Bật/Tắt và tùy chỉnh nội dung chữ nút bấm.
+  * **Thời gian lưu Cache:** Chọn `1 giờ`, `4 giờ` (mặc định), `12 giờ`, `24 giờ`.
+  * **Tự động làm mới Token:** Hệ thống tự động kích hoạt WP-Cron hàng tuần để gia hạn Token trước khi hết hạn 60 ngày.
+
+### 7.2. Cách sử dụng Shortcode
+
+#### Cú pháp cơ bản (Tự động đọc số bài viết và link Instagram từ Setting):
+```text
+[instagram_post]
+```
+
+#### Các thuộc tính tùy biến (Attributes):
+* `limit="6"`: Đổi số lượng bài viết hiển thị (hoặc `count="6"`).
+* `columns="4"`: Đổi số cột hiển thị trên Desktop (hoặc `col="4"`).
+* `gap="12"`: Khoảng cách giữa các bài viết (px).
+* `ratio="square"`: Tỉ lệ ảnh vuông 1:1 hoặc `ratio="portrait"` (khổ dọc 4:5).
+* `radius="12"`: Bo góc ảnh bài viết (px).
+* `link="https://instagram.com/..."`: Ghi đè link trang cá nhân Instagram.
+* `show_button="false"`: Ẩn nút "Theo dõi trên Instagram".
+* `button_text="Follow @memora.film"`: Tùy biến chữ nút bấm.
+* `show_caption="false"`: Ẩn trích đoạn caption khi rê chuột qua bài viết.
+* `class="my-ig-feed"`: Bổ sung CSS class tùy biến.
+
+#### Đóng gói Plugin:
+* Thư mục mã nguồn: `plugins/instagram-post/`.
+* File cài đặt ZIP: `plugins/instagram-post.zip` (có thể tải lên và kích hoạt trực tiếp tại **WP Admin > Plugins > Add New > Upload Plugin**).
