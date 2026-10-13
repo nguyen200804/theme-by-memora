@@ -353,6 +353,64 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         'effect'      => 'slide',
     ] );
 
+    /* -- Bổ sung lấy ảnh đại diện nếu chưa có -- */
+    if ( empty( $thumb_src ) && $dc_term_source && function_exists( 'get_field' ) ) {
+        $term_thumb = get_field( 'hinh_anh_dai_dien', $dc_term_source )
+                   ?: get_field( 'anh_dai_dien', $dc_term_source )
+                   ?: get_field( 'thumbnail', $dc_term_source )
+                   ?: get_field( 'image', $dc_term_source );
+        if ( is_array( $term_thumb ) && ! empty( $term_thumb['ID'] ) ) {
+            $thumb_id = (int) $term_thumb['ID'];
+        } elseif ( is_numeric( $term_thumb ) && $term_thumb > 0 ) {
+            $thumb_id = (int) $term_thumb;
+        } elseif ( is_string( $term_thumb ) && filter_var( $term_thumb, FILTER_VALIDATE_URL ) ) {
+            $thumb_src = $term_thumb;
+        }
+        if ( $thumb_id ) {
+            $thumb_src = wp_get_attachment_image_url( $thumb_id, 'medium' ) ?: wp_get_attachment_url( $thumb_id );
+            $thumb_alt = (string) get_post_meta( $thumb_id, '_wp_attachment_image_alt', true ) ?: $dc_title;
+        }
+    }
+    if ( empty( $thumb_src ) && ! empty( $slide_ids[0] ) ) {
+        $first_slide_id = (int) $slide_ids[0];
+        $thumb_src      = wp_get_attachment_image_url( $first_slide_id, 'medium' ) ?: wp_get_attachment_url( $first_slide_id );
+        if ( empty( $thumb_alt ) ) {
+            $thumb_alt = (string) get_post_meta( $first_slide_id, '_wp_attachment_image_alt', true ) ?: $dc_title;
+        }
+    }
+
+    /* -- URL Google Maps điều hướng sang tab mới -- */
+    $map_url = '';
+    if ( function_exists( 'get_field' ) ) {
+        if ( $dc_term_source ) {
+            $map_url = get_field( 'google_map_url', $dc_term_source )
+                    ?: get_field( 'map_url', $dc_term_source )
+                    ?: get_field( 'link_map', $dc_term_source )
+                    ?: get_field( 'ban_do', $dc_term_source );
+        }
+        if ( empty( $map_url ) && $dc_id > 0 ) {
+            $map_url = get_field( 'google_map_url', $dc_id )
+                    ?: get_field( 'map_url', $dc_id )
+                    ?: get_field( 'link_map', $dc_id )
+                    ?: get_field( 'ban_do', $dc_id );
+        }
+    }
+    if ( empty( $map_url ) && $dc_term ) {
+        $map_url = get_term_meta( $dc_term->term_id, 'google_map_url', true )
+                ?: get_term_meta( $dc_term->term_id, 'map_url', true )
+                ?: get_term_meta( $dc_term->term_id, 'ban_do', true )
+                ?: get_term_meta( $dc_term->term_id, 'link_map', true );
+    }
+    if ( empty( $map_url ) && $dc_id > 0 ) {
+        $map_url = get_post_meta( $dc_id, 'google_map_url', true )
+                ?: get_post_meta( $dc_id, 'map_url', true )
+                ?: get_post_meta( $dc_id, 'ban_do', true )
+                ?: get_post_meta( $dc_id, 'link_map', true );
+    }
+    if ( empty( $map_url ) ) {
+        $map_url = 'https://www.google.com/maps/search/?api=1&query=' . urlencode( $dc_title );
+    }
+
     ob_start();
     ?>
     <div class="dcnb-wrap" id="<?php echo esc_attr( $wrap_uid ); ?>">
@@ -362,16 +420,9 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             <div class="dcnb-brand-label">Memora<br><em>"Angel Shot"</em></div>
 
             <div class="dcnb-map">
-                <iframe
-                    src="https://maps.google.com/maps?q=<?php echo urlencode( $dc_title ); ?>&output=embed&z=15&hl=vi"
-                    width="100%"
-                    height="100%"
-                    style="border:0; display:block;"
-                    allowfullscreen=""
-                    loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade"
-                    title="<?php echo esc_attr( $dc_title ); ?>">
-                </iframe>
+                <a href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo esc_attr( $dc_title ); ?>">
+                    <img src="<?php echo esc_url( $thumb_src ); ?>" alt="<?php echo esc_attr( $thumb_alt ); ?>" loading="lazy" />
+                </a>
             </div>
 
 
@@ -428,15 +479,30 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
        
 
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-map {
-                width: 115px;
-    height: 130px;
-    flex: 0 0 130px;
-    /* border-radius: 8px; */
-    overflow: hidden;
+            width: 115px;
+            height: 130px;
+            flex: 0 0 130px;
+            /* border-radius: 8px; */
+            overflow: hidden;
+        }
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-map a {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-map img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-map a:hover img {
+            transform: scale(1.05);
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-map iframe {
             width: 115px;
-    height: 130px;
+            height: 130px;
             border: 0;
             display: block;
         }
