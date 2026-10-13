@@ -298,7 +298,7 @@
     background-color: transparent !important;
     border: none;
     outline: none;
-    padding: 0.7em 1em;
+    padding: 0.5em 1em;
     box-sizing: border-box;
     color: #733e1c !important;
     text-decoration: none;
@@ -309,6 +309,7 @@
     cursor: pointer;
     text-align: right;
     transition: opacity 0.2s ease, transform 0.2s ease;
+    line-height: 1.5em !important;
 }
 
 .memora-menu-item-link:hover,
