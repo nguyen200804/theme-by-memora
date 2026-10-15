@@ -690,16 +690,7 @@ function memora_gallery_swiper_shortcode( $atts ) {
             display: block;
             pointer-events: none;
         }
-        #<?php echo esc_attr( $uid ); ?>-prev:hover,
-        #<?php echo esc_attr( $uid ); ?> .swiper-button-prev:hover {
-            transform: translateY(-50%) scale(1.12);
-            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.28));
-        }
-        #<?php echo esc_attr( $uid ); ?>-next:hover,
-        #<?php echo esc_attr( $uid ); ?> .swiper-button-next:hover {
-            transform: translateY(-50%) scale(1.12);
-            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.28));
-        }
+        
         #<?php echo esc_attr( $uid ); ?>-prev.swiper-button-disabled,
         #<?php echo esc_attr( $uid ); ?>-next.swiper-button-disabled,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-prev.swiper-button-disabled,
