@@ -78,6 +78,8 @@
     outline: 0 !important;
     font-size: 12em;
     padding: 0.417em 0.833em !important;
+    font-family: 'Cocomat Pro';
+    -webkit-text-stroke: 0.01em;
 }
 
 .memora-date-field {
@@ -441,7 +443,8 @@
 .memora-btn-confirm-pay {
     font-family: 'Boston Angel';
     width: 189.3333333px;
-    font-weight: 600;
+    font-weight: 500;
+    -webkit-text-stroke: 0.02em;
 }
 
 .memora-btn-brown:hover {
@@ -522,17 +525,18 @@
     background: transparent;
     border: 0 !important;
     outline: none !important;
-    font-family: 'Cocomat Pro';
+    font-family: 'Cocomat Pro', sans-serif;
     font-size: 7.3em !important;
     color: var(--memora-brown-text);
-    padding: 0 !important;
+    padding: 4px 0 2px 0 !important;
+    line-height: 1.35 !important;
     font-weight: 500;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .memora-input-text::placeholder {
     color: #733e1c80;
-
+    line-height: 1.35 !important;
 }
 
 .memora-checkout-pills {

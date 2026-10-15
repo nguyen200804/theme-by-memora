@@ -776,20 +776,20 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
         /* Nút "Tìm hiểu thêm" viên thuốc màu nâu */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-btn-more {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #733e1c;
-            color: #ffffff !important;
-            padding: 0.1em 0.6em 0.1em 0.6em;
-            border: 3px solid #b1d2ed;
-            border-radius: 9999px;
-            font-family: "Cocomat Pro", Sans-serif;
-            font-size: 5.8em;
-            font-weight: 500;
-            text-decoration: none;
-            box-shadow: 0 4px 12px rgba(115, 62, 28, 0.22);
-            transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+                display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #733e1c;
+    color: #ffffff !important;
+    padding: 0.1em 0.6em 0.1em 0.6em;
+    border: 0.16em solid #b1d2ed;
+    border-radius: 9999px;
+    font-family: "Cocomat Pro", Sans-serif;
+    font-size: 5.8em;
+    font-weight: 500;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(115, 62, 28, 0.22);
+    transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
         }
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-btn-more:hover {
             background-color: #572e14;
