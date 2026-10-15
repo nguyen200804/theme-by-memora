@@ -56,7 +56,7 @@ if ( ! function_exists( 'memora_ig_sanitize_settings' ) ) {
         $output['post_count']       = ! empty( $input['post_count'] ) ? max( 1, min( 50, (int) $input['post_count'] ) ) : 6;
         $output['columns']          = ! empty( $input['columns'] ) ? max( 1, min( 6, (int) $input['columns'] ) ) : 4;
         $output['gap']              = isset( $input['gap'] ) ? max( 0, min( 60, (int) $input['gap'] ) ) : 16;
-        $output['aspect_ratio']     = in_array( $input['aspect_ratio'], array( '1/1', '4/5', '9/16' ), true ) ? $input['aspect_ratio'] : '1/1';
+        $output['aspect_ratio']     = in_array( $input['aspect_ratio'], array( '1/1', '4/5', '3/4', '2/3', '9/16' ), true ) ? $input['aspect_ratio'] : '1/1';
         $output['border_radius']    = isset( $input['border_radius'] ) ? max( 0, min( 40, (int) $input['border_radius'] ) ) : 10;
         $output['show_button']      = ! empty( $input['show_button'] ) ? 1 : 0;
         $output['button_text']      = ! empty( $input['button_text'] ) ? sanitize_text_field( $input['button_text'] ) : 'Theo dõi chúng tôi trên Instagram';
@@ -352,6 +352,8 @@ if ( ! function_exists( 'memora_ig_render_settings_page' ) ) {
                                             <select id="memora_ig_aspect_ratio" name="memora_instagram_settings[aspect_ratio]">
                                                 <option value="1/1" <?php selected( $settings['aspect_ratio'], '1/1' ); ?>>1:1 (Vuông chuẩn Instagram)</option>
                                                 <option value="4/5" <?php selected( $settings['aspect_ratio'], '4/5' ); ?>>4:5 (Khổ dọc thời trang)</option>
+                                                <option value="3/4" <?php selected( $settings['aspect_ratio'], '3/4' ); ?>>3:4 (Khổ dọc ảnh chụp)</option>
+                                                <option value="2/3" <?php selected( $settings['aspect_ratio'], '2/3' ); ?>>2:3 (Khổ dọc máy ảnh 35mm)</option>
                                                 <option value="9/16" <?php selected( $settings['aspect_ratio'], '9/16' ); ?>>9:16 (Khổ dọc Story / Reels)</option>
                                             </select>
                                         </td>
@@ -453,7 +455,7 @@ if ( ! function_exists( 'memora_ig_render_settings_page' ) ) {
                                     <li><code>link="..."</code>: Ghi đè link profile Instagram</li>
                                     <li><code>show_button="false"</code>: Ẩn nút theo dõi</li>
                                     <li><code>button_text="..."</code>: Đổi chữ nút theo dõi</li>
-                                    <li><code>ratio="square"</code>: Vuông (1:1), <code>ratio="portrait"</code> (4:5) hoặc <code>ratio="story"</code> / <code>ratio="9/16"</code> (9:16)</li>
+                                    <li><code>ratio="square"</code>: Vuông (1:1), <code>ratio="portrait"</code> (4:5), <code>ratio="3/4"</code> (3:4), <code>ratio="2/3"</code> (2:3) hoặc <code>ratio="story"</code> / <code>ratio="9/16"</code> (9:16)</li>
                                     <li><code>class="custom-class"</code>: Thêm class CSS riêng</li>
                                 </ul>
                             </div>

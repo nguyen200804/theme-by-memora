@@ -63,6 +63,10 @@ if ( ! function_exists( 'memora_ig_shortcode_handler' ) ) {
     $raw_ratio = str_replace( ':', '/', trim( (string) $args['ratio'] ) );
     if ( in_array( $raw_ratio, array( '4/5', 'portrait' ), true ) ) {
         $ratio = '4/5';
+    } elseif ( '3/4' === $raw_ratio ) {
+        $ratio = '3/4';
+    } elseif ( '2/3' === $raw_ratio ) {
+        $ratio = '2/3';
     } elseif ( in_array( $raw_ratio, array( '9/16', 'story', 'stories', 'reel', 'reels', 'vertical' ), true ) ) {
         $ratio = '9/16';
     } else {

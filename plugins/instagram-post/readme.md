@@ -12,7 +12,7 @@ Plugin WordPress kết nối **Instagram Graph API / Basic Display API**, cung c
   * Nút **Xóa Cache** và nút **Gia hạn Token 60 ngày** chỉ với 1 click.
   * Tùy chỉnh **Số bài viết xuất ra** (mặc định 6 bài).
   * Tùy chỉnh **Link Profile Instagram** (gắn vào nút theo dõi).
-  * Tùy biến số cột hiển thị (2, 3, 4, 5, 6 cột), khoảng cách (gap), tỉ lệ ảnh (1:1, 4:5 hoặc 9:16), bo góc.
+  * Tùy biến số cột hiển thị (2, 3, 4, 5, 6 cột), khoảng cách (gap), tỉ lệ ảnh (1:1, 4:5, 3:4, 2:3 hoặc 9:16), bo góc.
 * **Shortcode linh hoạt `[instagram_post]`:** Có thể nhúng vào Elementor, Gutenberg, Widget hoặc file PHP template.
 * **Cơ chế Transient Caching thông minh:** Lưu bộ nhớ đệm từ 1 đến 24 giờ, giúp website tải siêu nhanh (0ms độ trễ API) và không bao giờ bị nghẽn giới hạn lượt gọi của Meta.
 * **Tự động làm mới Token (Cron Job):** Định kỳ hàng tuần tự động gửi yêu cầu gia hạn Long-Lived Token để token không bao giờ bị hết hạn.
@@ -63,7 +63,7 @@ Tự động lấy toàn bộ cấu hình (số bài viết, link Instagram, s�
 | `limit` / `count` | Số nguyên | Cấu hình Setting (VD: `6`) | Giới hạn số lượng bài viết xuất ra. VD: `[instagram_post limit="8"]` |
 | `columns` / `col` | Số nguyên (1 - 6) | Cấu hình Setting (VD: `4`) | Số cột hiển thị trên Desktop. VD: `[instagram_post columns="6"]` |
 | `gap` | Số nguyên (px) | `16` | Khoảng cách giữa các ảnh. VD: `[instagram_post gap="12"]` |
-| `ratio` | `square` / `portrait` / `story` | `square` (1/1) | Tỉ lệ ảnh: `square` (1:1 vuông), `portrait` (4:5 dọc) hoặc `story` / `9/16` (9:16 dọc dài) |
+| `ratio` | `square` / `portrait` / `3/4` / `2/3` / `story` | `square` (1/1) | Tỉ lệ ảnh: `square` (1:1 vuông), `portrait` (4:5 dọc), `3/4` (3:4 dọc), `2/3` (2:3 dọc) hoặc `story` / `9/16` (9:16 dọc dài) |
 | `radius` | Số nguyên (px) | `10` | Bo góc ảnh bài viết. VD: `[instagram_post radius="16"]` |
 | `link` | URL | Cấu hình Setting | Ghi đè link Instagram profile. VD: `[instagram_post link="https://instagram.com/memora_film"]` |
 | `show_button` | `true` / `false` | `true` | Bật/tắt nút "Theo dõi trên Instagram" ở chân danh sách ảnh |
