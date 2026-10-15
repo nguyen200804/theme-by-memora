@@ -654,7 +654,6 @@ function memora_gallery_swiper_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .swiper-button-next {
             position: absolute;
             top: 50%;
-            transform: translateY(-50%);
             width: 32px;
             height: 32px;
             background: transparent !important;
@@ -672,12 +671,14 @@ function memora_gallery_swiper_shortcode( $atts ) {
         }
         #<?php echo esc_attr( $uid ); ?>-prev,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-prev {
-            left: 12px;
+            left: 0;
+            transform: translate(-50%, -50%);
             right: auto;
         }
         #<?php echo esc_attr( $uid ); ?>-next,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-next {
-            right: 12px;
+            right: 0;
+            transform: translate(50%, -50%);
             left: auto;
         }
         #<?php echo esc_attr( $uid ); ?>-prev svg,
