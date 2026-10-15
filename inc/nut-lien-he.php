@@ -198,12 +198,15 @@ function memora_contact_button_scripts_styles() {
         null
     );
 
+    $css_file = get_stylesheet_directory() . '/assets/css/nut-lien-he.css';
+    $js_file  = get_stylesheet_directory() . '/assets/js/nut-lien-he.js';
+
     // 2. CSS Nút liên hệ nổi (External file)
     wp_enqueue_style(
         'memora-contact-button-style',
         get_stylesheet_directory_uri() . '/assets/css/nut-lien-he.css',
         array(),
-        '1.0.0'
+        file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0'
     );
 
     // 3. JavaScript Xử lý Đóng/Mở (External file)
@@ -211,7 +214,7 @@ function memora_contact_button_scripts_styles() {
         'memora-contact-button-script',
         get_stylesheet_directory_uri() . '/assets/js/nut-lien-he.js',
         array(),
-        '1.0.0',
+        file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0',
         true
     );
 }

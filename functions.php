@@ -16,7 +16,9 @@ add_filter( 'locale_stylesheet_uri', 'chld_thm_cfg_locale_css' );
          
 if ( !function_exists( 'child_theme_configurator_css' ) ):
     function child_theme_configurator_css() {
-        wp_enqueue_style( 'chld_thm_cfg_child', trailingslashit( get_stylesheet_directory_uri() ) . 'style.css', array( 'hello-elementor','hello-elementor-theme-style','hello-elementor-header-footer' ) );
+        $style_path = trailingslashit( get_stylesheet_directory() ) . 'style.css';
+        $ver = file_exists( $style_path ) ? filemtime( $style_path ) : null;
+        wp_enqueue_style( 'chld_thm_cfg_child', trailingslashit( get_stylesheet_directory_uri() ) . 'style.css', array( 'hello-elementor','hello-elementor-theme-style','hello-elementor-header-footer' ), $ver );
     }
 endif;
 add_action( 'wp_enqueue_scripts', 'child_theme_configurator_css', 10 );
@@ -123,6 +125,35 @@ add_filter( 'elementor/fonts/additional_fonts', 'memora_elementor_additional_fon
 function memora_elementor_additional_fonts( $fonts ) {
     $fonts['Google Sans Flex'] = 'system';
     return $fonts;
+}
+
+/**
+ * Tự động gắn version = filemtime (thời gian chỉnh sửa file) cho TẤT CẢ file CSS/JS của theme.
+ * Bất cứ khi nào bạn sửa CSS/JS rồi lưu, tham số ?ver= sẽ tự đổi sang timestamp mới.
+ * Khi đó chỉ cần bấm Reload (F5) là trình duyệt nhận file mới ngay lập tức, không bị dính cache.
+ */
+add_filter( 'style_loader_src', 'memora_auto_version_theme_assets', 9999, 2 );
+add_filter( 'script_loader_src', 'memora_auto_version_theme_assets', 9999, 2 );
+function memora_auto_version_theme_assets( $src, $handle ) {
+    if ( ! $src ) {
+        return $src;
+    }
+
+    $theme_uri = get_stylesheet_directory_uri();
+    $clean_src = strtok( $src, '?' );
+
+    $theme_uri_no_proto = preg_replace( '#^https?:#', '', $theme_uri );
+    $clean_src_no_proto = preg_replace( '#^https?:#', '', $clean_src );
+
+    if ( strpos( $clean_src_no_proto, $theme_uri_no_proto ) === 0 ) {
+        $rel_path  = substr( $clean_src_no_proto, strlen( $theme_uri_no_proto ) );
+        $file_path = get_stylesheet_directory() . $rel_path;
+        if ( file_exists( $file_path ) ) {
+            $src = add_query_arg( 'ver', filemtime( $file_path ), $clean_src );
+        }
+    }
+
+    return $src;
 }
 
 

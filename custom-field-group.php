@@ -311,12 +311,15 @@ function memora_marquee_enqueue_assets() {
         null
     );
 
+    $css_file = get_stylesheet_directory() . '/assets/css/marquee.css';
+    $js_file  = get_stylesheet_directory() . '/assets/js/marquee.js';
+
     // CSS Marquee (External file)
     wp_enqueue_style(
         'memora-marquee-style',
         get_stylesheet_directory_uri() . '/assets/css/marquee.css',
         array(),
-        '1.0.0'
+        file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0'
     );
 
     // Script hỗ trợ tự động clone nếu màn hình quá rộng (External file)
@@ -324,7 +327,7 @@ function memora_marquee_enqueue_assets() {
         'memora-marquee-script',
         get_stylesheet_directory_uri() . '/assets/js/marquee.js',
         array(),
-        '1.0.0',
+        file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0',
         true
     );
 }

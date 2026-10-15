@@ -41,12 +41,15 @@ function memora_menu_header_scripts_styles() {
         null
     );
 
+    $css_file = get_stylesheet_directory() . '/assets/css/menu-header.css';
+    $js_file  = get_stylesheet_directory() . '/assets/js/menu-header.js';
+
     // 2. CSS Menu Header (External file)
     wp_enqueue_style(
         'memora-menu-header-style',
         get_stylesheet_directory_uri() . '/assets/css/menu-header.css',
         array(),
-        '1.0.0'
+        file_exists( $css_file ) ? filemtime( $css_file ) : '1.0.0'
     );
 
     // 3. JavaScript Drilldown & Modal Controller (External file)
@@ -54,7 +57,7 @@ function memora_menu_header_scripts_styles() {
         'memora-menu-header-script',
         get_stylesheet_directory_uri() . '/assets/js/menu-header.js',
         array(),
-        '1.0.0',
+        file_exists( $js_file ) ? filemtime( $js_file ) : '1.0.0',
         true
     );
 }
