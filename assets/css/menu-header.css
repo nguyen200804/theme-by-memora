@@ -344,6 +344,6 @@
 .memora-menu-label {
     margin-left: auto;
     text-align: right;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.000000000000000001em;
     white-space: nowrap;
 }
