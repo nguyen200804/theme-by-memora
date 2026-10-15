@@ -475,13 +475,13 @@
     font-family: "The Silver Editorial";
     font-size: 18.8em;
     font-weight: 500;
-    color: var(--memora-brown-text);
+    color: #733E1C;
     margin: 90px 0 0px 0;
 }
 
 .memora-checkout-subtitle {
     font-size: 10.15em;
-    color: var(--memora-brown-text);
+    color: #733E1C;
     margin: 0 auto 46px auto;
     font-family: 'Cocomat Pro';
     width: fit-content;
@@ -544,7 +544,7 @@
 }
 
 .memora-blue-pill {
-    background: var(--memora-blue-light);
+    background: #BAD6EC;
     border-radius: 200px;
     padding: 0 0.55em;
     align-content: center;
@@ -601,7 +601,7 @@
 }
 
 .memora-disclaimer {
-    font-size: 6.5em;
+    font-size: 6.3em;
     color: #733e1c;
     line-height: 1.5;
     margin: 4.7em 0 4.025em;
@@ -609,10 +609,11 @@
     align-items: flex-start;
     text-align: center;
     gap: 6px;
-    font-weight: 900;
+    font-weight: 700;
     font-family: 'Cocomat Pro';
     width: fit-content;
     justify-content: center;
+    -webkit-text-stroke: 0.025em;
 }
 
 .memora-disclaimer-icon {
@@ -1056,7 +1057,7 @@
 }
 
 .memora-info-box {
-    background: var(--memora-blue-light);
+    background: #BCD4E8;
     border: 0.1em solid #6f381e;
     border-radius: 0.725em;
     /* padding: 1em 0 1em; */
@@ -1124,8 +1125,8 @@
 
 .memora-code-notice {
     font-size: 17px;
-    color: var(--memora-brown-text);
-    font-weight: 600;
+    color: #733E1C;
+    font-weight: 700;
     text-align: center;
     margin-top: 8px;
     font-family: 'Cocomat Pro';
@@ -1165,14 +1166,15 @@
 }
 
 .memora-note-tag svg {
-    width: 5.1em;
-    height: 5.1em;
+    width: 4.6em;
+    height: 4.6em;
 }
 
 .memora-note-tag span {
     position: absolute;
     top: 50%;
     left: 50%;
+    font-family: 'Cocomat Pro';
     transform: translate(-50%, -50%);
 }
 
@@ -1180,6 +1182,7 @@
     font-size: 17px;
     line-height: 115%;
     width: 377.1667px;
+    font-family: "Muli";
     margin: 0 auto;
 }
 
@@ -1203,6 +1206,7 @@
     line-height: 115%;
     width: 385.1667px;
     margin: 0 auto;
+    font-family: 'Muli';
 }
 
 /* NÃšT QUAY Vá»€ TRANG CHá»¦ */

@@ -146,8 +146,8 @@ function memora_shortcode_confirm_booking( $atts ) {
     <div class="memora-booking-container memora-confirm-wrapper">
         <div class="memora-confirm-card">
             <div class="memora-star-decor">
-                <svg viewBox="0 0 24 24" width="28" height="28" fill="#a2c7e2" stroke="#a2c7e2" stroke-width="1.2" stroke-linejoin="round">
-                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11 11" fill="#bbd6ec">
+                    <path d="M 6.008 0.813 L 6.984 2.789 L 9.164 3.105 C 9.957 3.219 10.273 4.191 9.699 4.75 L 8.125 6.289 L 8.496 8.461 C 8.633 9.246 7.805 9.852 7.094 9.477 L 5.141 8.453 L 3.188 9.477 C 2.480 9.852 1.652 9.246 1.785 8.461 L 2.160 6.289 L 0.582 4.75 C 0.008 4.191 0.324 3.219 1.117 3.105 L 3.301 2.789 L 4.273 0.813 C 4.629 0.094 5.652 0.094 6.008 0.813 Z"/>
                 </svg>
             </div>
             <h2 class="memora-confirm-title">Xác nhận lịch của bạn</h2>
@@ -561,9 +561,7 @@ function memora_render_thankyou_html( $code = '', $order_id = 0 ) {
         <?php endif; ?>
 
         <div class="memora-note-card">
-            <div class="memora-note-tag"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="#91c8f4">
-  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-</svg><span>Note</span></div>
+            <div class="memora-note-tag"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="#bbd6ee" transform="translate(1.15, 2.5)" d="M 21.695 5.57 C 21.551 2.191 19.18 0.082 16.082 0.082 C 13.727 0.082 11.547 1.5 10.633 3.508 C 9.758 1.5 7.66 0.082 5.395 0.082 C 2.414 0.082 0.137 2.191 0 5.57 C 0 12.586 5.379 16.027 10.633 18.227 C 16.102 16.027 21.695 12.586 21.695 5.57 Z"/></svg><span>Note</span></div>
             <p class="memora-note-p1">
                 Một lưu ý nhỏ là bạn iu hãy <strong>đến sớm trước 15 phút</strong> so với lịch đã đặt để có thời gian chỉnh lại Makeup và chọn phụ kiện xinh nhaaa
             </p>
