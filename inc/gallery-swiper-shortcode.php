@@ -608,23 +608,23 @@ function memora_gallery_swiper_shortcode( $atts ) {
                 <?php echo $slides_html; ?>
             </div>
 
-            <?php if ( $show_nav_left ) : ?>
-                <div class="swiper-button-prev" title="Slide trước" aria-label="Slide trước">
-                    <?php echo $svg_arrow_left; ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if ( $show_nav_right ) : ?>
-                <div class="swiper-button-next" title="Slide tiếp theo" aria-label="Slide tiếp theo">
-                    <?php echo $svg_arrow_right; ?>
-                </div>
-            <?php endif; ?>
-
             <!-- Star pagination -->
             <div class="swiper-pagination memora-star-pagination" id="<?php echo esc_attr( $uid ); ?>-pagination"></div>
         </div>
 
     </div>
+
+    <?php if ( $show_nav_left ) : ?>
+        <div class="swiper-button-prev" id="<?php echo esc_attr( $uid ); ?>-prev" title="Slide trước" aria-label="Slide trước">
+            <?php echo $svg_arrow_left; ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if ( $show_nav_right ) : ?>
+        <div class="swiper-button-next" id="<?php echo esc_attr( $uid ); ?>-next" title="Slide tiếp theo" aria-label="Slide tiếp theo">
+            <?php echo $svg_arrow_right; ?>
+        </div>
+    <?php endif; ?>
 
     <style>
         /* ===== Wrapper ===== */
@@ -648,6 +648,8 @@ function memora_gallery_swiper_shortcode( $atts ) {
         }
 
         /* ===== Navigation Arrows ===== */
+        #<?php echo esc_attr( $uid ); ?>-prev,
+        #<?php echo esc_attr( $uid ); ?>-next,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-prev,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-next {
             position: absolute;
@@ -668,14 +670,18 @@ function memora_gallery_swiper_shortcode( $atts ) {
             transition: transform 0.25s ease, opacity 0.25s ease, filter 0.25s ease;
             filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.18));
         }
+        #<?php echo esc_attr( $uid ); ?>-prev,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-prev {
             left: 12px;
             right: auto;
         }
+        #<?php echo esc_attr( $uid ); ?>-next,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-next {
             right: 12px;
             left: auto;
         }
+        #<?php echo esc_attr( $uid ); ?>-prev svg,
+        #<?php echo esc_attr( $uid ); ?>-next svg,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-prev svg,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-next svg {
             width: 32px;
@@ -683,41 +689,55 @@ function memora_gallery_swiper_shortcode( $atts ) {
             display: block;
             pointer-events: none;
         }
+        #<?php echo esc_attr( $uid ); ?>-prev:hover,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-prev:hover {
             transform: translateY(-50%) scale(1.12);
             filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.28));
         }
+        #<?php echo esc_attr( $uid ); ?>-next:hover,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-next:hover {
             transform: translateY(-50%) scale(1.12);
             filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.28));
         }
+        #<?php echo esc_attr( $uid ); ?>-prev.swiper-button-disabled,
+        #<?php echo esc_attr( $uid ); ?>-next.swiper-button-disabled,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-prev.swiper-button-disabled,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-next.swiper-button-disabled {
             opacity: 0.35;
             cursor: not-allowed;
             pointer-events: none;
         }
+        #<?php echo esc_attr( $uid ); ?>-prev.swiper-button-lock,
+        #<?php echo esc_attr( $uid ); ?>-next.swiper-button-lock,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-prev.swiper-button-lock,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-next.swiper-button-lock {
             display: none !important;
         }
+        #<?php echo esc_attr( $uid ); ?>-prev::after,
+        #<?php echo esc_attr( $uid ); ?>-next::after,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-prev::after,
         #<?php echo esc_attr( $uid ); ?> .swiper-button-next::after {
             display: none !important;
         }
 
         @media (max-width: 767px) {
+            #<?php echo esc_attr( $uid ); ?>-prev,
+            #<?php echo esc_attr( $uid ); ?>-next,
             #<?php echo esc_attr( $uid ); ?> .swiper-button-prev,
             #<?php echo esc_attr( $uid ); ?> .swiper-button-next {
                 width: 28px;
                 height: 28px;
             }
+            #<?php echo esc_attr( $uid ); ?>-prev,
             #<?php echo esc_attr( $uid ); ?> .swiper-button-prev {
                 left: 8px;
             }
+            #<?php echo esc_attr( $uid ); ?>-next,
             #<?php echo esc_attr( $uid ); ?> .swiper-button-next {
                 right: 8px;
             }
+            #<?php echo esc_attr( $uid ); ?>-prev svg,
+            #<?php echo esc_attr( $uid ); ?>-next svg,
             #<?php echo esc_attr( $uid ); ?> .swiper-button-prev svg,
             #<?php echo esc_attr( $uid ); ?> .swiper-button-next svg {
                 width: 28px;
@@ -837,8 +857,8 @@ function memora_gallery_swiper_shortcode( $atts ) {
                 },
                 <?php if ( $show_nav_left || $show_nav_right ) : ?>
                 navigation: {
-                    prevEl: <?php echo $show_nav_left ? "'#' + SWIPER_ID + ' .swiper-button-prev'" : 'null'; ?>,
-                    nextEl: <?php echo $show_nav_right ? "'#' + SWIPER_ID + ' .swiper-button-next'" : 'null'; ?>,
+                    prevEl: <?php echo $show_nav_left ? "'#' + SWIPER_ID + '-prev, #' + SWIPER_ID + ' .swiper-button-prev'" : 'null'; ?>,
+                    nextEl: <?php echo $show_nav_right ? "'#' + SWIPER_ID + '-next, #' + SWIPER_ID + ' .swiper-button-next'" : 'null'; ?>,
                 },
                 <?php endif; ?>
                 a11y: {

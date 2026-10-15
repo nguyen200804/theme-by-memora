@@ -86,10 +86,14 @@ add_shortcode( 'dia_chi_noi_bat', 'memora_dia_chi_noi_bat_shortcode' );
 function memora_dia_chi_noi_bat_shortcode( $atts ) {
 
     $atts = shortcode_atts( [
-        'post_id'  => '',
-        'term_id'  => '',   // term_id="123" → dùng khi Loop Grid chạy mode Post Taxonomy
-        'current'  => '',   // current="1" → tự dùng get_the_ID() (cho Elementor Loop Item)
-        'speed'    => 600,
+        'post_id'          => '',
+        'term_id'          => '',   // term_id="123" → dùng khi Loop Grid chạy mode Post Taxonomy
+        'current'          => '',   // current="1" → tự dùng get_the_ID() (cho Elementor Loop Item)
+        'speed'            => 600,
+        'nagivation_left'  => 'true',
+        'nagivation_right' => 'true',
+        'navigation_left'  => '',
+        'navigation_right' => '',
     ], $atts, 'dia_chi_noi_bat' );
 
     if ( ! function_exists( 'memora_gallery_swiper_shortcode' ) ) {
@@ -344,13 +348,18 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
     /* -- Goi gallery_swiper voi IDs va ACF field -- */
     // Nếu có term, truyền post_id dạng 'term_{id}' để gallery_swiper đọc ACF field từ term
     $swiper_post_id = $dc_term_source ? $dc_term_source : (string) $dc_id;
+    $nav_left       = ! empty( $atts['navigation_left'] ) ? $atts['navigation_left'] : ( ! empty( $atts['nagivation_left'] ) ? $atts['nagivation_left'] : 'true' );
+    $nav_right      = ! empty( $atts['navigation_right'] ) ? $atts['navigation_right'] : ( ! empty( $atts['nagivation_right'] ) ? $atts['nagivation_right'] : 'true' );
+
     $slider_html = memora_gallery_swiper_shortcode( [
-        'acf_gallery' => 'cac-hinh-anh-cua-dia-chi',
-        'post_id'     => $swiper_post_id,
-        'ids'         => implode( ',', $slide_ids ),
-        'speed'       => $atts['speed'],
-        'loop'        => $loop_val,
-        'effect'      => 'slide',
+        'acf_gallery'      => 'cac-hinh-anh-cua-dia-chi',
+        'post_id'          => $swiper_post_id,
+        'ids'              => implode( ',', $slide_ids ),
+        'speed'            => $atts['speed'],
+        'loop'             => $loop_val,
+        'effect'           => 'slide',
+        'nagivation_left'  => $nav_left,
+        'nagivation_right' => $nav_right,
     ] );
 
     /* -- Bổ sung lấy ảnh đại diện nếu chưa có -- */
@@ -598,10 +607,10 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             opacity: 1;
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .swiper-button-prev {
-            left: 12px;
+            left: 0px;
         }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .swiper-button-next {
-            right: 12px;
+            right: 0px;
         }
 
 
