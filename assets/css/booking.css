@@ -24,10 +24,9 @@
 
 /* Khung hiá»ƒn thá»‹ cá»‘ Ä‘á»‹nh chiá»u rá»™ng (Fixed width theo yÃªu cáº§u khÃ´ng cáº§n responsive) */
 .memora-booking-container {
-
     max-width: 100%;
     font-family: var(--memora-font-sans);
-    color: var(--memora-brown-text);
+    color: #733e1c !important;
     box-sizing: border-box;
     line-height: 1.5;
 }
@@ -1281,6 +1280,8 @@
     font-size: 41px;
     font-family: 'Anastasia Script';
     font-weight: 500;
+    -webkit-text-stroke: 0.02em;
+    color: #733e1c !important;
 }
 
 /* ==========================================================================
