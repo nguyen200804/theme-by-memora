@@ -88,6 +88,43 @@ function memora_enqueue_local_fonts() {
     );
 }
 
+/**
+ * Nạp Google Fonts: Google Sans Flex (opsz 6–144, wght 1–1000) + Noto Sans (wght 100–900, có italic).
+ * Version = null: KHÔNG để WP gắn ?ver=, vì add_query_arg() sẽ gộp mất tham số "family" trùng lặp.
+ */
+add_action( 'wp_enqueue_scripts', 'memora_enqueue_google_fonts', 5 );
+add_action( 'elementor/preview/enqueue_styles', 'memora_enqueue_google_fonts' );
+function memora_enqueue_google_fonts() {
+    wp_enqueue_style(
+        'memora-google-fonts',
+        'https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap',
+        array(),
+        null
+    );
+}
+
+/**
+ * Preconnect tới Google Fonts để tải font nhanh hơn.
+ */
+add_filter( 'wp_resource_hints', 'memora_google_fonts_preconnect', 10, 2 );
+function memora_google_fonts_preconnect( $urls, $relation_type ) {
+    if ( 'preconnect' === $relation_type ) {
+        $urls[] = array( 'href' => 'https://fonts.googleapis.com' );
+        $urls[] = array( 'href' => 'https://fonts.gstatic.com', 'crossorigin' );
+    }
+    return $urls;
+}
+
+/**
+ * Thêm "Google Sans Flex" vào danh sách font của Elementor (nhóm System
+ * để Elementor không tự nạp lại – font đã được nạp ở trên).
+ */
+add_filter( 'elementor/fonts/additional_fonts', 'memora_elementor_additional_fonts' );
+function memora_elementor_additional_fonts( $fonts ) {
+    $fonts['Google Sans Flex'] = 'system';
+    return $fonts;
+}
+
 
 /**
  * Lấy danh sách font face của tất cả Elementor Custom Fonts.
