@@ -60,7 +60,15 @@ if ( ! function_exists( 'memora_ig_shortcode_handler' ) ) {
 
     $gap = max( 0, min( 60, (int) $args['gap'] ) );
 
-    $ratio = ( '4/5' === $args['ratio'] || 'portrait' === $args['ratio'] ) ? '4/5' : '1/1';
+    $raw_ratio = str_replace( ':', '/', trim( (string) $args['ratio'] ) );
+    if ( in_array( $raw_ratio, array( '4/5', 'portrait' ), true ) ) {
+        $ratio = '4/5';
+    } elseif ( in_array( $raw_ratio, array( '9/16', 'story', 'stories', 'reel', 'reels', 'vertical' ), true ) ) {
+        $ratio = '9/16';
+    } else {
+        $ratio = '1/1';
+    }
+
     $radius = max( 0, min( 40, (int) $args['radius'] ) );
 
     $profile_url = ! empty( $args['link'] ) ? esc_url( $args['link'] ) : memora_ig_get_profile_url();

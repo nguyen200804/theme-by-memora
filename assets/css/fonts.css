@@ -1,0 +1,181 @@
+/**
+ * Memora – Custom Fonts (@font-face)
+ * Font được lưu tại assets/fonts/, đường dẫn tương đối từ assets/css/.
+ * Tên font-family trùng với tên trong Elementor > Custom Fonts để dùng chung được.
+ * Mỗi weight/style là 1 rule riêng. font-display: swap để chữ hiển thị ngay trong lúc tải font.
+ */
+
+/* ==========================================================================
+   MULI (Sans-serif) – 200 → 900
+   ========================================================================== */
+@font-face {
+    font-family: 'Muli';
+    src: url('../fonts/muli/Muli-ExtraLight.woff2') format('woff2');
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Muli';
+    src: url('../fonts/muli/Muli-Light.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Muli';
+    src: url('../fonts/muli/Muli-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Muli';
+    src: url('../fonts/muli/Muli-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Muli';
+    src: url('../fonts/muli/Muli-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Muli';
+    src: url('../fonts/muli/Muli-ExtraBold.woff2') format('woff2');
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Muli';
+    src: url('../fonts/muli/Muli-Black.woff2') format('woff2');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ==========================================================================
+   COCOMAT PRO (Sans-serif) – 100, 400, 700, 700 italic, 900
+   ascent/descent/line-gap-override: cân bằng vùng bôi đen & căn giữa dọc
+   (Chrome/Firefox). Safari bỏ qua 3 descriptor này – không ảnh hưởng.
+   ========================================================================== */
+@font-face {
+    font-family: 'Cocomat Pro';
+    src: url('../fonts/Cocomat Pro/CocomatPro-Thin.woff2') format('woff2');
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+    ascent-override: 85%;
+    descent-override: 20%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Cocomat Pro';
+    src: url('../fonts/Cocomat Pro/CocomatPro-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+    ascent-override: 85%;
+    descent-override: 20%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Cocomat Pro';
+    src: url('../fonts/Cocomat Pro/CocomatPro-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+    ascent-override: 85%;
+    descent-override: 20%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Cocomat Pro';
+    src: url('../fonts/Cocomat Pro/CocomatPro-BoldItalic.woff2') format('woff2');
+    font-weight: 700;
+    font-style: italic;
+    font-display: swap;
+    ascent-override: 85%;
+    descent-override: 20%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Cocomat Pro';
+    src: url('../fonts/Cocomat Pro/CocomatPro-Heavy.woff2') format('woff2');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+    ascent-override: 85%;
+    descent-override: 20%;
+    line-gap-override: 0%;
+}
+
+/* ==========================================================================
+   THE SILVER EDITORIAL (Serif tiêu đề)
+   ========================================================================== */
+@font-face {
+    font-family: 'The Silver Editorial';
+    src: url('../fonts/The Silver Editorial/The_sliver_editorial.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ==========================================================================
+   BOSTON ANGEL (Serif) – chỉ có file TTF
+   ========================================================================== */
+@font-face {
+    font-family: 'Boston Angel';
+    src: url('../fonts/Boston Angel/NVN Boston Angel Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ==========================================================================
+   PINYON SCRIPT (Script)
+   ========================================================================== */
+@font-face {
+    font-family: 'Pinyon Script';
+    src: url('../fonts/Pinyon Script/PinyonScript.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ==========================================================================
+   ANASTASIA SCRIPT (Script)
+   ========================================================================== */
+@font-face {
+    font-family: 'Anastasia Script';
+    src: url('../fonts/Anastasia Script/Anastasia-Script_Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ==========================================================================
+   BIẾN CSS – dùng: font-family: var(--memora-font-muli);
+   ========================================================================== */
+:root {
+    --memora-font-muli: 'Muli', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --memora-font-cocomat: 'Cocomat Pro', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --memora-font-silver: 'The Silver Editorial', Georgia, 'Times New Roman', serif;
+    --memora-font-boston: 'Boston Angel', Georgia, 'Times New Roman', serif;
+    --memora-font-pinyon: 'Pinyon Script', 'Brush Script MT', cursive;
+    --memora-font-anastasia: 'Anastasia Script', 'Brush Script MT', cursive;
+}

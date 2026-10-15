@@ -181,12 +181,12 @@
     border: 3px solid var(--memora-brown);
     border-radius: 0.3em;
     padding: 0.115em 0;
-    font-family: 'Mulish';
+    font-family: 'Muli';
     font-size: 12em;
     text-wrap: wrap;
     text-align: center;
     font-weight: 400;
-    color: var(--memora-brown) !important;
+    color: #4E2B22 !important;
     cursor: pointer;
     transition: all 0.2s ease;
     min-width: 0;
@@ -237,6 +237,7 @@
     letter-spacing: -0.01em;
     cursor: pointer;
     border-radius: 7.2px;
+    -webkit-text-stroke: 0.03em;
 }
 
 .memora-time-slot-btn.memora-slot-see-tomorrow span {
@@ -320,8 +321,8 @@
 }
 
 .memora-confirm-card {
-    background: #eaf2f8;
-    border: 1em solid rgb(124 166 201 / 37%);
+    background: #E6F0F8;
+    border: 1em solid #CFDEEB;
     border-radius: 9.5em;
     padding: 6em 10em;
     text-align: center;

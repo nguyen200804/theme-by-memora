@@ -69,6 +69,24 @@ if ( file_exists( get_stylesheet_directory() . '/inc/wc-checkout-booking.php' ) 
     require_once get_stylesheet_directory() . '/inc/wc-checkout-booking.php';
 }
 
+/**
+ * Nạp font chữ local của theme (assets/css/fonts.css → assets/fonts/).
+ * Version theo filemtime để tự xóa cache trình duyệt khi file CSS thay đổi.
+ */
+add_action( 'wp_enqueue_scripts', 'memora_enqueue_local_fonts', 5 );
+add_action( 'elementor/preview/enqueue_styles', 'memora_enqueue_local_fonts' );
+function memora_enqueue_local_fonts() {
+    $rel  = '/assets/css/fonts.css';
+    $path = get_stylesheet_directory() . $rel;
+    if ( ! file_exists( $path ) ) return;
+
+    wp_enqueue_style(
+        'memora-local-fonts',
+        get_stylesheet_directory_uri() . $rel,
+        array(),
+        filemtime( $path )
+    );
+}
 
 
 /**
