@@ -492,7 +492,7 @@
     align-items: flex-end;
     border-bottom: 2px solid var(--memora-brown);
     margin-bottom: 0;
-    padding: 9px 0;
+    padding: 8px 0;
     font-family: 'Cocomat Pro';
 }
 
@@ -508,7 +508,7 @@
 }
 
 .memora-input-icon svg {
-    width: 20em;
+    width: 19em;
     height: 20em;
     padding: 2em;
     display: block;

@@ -214,7 +214,7 @@
             // Ưu tiên dùng dia_chi_id từ state (URL hoặc sessionStorage)
             // Fallback sang phong_id nếu chưa có (server sẽ tra ngược)
             var diaChiId = state.diaChiId && state.diaChiId !== '0' ? state.diaChiId : null;
-            var phongId  = state.roomId || $('.memora-choose-time-wrap').data('location-id') || 0;
+            var phongId = state.roomId || $('.memora-choose-time-wrap').data('location-id') || 0;
 
             var ajaxData = { action: 'memora_get_slots', date: dateStr };
             if (diaChiId) {
@@ -268,9 +268,9 @@
         }
 
         function goToTomorrow() {
-            var $selectDay   = $('#memora_select_day');
+            var $selectDay = $('#memora_select_day');
             var $selectMonth = $('#memora_select_month');
-            var $selectYear  = $('#memora_select_year');
+            var $selectYear = $('#memora_select_year');
 
             var d = parseInt($selectDay.val(), 10);
             var m = parseInt($selectMonth.val(), 10);
@@ -422,16 +422,16 @@
                 url: memora_booking_vars.ajax_url,
                 type: 'POST',
                 data: {
-                    action:       'memora_prepare_checkout_session',
-                    nonce:        memora_booking_vars.nonce,
-                    date:         state.date,
-                    time:         state.time,
+                    action: 'memora_prepare_checkout_session',
+                    nonce: memora_booking_vars.nonce,
+                    date: state.date,
+                    time: state.time,
                     package_name: state.packageName,
-                    total_price:  state.totalPrice   || 0,
-                    deposit_price:state.depositPrice || 0,
-                    room_id:      state.roomId       || '',
-                    room_name:    state.roomName     || '',
-                    dia_chi_id:   state.diaChiId     || '',
+                    total_price: state.totalPrice || 0,
+                    deposit_price: state.depositPrice || 0,
+                    room_id: state.roomId || '',
+                    room_name: state.roomName || '',
+                    dia_chi_id: state.diaChiId || '',
                     checkout_url: $btn.data('checkout-url') || '',
                 },
                 success: function (response) {
@@ -500,9 +500,9 @@
                     package_name: state.packageName,
                     total_price: state.totalPrice,
                     deposit_price: state.depositPrice,
-                    room_id:    state.roomId    || '',
-                    room_name:  state.roomName  || '',
-                    dia_chi_id: state.diaChiId  || '',
+                    room_id: state.roomId || '',
+                    room_name: state.roomName || '',
+                    dia_chi_id: state.diaChiId || '',
                     payment_method: $('input[name="payment_method"]:checked').val() || 'bacs'
                 },
                 success: function (response) {
@@ -515,7 +515,7 @@
                         // Ưu tiên 1: Redirect đến WC order-received (có VietQR)
                         if (bookingData.wc_order_url) {
                             window.location.href = bookingData.wc_order_url;
-                        // Ưu tiên 2: Trang thankyou tùy chỉnh
+                            // Ưu tiên 2: Trang thankyou tùy chỉnh
                         } else {
                             var thankyouUrl = $form.data('thankyou-url');
                             if (thankyouUrl) {
@@ -606,7 +606,7 @@
                                     
                                 </div>
                                 <div class="memora-code-brown-card">
-                                <span class="memora-code-yellow-badge">random 4 số</span>
+                                
                                     <div class="memora-code-digits">${d.code}</div>
                                 </div>
                                 <div class="memora-code-notice">**Quý khách vui lòng lưu lại code chụp để tra cứu</div>

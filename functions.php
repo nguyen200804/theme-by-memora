@@ -72,16 +72,18 @@ if ( file_exists( get_stylesheet_directory() . '/inc/wc-checkout-booking.php' ) 
 
 
 /**
- * Force-load tất cả Elementor Custom Fonts (@font-face) vào wp_head.
- * Elementor chỉ load font khi widget Elementor trên trang dùng font đó.
- * Hook này đảm bảo font luôn available cho PHP shortcodes.
+ * Lấy danh sách font face của tất cả Elementor Custom Fonts.
+ * Đọc meta 'elementor_font_files' (Elementor Pro lưu mỗi weight/style là 1 phần tử
+ * dạng [ 'font_weight' => '400', 'font_style' => 'normal', 'woff2' => [ 'url' => ... ], ... ]).
+ *
+ * @return array [ family => [ [ 'weight' => '400', 'style' => 'normal', 'src' => "url(..) format(..),..." ], ... ] ]
  */
-add_action( 'wp_head', 'memora_force_elementor_custom_fonts', 1 );
-function memora_force_elementor_custom_fonts() {
-    // Chỉ chạy ở frontend
-    if ( is_admin() ) return;
-    // Kiểm tra Elementor Custom Fonts post type tồn tại
-    if ( ! post_type_exists( 'elementor_font' ) ) return;
+function memora_get_custom_font_faces() {
+    static $cache = null;
+    if ( null !== $cache ) return $cache;
+    $cache = [];
+
+    if ( ! post_type_exists( 'elementor_font' ) ) return $cache;
 
     $font_posts = get_posts( [
         'post_type'      => 'elementor_font',
@@ -92,70 +94,76 @@ function memora_force_elementor_custom_fonts() {
         'no_found_rows'  => true,
     ] );
 
-    if ( empty( $font_posts ) ) return;
-
+    // Thứ tự ưu tiên định dạng: trình duyệt lấy src hợp lệ đầu tiên
     $format_map = [
         'woff2' => 'woff2',
         'woff'  => 'woff',
         'ttf'   => 'truetype',
         'otf'   => 'opentype',
-        'eot'   => 'embedded-opentype',
         'svg'   => 'svg',
     ];
 
-    $css = '';
-
     foreach ( $font_posts as $font_post ) {
+        $files = get_post_meta( $font_post->ID, 'elementor_font_files', true );
+        if ( empty( $files ) || ! is_array( $files ) ) continue;
+
         $family = $font_post->post_title;
+        foreach ( $files as $face ) {
+            if ( ! is_array( $face ) ) continue;
 
-        // Lấy font file attachments (Elementor lưu file là children của font post)
-        $attachments = get_posts( [
-            'post_type'      => 'attachment',
-            'post_parent'    => $font_post->ID,
-            'post_status'    => 'inherit',
-            'posts_per_page' => -1,
-            'no_found_rows'  => true,
-        ] );
-
-        // Fallback: đọc từ meta (một số phiên bản Elementor lưu theo cách khác)
-        if ( empty( $attachments ) ) {
-            $meta_all = get_post_meta( $font_post->ID );
-            foreach ( $meta_all as $mk => $mv ) {
-                $val = maybe_unserialize( $mv[0] );
-                if ( ! is_array( $val ) ) continue;
-                // Tìm attachment ID trong mảng meta
-                foreach ( $val as $face ) {
-                    if ( ! is_array( $face ) ) continue;
-                    foreach ( $face as $k => $v ) {
-                        if ( is_numeric( $v ) && (int) $v > 0 ) {
-                            $url = wp_get_attachment_url( (int) $v );
-                            if ( $url ) {
-                                $ext     = strtolower( pathinfo( $url, PATHINFO_EXTENSION ) );
-                                $fmt     = $format_map[ $ext ] ?? $ext;
-                                $weight  = ! empty( $face['font_weight'] ) ? $face['font_weight'] : '400';
-                                $style   = ! empty( $face['font_style'] )  ? $face['font_style']  : 'normal';
-                                $css .= "@font-face{font-family:'" . esc_attr( $family ) . "';font-weight:{$weight};font-style:{$style};src:url('" . esc_url( $url ) . "') format('{$fmt}');}\n";
-                            }
-                        }
-                    }
+            $sources = [];
+            foreach ( $format_map as $type => $fmt ) {
+                $url = '';
+                if ( ! empty( $face[ $type ]['url'] ) ) {
+                    $url = $face[ $type ]['url'];
+                } elseif ( ! empty( $face[ $type ]['id'] ) ) {
+                    $url = wp_get_attachment_url( (int) $face[ $type ]['id'] );
+                }
+                if ( $url ) {
+                    $sources[] = "url('" . esc_url( $url ) . "') format('{$fmt}')";
                 }
             }
-            continue; // Đã xử lý qua meta
+            if ( empty( $sources ) ) continue;
+
+            $weight = ! empty( $face['font_weight'] ) ? $face['font_weight'] : 'normal';
+            $style  = ! empty( $face['font_style'] ) ? $face['font_style'] : 'normal';
+
+            $cache[ $family ][] = [
+                'weight' => preg_replace( '/[^a-z0-9 ]/i', '', $weight ),
+                'style'  => preg_replace( '/[^a-z]/i', '', $style ),
+                'src'    => implode( ',', $sources ),
+            ];
         }
+    }
 
-        // Build @font-face từ child attachments
-        $sources = [];
-        foreach ( $attachments as $att ) {
-            $url = wp_get_attachment_url( $att->ID );
-            if ( ! $url ) continue;
-            $ext     = strtolower( pathinfo( $url, PATHINFO_EXTENSION ) );
-            $fmt     = $format_map[ $ext ] ?? $ext;
-            $sources[] = "url('" . esc_url( $url ) . "') format('" . esc_attr( $fmt ) . "')";
-        }
+    return $cache;
+}
 
-        if ( empty( $sources ) ) continue;
+/**
+ * In @font-face cho 1 family – MỖI weight/style một rule riêng
+ * (không gộp nhiều file vào chung 1 src, vì trình duyệt chỉ dùng file hợp lệ đầu tiên).
+ */
+function memora_build_font_face_css( $family, $faces, $extra_descriptors = '' ) {
+    $css = '';
+    foreach ( $faces as $face ) {
+        $css .= "@font-face{font-family:'" . esc_attr( $family ) . "';font-weight:{$face['weight']};font-style:{$face['style']};src:{$face['src']};{$extra_descriptors}}\n";
+    }
+    return $css;
+}
 
-        $css .= "@font-face{font-family:'" . esc_attr( $family ) . "';font-weight:400;font-style:normal;src:" . implode( ',', $sources ) . ";}\n";
+/**
+ * Force-load tất cả Elementor Custom Fonts (@font-face) vào wp_head.
+ * Elementor chỉ load font khi widget Elementor trên trang dùng font đó.
+ * Hook này đảm bảo font luôn available cho PHP shortcodes.
+ */
+add_action( 'wp_head', 'memora_force_elementor_custom_fonts', 1 );
+function memora_force_elementor_custom_fonts() {
+    // Chỉ chạy ở frontend
+    if ( is_admin() ) return;
+
+    $css = '';
+    foreach ( memora_get_custom_font_faces() as $family => $faces ) {
+        $css .= memora_build_font_face_css( $family, $faces );
     }
 
     if ( $css ) {
@@ -166,50 +174,26 @@ function memora_force_elementor_custom_fonts() {
 /**
  * Override font metrics cho font 'Cocomat Pro' để cân bằng vùng bôi đen (selection box) và căn giữa dọc tự nhiên.
  * Trị tận gốc lỗi file font gốc có Ascent quá cao và Descent quá thấp làm chữ bị dính sát đáy vùng bôi đen.
+ *
+ * Lưu ý: Safari KHÔNG hỗ trợ ascent-override/descent-override/line-gap-override.
+ * Vì vậy các file Cocomat Pro đã được vá sẵn metrics (asc 85% / desc 20% / gap 0) ngay trong font,
+ * block này chỉ còn là lớp bảo vệ cho Chrome/Firefox nếu ai đó upload lại file font gốc chưa vá.
+ * Mỗi weight dùng đúng file của weight đó (theo cấu hình Elementor Custom Fonts).
  */
 add_action( 'wp_head', 'memora_override_cocomat_metrics', 9999 );
 function memora_override_cocomat_metrics() {
-    $upload_dir = wp_get_upload_dir();
-    $font_url   = $upload_dir['baseurl'] . '/2026/09/CocomatPro-Regular.ttf';
-    ?>
-    <style id="memora-cocomat-metrics-fix">
-        @font-face {
-            font-family: 'Cocomat Pro';
-            font-style: normal;
-            src: url('<?php echo esc_url( $font_url ); ?>') format('truetype');
-            ascent-override: 85%;
-            descent-override: 20%;
-            line-gap-override: 0%;
-        }
-        @font-face {
-            font-family: 'Cocomat Pro';
-            font-weight: 400;
-            font-style: normal;
-            src: url('<?php echo esc_url( $font_url ); ?>') format('truetype');
-            ascent-override: 85%;
-            descent-override: 20%;
-            line-gap-override: 0%;
-        }
-        @font-face {
-            font-family: 'Cocomat Pro';
-            font-weight: 600;
-            font-style: normal;
-            src: url('<?php echo esc_url( $font_url ); ?>') format('truetype');
-            ascent-override: 85%;
-            descent-override: 20%;
-            line-gap-override: 0%;
-        }
-        @font-face {
-            font-family: 'Cocomat Pro';
-            font-weight: 700;
-            font-style: normal;
-            src: url('<?php echo esc_url( $font_url ); ?>') format('truetype');
-            ascent-override: 85%;
-            descent-override: 20%;
-            line-gap-override: 0%;
-        }
-    </style>
-    <?php
+    if ( is_admin() ) return;
+
+    $faces = memora_get_custom_font_faces();
+    if ( empty( $faces['Cocomat Pro'] ) ) return;
+
+    $css = memora_build_font_face_css(
+        'Cocomat Pro',
+        $faces['Cocomat Pro'],
+        'ascent-override:85%;descent-override:20%;line-gap-override:0%;'
+    );
+
+    echo "\n<style id=\"memora-cocomat-metrics-fix\">\n" . $css . "</style>\n";
 }
 
 
