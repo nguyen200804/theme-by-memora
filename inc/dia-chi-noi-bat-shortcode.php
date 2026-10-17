@@ -526,7 +526,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             color: #733E1C;
             border: 2px solid #733E1C;
             border-radius: 151px;
-            padding: 5px 12px;
+            padding: 4px 8px;
             line-height: 1;
             text-decoration: none;
             text-align: center;

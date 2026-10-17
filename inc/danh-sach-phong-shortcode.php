@@ -568,7 +568,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
     <!-- STYLESHEET CHUẨN DESIGN MEMORA -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playball&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Mulish:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playball&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Muli:wght@300;400;500;600;700&display=swap');
 
         #<?php echo esc_attr( $uid ); ?>.memora-dsp-container {
             width: 100%;
@@ -693,7 +693,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-compact-meta .memora-dsp-room-name {
             font-family: "Cocomat Pro", sans-serif;
             font-size: 4.1em;
-            font-weight: 700;
+            font-weight: 600;
             color: #733e1c;
         }
 
@@ -764,14 +764,15 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
         /* Đoạn miêu tả concept */
         #<?php echo esc_attr( $uid ); ?> .memora-dsp-wide-desc {
-                        margin: 0 0 0.929em 0;
-    font-family: "Mulish", sans-serif;
+                            margin: 0 0 0.929em 0;
+    font-family: "Muli", sans-serif;
     font-size: 4.6em;
     line-height: 1.4;
     color: #7a6a5f;
     max-width: 150px;
     white-space: wrap;
     text-align: center;
+    font-weight: 400;
         }
 
         /* Nút "Tìm hiểu thêm" viên thuốc màu nâu */
@@ -781,7 +782,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
     justify-content: center;
     background-color: #733e1c;
     color: #ffffff !important;
-    padding: 0.1em 0.6em 0.1em 0.6em;
+    padding: 0.2em 0.6em 0.1em 0.6em;
     border: 0.16em solid #b1d2ed;
     border-radius: 9999px;
     font-family: "Cocomat Pro", Sans-serif;

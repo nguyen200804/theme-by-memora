@@ -76,7 +76,7 @@
     color: #764525 !important;
     outline: 0 !important;
     font-size: 12em;
-    padding: 0.417em 0.833em !important;
+    padding: 0.317em 0.833em !important;
     font-family: 'Cocomat Pro';
     -webkit-text-stroke: 0.01em;
 }
@@ -179,7 +179,7 @@
 
 .memora-time-slot-btn {
     background: #bad6ed;
-    border: 3px solid var(--memora-brown);
+    border: 2px solid var(--memora-brown);
     border-radius: 0.3em;
     padding: 0.115em 0;
     font-family: 'Muli';
@@ -385,7 +385,7 @@
 
 .memora-pill-item {
     background: #fffaf4;
-    border: 2.5px solid #5c3520;
+    border: 2px solid #5c3520;
     border-radius: 9999px;
     padding: 0.6em 0;
     font-family: 'Noto sans';
@@ -421,9 +421,9 @@
     color: #ffffff;
     border: none;
     border-radius: 9999px;
-    padding: 0.6em 1em 0.3em;
+    padding: 0.4em 0.9em 0.1em;
     font-family: 'The Silver Editorial';
-    font-size: 10.9em;
+    font-size: 10.7em;
     font-weight: 500;
     letter-spacing: 1.5px;
     cursor: pointer;
@@ -436,7 +436,7 @@
     line-height: 1.3;
     text-transform: uppercase;
     width: 127px;
-    height: 50px;
+    height: 49px;
 }
 
 .memora-btn-confirm-pay {
@@ -493,10 +493,14 @@
 .memora-input-group {
     display: flex;
     align-items: flex-end;
-    border-bottom: 2px solid var(--memora-brown);
+    border-bottom: 1px solid var(--memora-brown);
     margin-bottom: 0;
     padding: 8px 0;
     font-family: 'Cocomat Pro';
+}
+
+.memora-input-group:nth-of-type(1) .memora-input-icon {
+    margin: 0 !important;
 }
 
 .memora-input-icon {
@@ -1060,7 +1064,7 @@
 .memora-info-label {
     font-family: 'Cocomat Pro';
     font-size: 13.1em;
-    color: var(--memora-brown-text);
+    color: #733e1c;
     margin-bottom: 0;
     text-align: left;
 }
@@ -1095,7 +1099,7 @@
 .memora-code-label {
     font-family: 'Montserrat';
     font-size: 10.8em;
-    color: var(--memora-brown-text);
+    color: #733e1c;
 }
 
 .memora-code-yellow-badge {
@@ -1133,7 +1137,7 @@
 }
 
 .memora-code-notice {
-    font-size: 17px;
+    font-size: 16px;
     color: #733E1C;
     font-weight: 700;
     text-align: center;
