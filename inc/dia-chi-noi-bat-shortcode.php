@@ -12,6 +12,8 @@
  *   [dia_chi_noi_bat]
  *   [dia_chi_noi_bat post_id="option"]
  *   [dia_chi_noi_bat post_id="42"]
+ *   [dia_chi_noi_bat aspect-ratio="1"]      → slider cot phai ty le 1:1
+ *   [dia_chi_noi_bat aspect-ratio="16/9"]   → slider cot phai ty le 16:9
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -94,7 +96,15 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         'nagivation_right' => 'true',
         'navigation_left'  => '',
         'navigation_right' => '',
+        'aspect-ratio'     => '',   // aspect-ratio="1" | "16/9" | "4/3" → ty le slider cot phai
+        'aspect_ratio'     => '',   // alias
     ], $atts, 'dia_chi_noi_bat' );
+
+    /* -- Chuan hoa aspect-ratio (chi cho phep so, dau cham, dau '/') -- */
+    $aspect_ratio = trim( (string) ( $atts['aspect-ratio'] !== '' ? $atts['aspect-ratio'] : $atts['aspect_ratio'] ) );
+    if ( $aspect_ratio !== '' && ! preg_match( '/^\d+(\.\d+)?(\s*\/\s*\d+(\.\d+)?)?$/', $aspect_ratio ) ) {
+        $aspect_ratio = '';
+    }
 
     if ( ! function_exists( 'memora_gallery_swiper_shortcode' ) ) {
         return '<p style="color:red;">[dia_chi_noi_bat] Thiếu file gallery-swiper-shortcode.php.</p>';
@@ -612,6 +622,25 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .swiper-button-next {
             right: 0px;
         }
+
+        <?php if ( $aspect_ratio !== '' ) : ?>
+        /* === Aspect ratio tuy chinh cho slider === */
+        #<?php echo esc_attr( $wrap_uid ); ?>.dcnb-wrap {
+            min-height: 0;
+        }
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col {
+            justify-content: center;
+        }
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .memora-gallery-swiper-wrap {
+            flex: 0 0 auto;
+            height: auto;
+            min-height: 0;
+            aspect-ratio: <?php echo esc_html( $aspect_ratio ); ?>;
+        }
+        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .memora-gallery-swiper {
+            min-height: 0;
+        }
+        <?php endif; ?>
 
 
     </style>
