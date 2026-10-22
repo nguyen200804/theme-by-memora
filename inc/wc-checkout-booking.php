@@ -329,6 +329,37 @@ function memora_show_booking_info_in_order_admin( $order ) {
         <?php if ( $ig ) : ?>
             <p style="margin:4px 0;"><strong>Liên hệ khác (IG/Zalo):</strong> <?php echo esc_html( $ig ); ?></p>
         <?php endif; ?>
+
+        <?php if ( function_exists( 'memora_crm_get_order_data' ) && function_exists( 'memora_crm_get_status_config' ) ) : 
+            $crm_data = memora_crm_get_order_data( $order );
+            $pay_cfg   = memora_crm_get_status_config( 'payment' );
+            $shoot_cfg = memora_crm_get_status_config( 'shooting' );
+            $inv_cfg   = memora_crm_get_status_config( 'invoice' );
+            $prt_cfg   = memora_crm_get_status_config( 'print' );
+            
+            $cur_pay   = $crm_data['payment_status'] ?? 'chua_thanh_toan';
+            $cur_shoot = $crm_data['shooting_status'] ?? 'cho_chup';
+            $cur_inv   = $crm_data['invoice_status'] ?? 'chua_in';
+            $cur_prt   = $crm_data['print_status'] ?? 'chua_in';
+            $bg_note   = $crm_data['background_note'] ?? '';
+        ?>
+            <hr style="margin:10px 0;border:none;border-top:1px dashed #d1c5bf;">
+            <p style="margin:4px 0;"><strong>Background / Note:</strong> <?php echo esc_html( $bg_note ?: '(chưa có)' ); ?></p>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+                <span style="display:inline-block;padding:3px 8px;font-size:11px;font-weight:600;border-radius:12px;background:<?php echo esc_attr( $pay_cfg[ $cur_pay ]['bg_color'] ?? '#eee' ); ?>;color:<?php echo esc_attr( $pay_cfg[ $cur_pay ]['text_color'] ?? '#333' ); ?>;border:1px solid <?php echo esc_attr( $pay_cfg[ $cur_pay ]['border_color'] ?? '#ccc' ); ?>;">
+                    TT: <?php echo esc_html( $pay_cfg[ $cur_pay ]['label'] ?? $cur_pay ); ?>
+                </span>
+                <span style="display:inline-block;padding:3px 8px;font-size:11px;font-weight:600;border-radius:12px;background:<?php echo esc_attr( $shoot_cfg[ $cur_shoot ]['bg_color'] ?? '#eee' ); ?>;color:<?php echo esc_attr( $shoot_cfg[ $cur_shoot ]['text_color'] ?? '#333' ); ?>;border:1px solid <?php echo esc_attr( $shoot_cfg[ $cur_shoot ]['border_color'] ?? '#ccc' ); ?>;">
+                    Chụp: <?php echo esc_html( $shoot_cfg[ $cur_shoot ]['label'] ?? $cur_shoot ); ?>
+                </span>
+                <span style="display:inline-block;padding:3px 8px;font-size:11px;font-weight:600;border-radius:12px;background:<?php echo esc_attr( $inv_cfg[ $cur_inv ]['bg_color'] ?? '#eee' ); ?>;color:<?php echo esc_attr( $inv_cfg[ $cur_inv ]['text_color'] ?? '#333' ); ?>;border:1px solid <?php echo esc_attr( $inv_cfg[ $cur_inv ]['border_color'] ?? '#ccc' ); ?>;">
+                    HĐ: <?php echo esc_html( $inv_cfg[ $cur_inv ]['label'] ?? $cur_inv ); ?>
+                </span>
+                <span style="display:inline-block;padding:3px 8px;font-size:11px;font-weight:600;border-radius:12px;background:<?php echo esc_attr( $prt_cfg[ $cur_prt ]['bg_color'] ?? '#eee' ); ?>;color:<?php echo esc_attr( $prt_cfg[ $cur_prt ]['text_color'] ?? '#333' ); ?>;border:1px solid <?php echo esc_attr( $prt_cfg[ $cur_prt ]['border_color'] ?? '#ccc' ); ?>;">
+                    In: <?php echo esc_html( $prt_cfg[ $cur_prt ]['label'] ?? $cur_prt ); ?>
+                </span>
+            </div>
+        <?php endif; ?>
     </div>
     <?php
 }

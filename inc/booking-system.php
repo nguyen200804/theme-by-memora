@@ -44,6 +44,11 @@ if ( file_exists( $booking_inc_dir . 'booking-shortcodes.php' ) ) {
 if ( file_exists( $booking_inc_dir . 'dia-chi-shortcodes.php' ) ) {
     require_once $booking_inc_dir . 'dia-chi-shortcodes.php';
 }
+
+// 6. Nạp hệ thống CRM Quản lý & Điều phối Đặt lịch
+if ( file_exists( $booking_inc_dir . 'crm/booking-crm-system.php' ) ) {
+    require_once $booking_inc_dir . 'crm/booking-crm-system.php';
+}
 //====================================
 // END - NẠP CÁC TẬP TIN CON CỦA HỆ THỐNG ĐẶT LỊCH
 //====================================
