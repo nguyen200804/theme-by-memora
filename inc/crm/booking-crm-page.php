@@ -125,6 +125,11 @@ function memora_crm_render_view() {
                     <option value="0">Tất cả chi nhánh</option>
                 </select>
 
+                <!-- Bộ chọn lọc phòng chụp -->
+                <select id="memora-crm-room-filter" class="memora-crm-select" title="Lọc theo phòng chụp">
+                    <option value="0">Tất cả phòng</option>
+                </select>
+
                 <!-- Bộ chọn bước nhảy slot -->
                 <select id="memora-crm-interval" class="memora-crm-select" title="Bước nhảy khung giờ">
                     <option value="5" selected>Slot: 5 phút</option>

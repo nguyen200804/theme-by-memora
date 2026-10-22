@@ -20,6 +20,7 @@
     const state = {
         date: '',            // YYYY-MM-DD
         diaChiId: 0,         // ID chi nhánh
+        filterRoomId: 0,     // ID phòng lọc (0 = Tất cả phòng)
         interval: 5,         // Bước nhảy phút (5p, 10p, 15p)
         schedule: null,      // Dữ liệu ma trận từ API
         selectedSlot: null,  // { roomId, roomName, time }
@@ -85,10 +86,18 @@
             }
         });
 
-        // 2. Chọn chi nhánh & bước nhảy slot
+        // 2. Chọn chi nhánh, lọc phòng & bước nhảy slot
         $('#memora-crm-location').on('change', function() {
             state.diaChiId = parseInt($(this).val(), 10) || 0;
+            state.filterRoomId = 0; // Reset lọc phòng khi đổi chi nhánh
             fetchSchedule();
+        });
+
+        $('#memora-crm-room-filter').on('change', function() {
+            state.filterRoomId = parseInt($(this).val(), 10) || 0;
+            if (state.schedule) {
+                renderGrid(state.schedule);
+            }
         });
 
         $('#memora-crm-interval').on('change', function() {
@@ -260,6 +269,7 @@
 
                     state.schedule = res.data;
                     renderLocationOptions(res.data.locations, res.data.dia_chi_id);
+                    renderRoomFilterOptions(res.data.rooms);
                     renderStats(res.data.stats);
                     renderGrid(res.data);
 
@@ -296,6 +306,31 @@
     }
 
     /**
+     * Đổ danh sách phòng vào dropdown lọc phòng
+     */
+    function renderRoomFilterOptions(rooms) {
+        const $select = $('#memora-crm-room-filter');
+        if (!$select.length) return;
+
+        const currentVal = state.filterRoomId;
+        $select.empty();
+        $select.append('<option value="0">Tất cả phòng</option>');
+
+        if (rooms && rooms.length) {
+            rooms.forEach(r => {
+                const isSelected = (r.id === currentVal) ? 'selected' : '';
+                $select.append(`<option value="${r.id}" ${isSelected}>${escapeHtml(r.name)}</option>`);
+            });
+        }
+
+        // Nếu phòng đang chọn không tồn tại trong danh sách phòng mới, reset về 0
+        if (currentVal > 0 && rooms && !rooms.some(r => r.id === currentVal)) {
+            state.filterRoomId = 0;
+            $select.val('0');
+        }
+    }
+
+    /**
      * Cập nhật các con số thống kê nhanh
      */
     function renderStats(stats) {
@@ -313,7 +348,13 @@
      * Dựng bảng tính ma trận đa phòng
      */
     function renderGrid(data) {
-        const rooms     = data.rooms || [];
+        let rooms       = data.rooms || [];
+        if (state.filterRoomId > 0) {
+            const filtered = rooms.filter(r => r.id === state.filterRoomId);
+            if (filtered.length > 0) {
+                rooms = filtered;
+            }
+        }
         const slots     = data.time_slots || [];
         const matrix    = data.matrix || {};
         const dateFormatted = data.date_formatted || '';
@@ -801,7 +842,13 @@
         let csvRows = [];
         csvRows.push(headers.map(h => `"${h}"`).join(','));
 
-        const rooms  = state.schedule.rooms || [];
+        let rooms  = state.schedule.rooms || [];
+        if (state.filterRoomId > 0) {
+            const filtered = rooms.filter(r => r.id === state.filterRoomId);
+            if (filtered.length > 0) {
+                rooms = filtered;
+            }
+        }
         const matrix = state.schedule.matrix || {};
 
         rooms.forEach(room => {
