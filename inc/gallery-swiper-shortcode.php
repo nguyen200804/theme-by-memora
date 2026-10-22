@@ -956,30 +956,39 @@ function memora_gallery_swiper_shortcode( $atts ) {
                     }
                 }
 
-                function goToOffset(offset) {
-                    if (!swiperInstance || swiperInstance.destroyed || offset === 0) return;
-                    if (offset === 1) {
-                        swiperInstance.slideNext();
-                    } else if (offset === -1) {
-                        swiperInstance.slidePrev();
+                function goToSlide(targetIndex) {
+                    if (!swiperInstance || swiperInstance.destroyed) return;
+                    if (typeof swiperInstance.slideToLoop === 'function' && swiperInstance.params && swiperInstance.params.loop) {
+                        swiperInstance.slideToLoop(targetIndex);
                     } else {
-                        var target = (swiperInstance.realIndex + offset + totalSlides) % totalSlides;
-                        if (typeof swiperInstance.slideToLoop === 'function' && swiperInstance.params.loop) {
-                            swiperInstance.slideToLoop(target);
-                        } else {
-                            swiperInstance.slideTo(target);
-                        }
+                        swiperInstance.slideTo(targetIndex);
                     }
                 }
 
                 paginationEl.addEventListener('click', function(e) {
                     var bullet = e.target.closest('.swiper-pagination-bullet');
                     if (!bullet) return;
-                    var targetIdx = parseInt(bullet.getAttribute('data-star-index'), 10);
-                    var activeBullet = paginationEl.querySelector('.swiper-pagination-bullet-active');
-                    var activeIdx = activeBullet ? parseInt(activeBullet.getAttribute('data-star-index'), 10) : 2;
-                    var offset = targetIdx - activeIdx;
-                    goToOffset(offset);
+                    var targetStarIdx = parseInt(bullet.getAttribute('data-star-index'), 10);
+                    var cur = swiperInstance.realIndex;
+
+                    if (targetStarIdx === 0) {
+                        goToSlide(0); // Bấm sao 1: Nhảy thẳng đến ảnh đầu (ảnh 1)
+                    } else if (targetStarIdx === 1) {
+                        goToSlide(1); // Bấm sao 2: Nhảy thẳng đến ảnh 2
+                    } else if (targetStarIdx === 4) {
+                        goToSlide(totalSlides - 1); // Bấm sao 5: Nhảy thẳng đến ảnh n (ảnh cuối)
+                    } else if (targetStarIdx === 3) {
+                        goToSlide(totalSlides - 2); // Bấm sao 4: Nhảy thẳng đến ảnh n-1
+                    } else if (targetStarIdx === 2) {
+                        // Bấm sao 3: đại diện cho ảnh 3 đến n-2
+                        if (cur < 2) {
+                            goToSlide(2);
+                        } else if (cur > totalSlides - 3) {
+                            goToSlide(totalSlides - 3);
+                        } else {
+                            swiperInstance.slideNext();
+                        }
+                    }
                 });
 
                 swiperInstance.on('slideChange', function() {

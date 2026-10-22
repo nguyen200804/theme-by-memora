@@ -588,9 +588,6 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
                 on: {
                     slideChange: function () {
                         updateDesc(this.realIndex);
-                        if (isMoreThan5 && typeof updateStars === 'function') {
-                            updateStars(this.realIndex);
-                        }
                     },
                     init: function () {
                         updateDesc(this.realIndex);
@@ -608,15 +605,15 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
                 function updateStars(currentIndex) {
                     var activeStarIdx;
                     if (currentIndex === 0) {
-                        activeStarIdx = 0; // Ảnh đầu: sao số 1 sáng to nhất
+                        activeStarIdx = 0; // Ngôi sao số 1: ảnh đầu (ảnh 1) active
                     } else if (currentIndex === 1) {
-                        activeStarIdx = 1; // Ảnh 2: sao số 2 sáng to nhất
+                        activeStarIdx = 1; // Ngôi sao thứ 2: ảnh 2 active
                     } else if (currentIndex === totalSlides - 1) {
-                        activeStarIdx = 4; // Ảnh cuối: sao số 5 sáng to nhất
+                        activeStarIdx = 4; // Ngôi sao thứ 5: ảnh n (ảnh cuối) active
                     } else if (currentIndex === totalSlides - 2) {
-                        activeStarIdx = 3; // Ảnh áp chót: sao số 4 sáng to nhất
+                        activeStarIdx = 3; // Ngôi sao thứ 4: ảnh n-1 active
                     } else {
-                        activeStarIdx = 2; // Các ảnh ở giữa: sao số 3 (chính giữa) sáng vương miện
+                        activeStarIdx = 2; // Ngôi sao thứ 3: ảnh 3 và n-2 active (các ảnh từ 3 đến n-2)
                     }
 
                     for (var bIdx = 0; bIdx < bullets.length; bIdx++) {
@@ -634,30 +631,43 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
                     }
                 }
 
-                function goToOffset(offset) {
-                    if (!swiperInstance || swiperInstance.destroyed || offset === 0) return;
-                    if (offset === 1) {
-                        swiperInstance.slideNext();
-                    } else if (offset === -1) {
-                        swiperInstance.slidePrev();
+                function goToSlide(targetIndex) {
+                    if (!swiperInstance || swiperInstance.destroyed) return;
+                    if (typeof swiperInstance.slideToLoop === 'function' && swiperInstance.params && swiperInstance.params.loop) {
+                        swiperInstance.slideToLoop(targetIndex);
                     } else {
-                        var target = (swiperInstance.realIndex + offset + totalSlides) % totalSlides;
-                        if (typeof swiperInstance.slideToLoop === 'function' && swiperInstance.params.loop) {
-                            swiperInstance.slideToLoop(target);
-                        } else {
-                            swiperInstance.slideTo(target);
-                        }
+                        swiperInstance.slideTo(targetIndex);
                     }
                 }
 
                 paginationEl.addEventListener('click', function(e) {
                     var bullet = e.target.closest('.swiper-pagination-bullet');
                     if (!bullet) return;
-                    var targetIdx = parseInt(bullet.getAttribute('data-star-index'), 10);
-                    var activeBullet = paginationEl.querySelector('.swiper-pagination-bullet-active');
-                    var activeIdx = activeBullet ? parseInt(activeBullet.getAttribute('data-star-index'), 10) : 2;
-                    var offset = targetIdx - activeIdx;
-                    goToOffset(offset);
+                    var targetStarIdx = parseInt(bullet.getAttribute('data-star-index'), 10);
+                    var cur = swiperInstance.realIndex;
+
+                    if (targetStarIdx === 0) {
+                        goToSlide(0); // Bấm sao 1: Nhảy thẳng đến ảnh đầu (ảnh 1)
+                    } else if (targetStarIdx === 1) {
+                        goToSlide(1); // Bấm sao 2: Nhảy thẳng đến ảnh 2
+                    } else if (targetStarIdx === 4) {
+                        goToSlide(totalSlides - 1); // Bấm sao 5: Nhảy thẳng đến ảnh n (ảnh cuối)
+                    } else if (targetStarIdx === 3) {
+                        goToSlide(totalSlides - 2); // Bấm sao 4: Nhảy thẳng đến ảnh n-1
+                    } else if (targetStarIdx === 2) {
+                        // Bấm sao 3: đại diện cho ảnh 3 đến n-2
+                        if (cur < 2) {
+                            goToSlide(2);
+                        } else if (cur > totalSlides - 3) {
+                            goToSlide(totalSlides - 3);
+                        } else {
+                            swiperInstance.slideNext();
+                        }
+                    }
+                });
+
+                swiperInstance.on('slideChange', function() {
+                    updateStars(swiperInstance.realIndex);
                 });
 
                 // Cập nhật ngay trạng thái lúc khởi tạo
