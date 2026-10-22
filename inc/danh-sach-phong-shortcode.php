@@ -486,7 +486,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
                         $c_img_count = count( $c_room['images'] );
                         if ( $c_img_count > 1 ) : 
                         ?>
-                        <div class="swiper-pagination memora-star-pagination" data-total-slides="<?php echo esc_attr( $c_img_count ); ?>">
+                        <div class="swiper-pagination memora-star-pagination swiper-pagination-bullets swiper-pagination-horizontal" data-total-slides="<?php echo esc_attr( $c_img_count ); ?>">
                             <?php if ( $c_img_count > 5 ) : ?>
                                 <span class="swiper-pagination-bullet" data-star-index="0" role="button" aria-label="Lùi 2 ảnh" tabindex="0"></span>
                                 <span class="swiper-pagination-bullet" data-star-index="1" role="button" aria-label="Lùi 1 ảnh" tabindex="0"></span>
@@ -568,7 +568,7 @@ function memora_danh_sach_phong_shortcode( $atts ) {
                         $w_img_count = count( $w_room['images'] );
                         if ( $w_img_count > 1 ) : 
                         ?>
-                        <div class="swiper-pagination memora-star-pagination" data-total-slides="<?php echo esc_attr( $w_img_count ); ?>">
+                        <div class="swiper-pagination memora-star-pagination swiper-pagination-bullets swiper-pagination-horizontal" data-total-slides="<?php echo esc_attr( $w_img_count ); ?>">
                             <?php if ( $w_img_count > 5 ) : ?>
                                 <span class="swiper-pagination-bullet" data-star-index="0" role="button" aria-label="Lùi 2 ảnh" tabindex="0"></span>
                                 <span class="swiper-pagination-bullet" data-star-index="1" role="button" aria-label="Lùi 1 ảnh" tabindex="0"></span>
@@ -874,11 +874,18 @@ function memora_danh_sach_phong_shortcode( $atts ) {
            PAGINATION HÌNH NGÔI SAO MÀU NÂU #733e1c
         ------------------------------------------- */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination {
-            bottom: 2cqw;
+            position: absolute !important;
+            bottom: 2cqw !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
             z-index: 10;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: flex-end !important;
+            margin: 0 auto !important;
+            pointer-events: auto !important;
+            box-sizing: border-box !important;
         }
 
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet {
