@@ -247,7 +247,7 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
                 </div>
 
                 <!-- Pagination hình ngôi sao màu nâu #733e1c -->
-                <div class="swiper-pagination memora-star-pagination" id="<?php echo esc_attr( $uid ); ?>-pagination" data-total-slides="<?php echo esc_attr( $total_slides ); ?>">
+                <div class="swiper-pagination memora-star-pagination swiper-pagination-bullets swiper-pagination-horizontal" id="<?php echo esc_attr( $uid ); ?>-pagination" data-total-slides="<?php echo esc_attr( $total_slides ); ?>">
                     <?php if ( $total_slides > 5 ) : ?>
                         <span class="swiper-pagination-bullet" data-star-index="0" role="button" aria-label="Lùi 2 ảnh" tabindex="0"></span>
                         <span class="swiper-pagination-bullet" data-star-index="1" role="button" aria-label="Lùi 1 ảnh" tabindex="0"></span>
@@ -386,11 +386,17 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
            PAGINATION NGÔI SAO MÀU NÂU #733e1c
         ------------------------------------------- */
         #<?php echo esc_attr( $uid ); ?>-wrap .memora-star-pagination {
-            bottom: 2cqw;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            pointer-events: auto;
+            position: absolute !important;
+            bottom: 2cqw !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            margin: 0 auto !important;
+            pointer-events: auto !important;
+            box-sizing: border-box !important;
             z-index: 10;
         }
 
