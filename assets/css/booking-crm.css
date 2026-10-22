@@ -2,6 +2,7 @@
  * Memora Booking CRM - Spreadsheet Grid Stylesheet
  * 
  * Bảng tính điều phối lịch chụp studio đa phòng:
+ * - Font Inter 100% (Tabular Numbers & Glyph Alternate)
  * - Tone màu đỏ booc-đô thương hiệu Memora (#733e1c / #800020)
  * - Sticky Header đa cấp (Phòng & Cột)
  * - Sticky Left Cột Giờ / Ngày
@@ -9,20 +10,28 @@
  * - Tương tác ô kiểu Excel / Google Sheets
  */
 
+/* Nhúng font Inter từ Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 /* ==========================================================================
-   1. RESET & WRAPPER TOÀN BỘ CRM
+   1. RESET & WRAPPER TOÀN BỘ CRM - FONT INTER HOÀN TOÀN
    ========================================================================== */
+.memora-crm-app,
+.memora-crm-app *,
+.memora-crm-modal-overlay,
+.memora-crm-modal-overlay *,
+.memora-crm-toast-container,
+.memora-crm-toast-container * {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'tnum';
+    box-sizing: border-box;
+}
+
 .memora-crm-app {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: #1e293b;
     background: #f8fafc;
     min-height: 100vh;
     padding: 16px 20px;
-    box-sizing: border-box;
-}
-
-.memora-crm-app * {
-    box-sizing: border-box;
 }
 
 /* ==========================================================================
@@ -337,8 +346,11 @@
 .memora-crm-col-time {
     background: #fafafa;
     border-right: 2px solid #cbd5e1;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 12px;
+    font-family: 'Inter', sans-serif !important;
+    font-feature-settings: 'tnum' !important;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
 }
 
 /* Ô dữ liệu (Cell) */

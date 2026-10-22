@@ -83,7 +83,10 @@ function memora_crm_enqueue_assets( $is_frontend = false ) {
     $css_ver = file_exists( $css_path ) ? filemtime( $css_path ) : '1.0.0';
     $js_ver  = file_exists( $js_path )  ? filemtime( $js_path )  : '1.0.0';
 
-    wp_enqueue_style( 'memora-booking-crm-css', $theme_uri . 'assets/css/booking-crm.css', array(), $css_ver );
+    // Nạp Font Inter chuẩn
+    wp_enqueue_style( 'memora-crm-google-font-inter', 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap', array(), null );
+
+    wp_enqueue_style( 'memora-booking-crm-css', $theme_uri . 'assets/css/booking-crm.css', array( 'memora-crm-google-font-inter' ), $css_ver );
     wp_enqueue_script( 'memora-booking-crm-js', $theme_uri . 'assets/js/booking-crm.js', array( 'jquery' ), $js_ver, true );
 
     wp_localize_script( 'memora-booking-crm-js', 'memora_crm_vars', array(
