@@ -224,6 +224,19 @@
     transform: none !important;
 }
 
+/* Slot thời gian có tận cùng 15 (10h15p, 11h15p, ..): Mặc định nền trắng, không thể chọn đặt lịch */
+.memora-time-slot-btn.is-slot-15,
+.memora-time-slot-btn.is-slot-15:disabled,
+.memora-time-slot-btn.is-slot-15:hover,
+.memora-time-slot-btn.is-slot-15:disabled:hover {
+    background: #ffffff !important;
+    color: #4E2B22 !important;
+    border-color: var(--memora-brown) !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
 .memora-time-slot-btn.memora-slot-see-tomorrow {
     display: flex;
     align-items: center;

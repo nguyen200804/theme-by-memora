@@ -69,8 +69,12 @@ function memora_shortcode_choose_time( $atts ) {
     <div class="memora-booking-container memora-choose-time-wrap" data-location-id="<?php echo esc_attr( $location_id ); ?>">
         
         <div class="memora-time-slots-grid">
-            <?php foreach ( $slots as $slot ) : ?>
-                <button type="button" class="memora-time-slot-btn" data-time="<?php echo esc_attr( $slot ); ?>">
+            <?php foreach ( $slots as $slot ) : 
+                $is_15         = ( substr( trim( $slot ), -2 ) === '15' );
+                $btn_classes   = 'memora-time-slot-btn' . ( $is_15 ? ' is-slot-15' : '' );
+                $disabled_attr = $is_15 ? ' disabled' : '';
+            ?>
+                <button type="button" class="<?php echo esc_attr( $btn_classes ); ?>" data-time="<?php echo esc_attr( $slot ); ?>"<?php echo $disabled_attr; ?>>
                     <?php echo esc_html( $slot ); ?>
                 </button>
             <?php endforeach; ?>

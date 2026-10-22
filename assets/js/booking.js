@@ -54,6 +54,12 @@
         var state = window.MemoraBookingState;
         state.loadFromStorage();
 
+        // Xóa giờ đã chọn nếu là khung giờ có đuôi 15 không hợp lệ
+        if (state.time && (state.time.slice(-2) === '15' || /[:h]15(p|:00)?$/i.test(state.time))) {
+            state.time = '';
+            state.saveToStorage();
+        }
+
         // ---------------------------------------------------------------
         // Xác định diaChiId theo thứ tự ưu tiên TĂNG DẦN:
         //   1. sessionStorage  (thấp nhất – dữ liệu từ lần truy cập trước)
@@ -240,15 +246,16 @@
 
                         var hasSelected = false;
                         slots.forEach(function (slot) {
-                            var isSelected = (state.time && state.time === slot.time && slot.available);
+                            var is15 = Boolean(slot.is_15 || (slot.time && (slot.time.slice(-2) === '15' || /[:h]15(p|:00)?$/i.test(slot.time))));
+                            var isSelected = (!is15 && state.time && state.time === slot.time && slot.available);
                             if (isSelected) hasSelected = true;
 
-                            var disabledAttr = slot.available ? '' : ' disabled';
+                            var disabledAttr = (is15 || !slot.available) ? ' disabled' : '';
                             var activeClass = isSelected ? ' is-selected' : '';
                             var bookedClass = slot.booked ? ' is-booked' : '';
-                            var titleAttr = slot.booked ? '' : (slot.past ? '' : '');
+                            var slot15Class = is15 ? ' is-slot-15' : '';
 
-                            var $btn = $('<button type="button" class="memora-time-slot-btn' + activeClass + bookedClass + '" data-time="' + slot.time + '"' + disabledAttr + '>' + slot.time + titleAttr + '</button>');
+                            var $btn = $('<button type="button" class="memora-time-slot-btn' + activeClass + bookedClass + slot15Class + '" data-time="' + slot.time + '"' + disabledAttr + '>' + slot.time + '</button>');
                             $slotsGrid.append($btn);
                         });
 
@@ -331,7 +338,7 @@
 
         $(document).on('click', '.memora-time-slot-btn:not(.memora-slot-see-tomorrow)', function (e) {
             e.preventDefault();
-            if ($(this).is(':disabled')) return;
+            if ($(this).is(':disabled') || $(this).hasClass('is-slot-15')) return;
 
             $('.memora-time-slot-btn').removeClass('is-selected');
             $(this).addClass('is-selected');

@@ -47,6 +47,7 @@ function memora_ajax_get_slots() {
 
     $slots_data = array();
     foreach ( $all_slots as $slot ) {
+        $is_15     = ( substr( trim( $slot ), -2 ) === '15' );
         $is_booked = in_array( $slot, $booked_slots, true );
         $is_past   = false;
 
@@ -55,13 +56,15 @@ function memora_ajax_get_slots() {
             $is_past = true;
         }
 
-        $available = ( ! $is_booked && ! $is_past );
+        // Slot có tận cùng 15 mặc định không khả dụng
+        $available = ( ! $is_15 && ! $is_booked && ! $is_past );
 
         $slots_data[] = array(
             'time'      => $slot,
             'available' => $available,
             'booked'    => $is_booked,
             'past'      => $is_past,
+            'is_15'     => $is_15,
         );
     }
 
@@ -133,6 +136,11 @@ function memora_ajax_submit_booking() {
     // Tự động tính thanh toán 100% nếu chưa có
     if ( $deposit_price <= 0 && $total_price > 0 ) {
         $deposit_price = $total_price * 1.0;
+    }
+
+    // Kiểm tra slot có tận cùng 15 (mặc định không khả dụng để đặt lịch)
+    if ( substr( trim( $time ), -2 ) === '15' ) {
+        wp_send_json_error( array( 'message' => 'Khung giờ ' . $time . ' không khả dụng để đặt lịch. Bạn vui lòng chọn khung giờ khác nhé!' ) );
     }
 
     // Concurrency Check: Kiểm tra lại slot giờ tránh xung đột đặt cùng lúc (cô lập theo phòng & chi nhánh)
