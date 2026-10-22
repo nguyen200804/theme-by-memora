@@ -398,36 +398,83 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         }
     }
 
-    /* -- URL Google Maps điều hướng sang tab mới -- */
-    $map_url = '';
+    /* -- Google Maps embed cho .dcnb-map -- */
+    $raw_map = '';
     if ( function_exists( 'get_field' ) ) {
         if ( $dc_term_source ) {
-            $map_url = get_field( 'google_map_url', $dc_term_source )
+            $raw_map = get_field( 'google_map_embed', $dc_term_source )
+                    ?: get_field( 'ban_do_embed', $dc_term_source )
+                    ?: get_field( 'google_map_url', $dc_term_source )
                     ?: get_field( 'map_url', $dc_term_source )
                     ?: get_field( 'link_map', $dc_term_source )
                     ?: get_field( 'ban_do', $dc_term_source );
         }
-        if ( empty( $map_url ) && $dc_id > 0 ) {
-            $map_url = get_field( 'google_map_url', $dc_id )
+        if ( empty( $raw_map ) && $dc_id > 0 ) {
+            $raw_map = get_field( 'google_map_embed', $dc_id )
+                    ?: get_field( 'ban_do_embed', $dc_id )
+                    ?: get_field( 'google_map_url', $dc_id )
                     ?: get_field( 'map_url', $dc_id )
                     ?: get_field( 'link_map', $dc_id )
                     ?: get_field( 'ban_do', $dc_id );
         }
     }
-    if ( empty( $map_url ) && $dc_term ) {
-        $map_url = get_term_meta( $dc_term->term_id, 'google_map_url', true )
+    if ( empty( $raw_map ) && $dc_term ) {
+        $raw_map = get_term_meta( $dc_term->term_id, 'google_map_embed', true )
+                ?: get_term_meta( $dc_term->term_id, 'ban_do_embed', true )
+                ?: get_term_meta( $dc_term->term_id, 'google_map_url', true )
                 ?: get_term_meta( $dc_term->term_id, 'map_url', true )
                 ?: get_term_meta( $dc_term->term_id, 'ban_do', true )
                 ?: get_term_meta( $dc_term->term_id, 'link_map', true );
     }
-    if ( empty( $map_url ) && $dc_id > 0 ) {
-        $map_url = get_post_meta( $dc_id, 'google_map_url', true )
+    if ( empty( $raw_map ) && $dc_id > 0 ) {
+        $raw_map = get_post_meta( $dc_id, 'google_map_embed', true )
+                ?: get_post_meta( $dc_id, 'ban_do_embed', true )
+                ?: get_post_meta( $dc_id, 'google_map_url', true )
                 ?: get_post_meta( $dc_id, 'map_url', true )
                 ?: get_post_meta( $dc_id, 'ban_do', true )
                 ?: get_post_meta( $dc_id, 'link_map', true );
     }
-    if ( empty( $map_url ) ) {
-        $map_url = 'https://www.google.com/maps/search/?api=1&query=' . urlencode( $dc_title );
+
+    $map_embed_src = '';
+    if ( ! empty( $raw_map ) ) {
+        if ( is_string( $raw_map ) && preg_match( '/src=[\'"]([^\'"]+)[\'"]/i', $raw_map, $matches ) ) {
+            $map_embed_src = $matches[1];
+        } elseif ( is_string( $raw_map ) && ( strpos( $raw_map, 'maps/embed' ) !== false || strpos( $raw_map, 'output=embed' ) !== false ) ) {
+            $map_embed_src = $raw_map;
+        }
+    }
+
+    if ( empty( $map_embed_src ) ) {
+        $dc_address = '';
+        if ( function_exists( 'get_field' ) ) {
+            if ( $dc_term_source ) {
+                $dc_address = get_field( 'dia_chi_day_du', $dc_term_source )
+                           ?: get_field( 'dia_chi', $dc_term_source )
+                           ?: get_field( 'address', $dc_term_source )
+                           ?: get_field( 'diachi', $dc_term_source );
+            }
+            if ( empty( $dc_address ) && $dc_id > 0 ) {
+                $dc_address = get_field( 'dia_chi_day_du', $dc_id )
+                           ?: get_field( 'dia_chi', $dc_id )
+                           ?: get_field( 'address', $dc_id )
+                           ?: get_field( 'diachi', $dc_id );
+            }
+        }
+        if ( empty( $dc_address ) && $dc_term ) {
+            $dc_address = get_term_meta( $dc_term->term_id, 'dia_chi_day_du', true )
+                       ?: get_term_meta( $dc_term->term_id, 'dia_chi', true )
+                       ?: get_term_meta( $dc_term->term_id, 'address', true )
+                       ?: get_term_meta( $dc_term->term_id, 'diachi', true );
+        }
+        if ( empty( $dc_address ) && $dc_id > 0 ) {
+            $dc_address = get_post_meta( $dc_id, 'dia_chi_day_du', true )
+                       ?: get_post_meta( $dc_id, 'dia_chi', true )
+                       ?: get_post_meta( $dc_id, 'address', true )
+                       ?: get_post_meta( $dc_id, 'diachi', true );
+        }
+
+        $map_query     = ! empty( $dc_address ) ? $dc_address : $dc_title;
+        $map_embed_src = 'https://maps.google.com/maps?q=' . urlencode( $map_query ) . '&output=embed&z=15&hl=vi';
     }
 
     ob_start();
@@ -439,9 +486,16 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             <div class="dcnb-brand-label">Memora<br><em>"Angel Shot"</em></div>
 
             <div class="dcnb-map">
-                <a href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo esc_attr( $dc_title ); ?>">
-                    <img src="<?php echo esc_url( $thumb_src ); ?>" alt="<?php echo esc_attr( $thumb_alt ); ?>" loading="lazy" />
-                </a>
+                <iframe
+                    src="<?php echo esc_url( $map_embed_src ); ?>"
+                    width="100%"
+                    height="100%"
+                    style="border:0; display:block;"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="<?php echo esc_attr( $dc_title ); ?>">
+                </iframe>
             </div>
 
 
@@ -504,24 +558,9 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             /* border-radius: 8px; */
             overflow: hidden;
         }
-        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-map a {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-map img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            transition: transform 0.3s ease;
-        }
-        #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-map a:hover img {
-            transform: scale(1.05);
-        }
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-map iframe {
-            width: 115px;
-            height: 130px;
+            width: 100%;
+            height: 100%;
             border: 0;
             display: block;
         }
@@ -531,7 +570,7 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             align-items: center;
             justify-content: center;
             font-family: "Cocomat Pro", Sans-serif;
-            font-size: 12px;
+            font-size: 18px;
             font-weight: 600;
             color: #733E1C;
             border: 2px solid #733E1C;
