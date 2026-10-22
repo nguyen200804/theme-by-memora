@@ -310,6 +310,40 @@ if ( function_exists( 'memora_crm_enqueue_assets' ) ) {
             box-sizing: border-box !important;
             flex: 0 0 auto !important;
         }
+
+        /* Ô dữ liệu có thể nhấp đúp để chỉnh sửa (Tên, Gói chụp, Background, SĐT) */
+        .memora-crm-cell--editable {
+            cursor: pointer !important;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease !important;
+        }
+        .memora-crm-cell--editable:hover {
+            background-color: #f8fafc !important;
+            box-shadow: inset 0 0 0 1px #cbd5e1 !important;
+        }
+        .memora-crm-empty-placeholder {
+            color: #94a3b8 !important;
+            font-style: italic !important;
+            font-size: 11px !important;
+            user-select: none !important;
+        }
+        .memora-crm-inline-input {
+            width: 100% !important;
+            height: 28px !important;
+            min-height: 28px !important;
+            line-height: 26px !important;
+            border: 1.5px solid #733e1c !important;
+            border-radius: 4px !important;
+            background: #ffffff !important;
+            padding: 2px 6px !important;
+            margin: 0 !important;
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            font-family: inherit !important;
+            color: #0f172a !important;
+            outline: none !important;
+            box-shadow: 0 0 0 2px rgba(115, 62, 28, 0.15) !important;
+            box-sizing: border-box !important;
+        }
     </style>
 </head>
 <body <?php body_class( 'memora-crm-portal-page elementor-template-canvas' ); ?>>

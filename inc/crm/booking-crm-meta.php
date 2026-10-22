@@ -316,6 +316,74 @@ function memora_crm_update_order_field( $order_id, $field_name, $value ) {
 }
 
 /**
+ * 3b. CẬP NHẬT ĐỒNG THỜI CÁC TRƯỜNG THÔNG TIN ĐẶT LỊCH (TÊN, GÓI CHỤP, BACKGROUND, SĐT)
+ *
+ * @param int   $order_id
+ * @param array $data Mảng gồm 'customer_name', 'phone', 'package_name', 'background_note'
+ * @return bool|WP_Error
+ */
+function memora_crm_update_booking_info( $order_id, $data ) {
+    $order = wc_get_order( $order_id );
+    if ( ! $order instanceof WC_Order ) {
+        return new WP_Error( 'invalid_order', 'Đơn hàng không tồn tại' );
+    }
+
+    $changes = array();
+
+    if ( isset( $data['customer_name'] ) ) {
+        $name = sanitize_text_field( wp_unslash( $data['customer_name'] ) );
+        $old_name = (string) ( $order->get_meta( '_booking_customer_name' ) ?: $order->get_billing_first_name() );
+        if ( $name !== $old_name ) {
+            $order->update_meta_data( '_booking_customer_name', $name );
+            $order->set_billing_first_name( $name );
+            $order->set_billing_last_name( '' );
+            $changes[] = sprintf( 'Tên: "%s" -> "%s"', $old_name ?: '(trống)', $name );
+        }
+    }
+
+    if ( isset( $data['phone'] ) ) {
+        $phone = sanitize_text_field( wp_unslash( $data['phone'] ) );
+        $old_phone = (string) ( $order->get_meta( '_booking_phone' ) ?: $order->get_billing_phone() );
+        if ( $phone !== $old_phone ) {
+            $order->update_meta_data( '_booking_phone', $phone );
+            $order->set_billing_phone( $phone );
+            $changes[] = sprintf( 'SĐT: "%s" -> "%s"', $old_phone ?: '(trống)', $phone );
+        }
+    }
+
+    if ( isset( $data['package_name'] ) ) {
+        $pkg = sanitize_text_field( wp_unslash( $data['package_name'] ) );
+        $old_pkg = (string) $order->get_meta( '_booking_package_name' );
+        if ( $pkg !== $old_pkg ) {
+            $order->update_meta_data( '_booking_package_name', $pkg );
+            $changes[] = sprintf( 'Gói: "%s" -> "%s"', $old_pkg ?: '(trống)', $pkg );
+        }
+    }
+
+    if ( isset( $data['background_note'] ) ) {
+        $bg = sanitize_text_field( wp_unslash( $data['background_note'] ) );
+        $old_bg = (string) $order->get_meta( '_booking_background_note' );
+        if ( $bg !== $old_bg ) {
+            $order->update_meta_data( '_booking_background_note', $bg );
+            $changes[] = sprintf( 'Background: "%s" -> "%s"', $old_bg ?: '(trống)', $bg );
+        }
+    }
+
+    if ( ! empty( $changes ) ) {
+        $current_user = wp_get_current_user();
+        $actor_name   = $current_user->exists() ? $current_user->display_name : 'Hệ thống CRM';
+        $order->add_order_note( sprintf(
+            '[CRM Điều Phối] %s cập nhật thông tin: %s.',
+            $actor_name,
+            implode( ', ', $changes )
+        ) );
+        $order->save();
+    }
+
+    return true;
+}
+
+/**
  * 4. TỰ ĐỘNG KHỞI TẠO CÁC GIÁ TRỊ CRM MẶC ĐỊNH KHI CÓ ĐƠN ĐẶT LỊCH MỚI
  */
 add_action( 'woocommerce_checkout_order_created', 'memora_crm_init_order_meta_defaults', 20 );

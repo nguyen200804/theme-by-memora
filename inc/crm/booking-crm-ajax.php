@@ -308,6 +308,40 @@ function memora_crm_ajax_update_field() {
 }
 
 // =====================================================================
+// 2b. API: CẬP NHẬT ĐỒNG THỜI THÔNG TIN ĐƠN ĐẶT LỊCH (MODAL SAVE)
+// =====================================================================
+add_action( 'wp_ajax_memora_crm_update_booking_info', 'memora_crm_ajax_update_booking_info' );
+function memora_crm_ajax_update_booking_info() {
+    memora_crm_verify_request();
+
+    $order_id = isset( $_POST['order_id'] ) ? intval( $_POST['order_id'] ) : 0;
+    if ( $order_id <= 0 ) {
+        wp_send_json_error( array( 'message' => 'Mã đơn hàng không hợp lệ.' ) );
+    }
+
+    $data = array(
+        'customer_name'   => isset( $_POST['customer_name'] ) ? sanitize_text_field( wp_unslash( $_POST['customer_name'] ) ) : '',
+        'phone'           => isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '',
+        'package_name'    => isset( $_POST['package_name'] ) ? sanitize_text_field( wp_unslash( $_POST['package_name'] ) ) : '',
+        'background_note' => isset( $_POST['background_note'] ) ? sanitize_text_field( wp_unslash( $_POST['background_note'] ) ) : '',
+    );
+
+    if ( function_exists( 'memora_crm_update_booking_info' ) ) {
+        $res = memora_crm_update_booking_info( $order_id, $data );
+        if ( is_wp_error( $res ) ) {
+            wp_send_json_error( array( 'message' => $res->get_error_message() ) );
+        }
+    }
+
+    $updated_data = memora_crm_get_order_data( $order_id );
+
+    wp_send_json_success( array(
+        'message'      => 'Đã cập nhật thông tin đơn đặt lịch thành công!',
+        'updated_data' => $updated_data,
+    ) );
+}
+
+// =====================================================================
 // 3. API: TẠO NHANH ĐẶT LỊCH TẠI QUẦY (QUICK WALK-IN BOOKING)
 // =====================================================================
 add_action( 'wp_ajax_memora_crm_quick_book', 'memora_crm_ajax_quick_book' );

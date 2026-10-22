@@ -392,36 +392,39 @@ function memora_crm_render_view() {
                     <button type="button" class="memora-crm-modal-close" data-target="#memora-crm-detail-modal">&times;</button>
                 </div>
                 <div class="memora-crm-modal-body">
-                    <div class="memora-crm-detail-grid">
-                        <div class="memora-crm-detail-row">
-                            <span class="lbl">Mã đặt lịch:</span>
-                            <strong id="memora-detail-code" style="color:#733e1c;font-size:15px;">#XXXX</strong>
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                        <h4 style="margin:0;font-size:13px;color:#475569;text-transform:uppercase;font-weight:700;">Thông tin đặt lịch (Tên, Gói, Background, SĐT)</h4>
+                        <span id="memora-detail-price" style="font-size:12px;font-weight:600;color:#733e1c;">Cọc: 0đ / Tổng: 0đ</span>
+                    </div>
+
+                    <div class="memora-crm-form-grid" style="margin-bottom:12px;">
+                        <div>
+                            <label class="memora-crm-field-label">Tên khách hàng</label>
+                            <input type="text" id="memora-detail-name-input" class="memora-crm-form-control" placeholder="Nhập tên khách hàng...">
                         </div>
-                        <div class="memora-crm-detail-row">
-                            <span class="lbl">Khách hàng:</span>
-                            <strong id="memora-detail-name">...</strong>
+                        <div>
+                            <label class="memora-crm-field-label">Số điện thoại</label>
+                            <input type="tel" id="memora-detail-phone-input" class="memora-crm-form-control" placeholder="Nhập số điện thoại...">
                         </div>
-                        <div class="memora-crm-detail-row">
-                            <span class="lbl">Số điện thoại:</span>
-                            <strong id="memora-detail-phone">...</strong>
+                        <div>
+                            <label class="memora-crm-field-label">Gói chụp</label>
+                            <input type="text" id="memora-detail-pkg-input" class="memora-crm-form-control" placeholder="Nhập gói chụp...">
                         </div>
-                        <div class="memora-crm-detail-row">
-                            <span class="lbl">Liên hệ khác (IG/Zalo):</span>
-                            <span id="memora-detail-ig">...</span>
-                        </div>
-                        <div class="memora-crm-detail-row">
-                            <span class="lbl">Gói chụp:</span>
-                            <span id="memora-detail-pkg">...</span>
-                        </div>
-                        <div class="memora-crm-detail-row">
-                            <span class="lbl">Tiền cọc / Tổng:</span>
-                            <span id="memora-detail-price">...</span>
+                        <div>
+                            <label class="memora-crm-field-label">Background / Ghi chú</label>
+                            <input type="text" id="memora-detail-bg-input" class="memora-crm-form-control" placeholder="Nhập phông nền / ghi chú...">
                         </div>
                     </div>
 
-                    <hr style="margin:16px 0;border:none;border-top:1px dashed #cbd5e1;">
+                    <div style="text-align:right;margin-bottom:14px;">
+                        <button type="button" class="memora-crm-btn-primary" id="memora-crm-btn-save-info" style="font-size:12px;height:32px;min-height:32px;line-height:30px;padding:0 14px;">
+                            💾 Lưu thông tin
+                        </button>
+                    </div>
 
-                    <h4 style="margin:0 0 10px;font-size:13px;color:#475569;text-transform:uppercase;">Điều phối / Đổi giờ / Chuyển phòng</h4>
+                    <hr style="margin:14px 0;border:none;border-top:1px dashed #cbd5e1;">
+
+                    <h4 style="margin:0 0 10px;font-size:13px;color:#475569;text-transform:uppercase;font-weight:700;">Điều phối / Đổi giờ / Chuyển phòng</h4>
                     <div class="memora-crm-form-grid">
                         <div>
                             <label class="memora-crm-field-label">Phòng mới</label>
