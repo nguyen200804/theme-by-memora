@@ -123,14 +123,10 @@
             exportScheduleToCSV();
         });
 
-        // 6. Làm mới & In ấn
+        // 6. Làm mới
         $('#memora-crm-btn-refresh').on('click', function() {
             fetchSchedule();
             showToast('Đang làm mới dữ liệu...');
-        });
-
-        $('#memora-crm-btn-print').on('click', function() {
-            window.print();
         });
 
         // 7. Mở modal Đặt lịch nhanh
@@ -267,6 +263,12 @@
         if (!isBackground) state.isLoading = true;
 
         const $tableContainer = $('#memora-crm-table-container');
+        const $existingWrapper = $tableContainer.find('.memora-crm-grid-wrapper');
+        if ($existingWrapper.length) {
+            state.savedScrollTop  = $existingWrapper.scrollTop();
+            state.savedScrollLeft = $existingWrapper.scrollLeft();
+        }
+
         if (!isBackground) {
             $tableContainer.html(`
                 <div class="memora-crm-loading">
@@ -299,15 +301,25 @@
                         showToast(`🔔 Có ${newCount - prevCount} đơn đặt lịch mới từ website!`);
                     }
 
+                    // Kiểm tra xem dữ liệu ma trận có thực sự thay đổi không khi sync ngầm
+                    const hasMatrixChanged = !state.schedule ||
+                        JSON.stringify(state.schedule.matrix) !== JSON.stringify(res.data.matrix) ||
+                        JSON.stringify(state.schedule.rooms) !== JSON.stringify(res.data.rooms) ||
+                        JSON.stringify(state.schedule.time_slots) !== JSON.stringify(res.data.time_slots);
+
                     state.schedule = res.data;
                     renderLocationOptions(res.data.locations, res.data.dia_chi_id);
                     renderRoomFilterOptions(res.data.rooms);
                     renderStats(res.data.stats);
-                    renderGrid(res.data);
 
-                    // Re-apply search filter nếu đang có từ khóa
-                    const searchVal = $('#memora-crm-search').val().trim().toLowerCase();
-                    if (searchVal) handleFastSearch(searchVal);
+                    // Khi đồng bộ ngầm (auto-polling), chỉ dựng lại bảng nếu dữ liệu thực sự có thay đổi
+                    if (!isBackground || hasMatrixChanged) {
+                        renderGrid(res.data);
+
+                        // Re-apply search filter nếu đang có từ khóa
+                        const searchVal = $('#memora-crm-search').val().trim().toLowerCase();
+                        if (searchVal) handleFastSearch(searchVal);
+                    }
                 } else if (!isBackground) {
                     $tableContainer.html(`<div style="padding:40px;text-align:center;color:#b91c1c;">${res.data?.message || 'Không thể tải dữ liệu lịch.'}</div>`);
                 }
@@ -513,7 +525,18 @@
             </div>
         `;
 
-        $('#memora-crm-table-container').html(html);
+        const $tableContainer = $('#memora-crm-table-container');
+        const $oldWrapper = $tableContainer.find('.memora-crm-grid-wrapper');
+        const scrollTopToRestore  = $oldWrapper.length ? $oldWrapper.scrollTop()  : (state.savedScrollTop  || 0);
+        const scrollLeftToRestore = $oldWrapper.length ? $oldWrapper.scrollLeft() : (state.savedScrollLeft || 0);
+
+        $tableContainer.html(html);
+
+        const $newWrapper = $tableContainer.find('.memora-crm-grid-wrapper');
+        if ($newWrapper.length) {
+            if (scrollTopToRestore > 0)  $newWrapper.scrollTop(scrollTopToRestore);
+            if (scrollLeftToRestore > 0) $newWrapper.scrollLeft(scrollLeftToRestore);
+        }
     }
 
     /**

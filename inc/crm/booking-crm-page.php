@@ -290,9 +290,6 @@ function memora_crm_render_view() {
                 <button type="button" class="memora-crm-btn-secondary" id="memora-crm-btn-refresh" title="Tải lại dữ liệu">
                     ↻ Làm mới
                 </button>
-                <button type="button" class="memora-crm-btn-secondary" id="memora-crm-btn-print" title="In bảng lịch">
-                    🖨️ In
-                </button>
             </div>
         </div>
 
