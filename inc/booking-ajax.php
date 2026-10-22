@@ -65,6 +65,7 @@ function memora_ajax_get_slots() {
             'booked'    => $is_booked,
             'past'      => $is_past,
             'is_15'     => $is_15,
+            'is_white'  => ( $is_15 && ! $is_booked && ! $is_past ),
         );
     }
 

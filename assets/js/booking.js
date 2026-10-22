@@ -247,13 +247,19 @@
                         var hasSelected = false;
                         slots.forEach(function (slot) {
                             var is15 = Boolean(slot.is_15 || (slot.time && (slot.time.slice(-2) === '15' || /[:h]15(p|:00)?$/i.test(slot.time))));
+                            var isPastOrBooked = Boolean(slot.booked || slot.past);
+                            // Chỉ áp dụng nền trắng cho slot 15 nếu còn trống (chưa bị đặt và không phải quá khứ)
+                            var isWhiteSlot = (typeof slot.is_white !== 'undefined') ? Boolean(slot.is_white) : (is15 && !isPastOrBooked);
+
                             var isSelected = (!is15 && state.time && state.time === slot.time && slot.available);
                             if (isSelected) hasSelected = true;
 
-                            var disabledAttr = (is15 || !slot.available) ? ' disabled' : '';
+                            var disabledAttr = (is15 || !slot.available || isPastOrBooked) ? ' disabled' : '';
                             var activeClass = isSelected ? ' is-selected' : '';
-                            var bookedClass = slot.booked ? ' is-booked' : '';
-                            var slot15Class = is15 ? ' is-slot-15' : '';
+                            var bookedClass = '';
+                            if (slot.booked) bookedClass += ' is-booked';
+                            if (slot.past) bookedClass += ' is-past';
+                            var slot15Class = isWhiteSlot ? ' is-slot-15' : '';
 
                             var $btn = $('<button type="button" class="memora-time-slot-btn' + activeClass + bookedClass + slot15Class + '" data-time="' + slot.time + '"' + disabledAttr + '>' + slot.time + '</button>');
                             $slotsGrid.append($btn);

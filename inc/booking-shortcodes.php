@@ -64,6 +64,10 @@ function memora_shortcode_choose_time( $atts ) {
     $location_id = memora_resolve_booking_location_id();
     $slots       = memora_generate_time_slots( '', '', 15, $location_id );
 
+    $today_d_m_y  = current_time( 'd/m/Y' );
+    $current_h_i  = current_time( 'H:i' );
+    $booked_slots = function_exists( 'memora_get_booked_slots' ) ? memora_get_booked_slots( $today_d_m_y, 0, $location_id ) : array();
+
     ob_start();
     ?>
     <div class="memora-booking-container memora-choose-time-wrap" data-location-id="<?php echo esc_attr( $location_id ); ?>">
@@ -71,8 +75,20 @@ function memora_shortcode_choose_time( $atts ) {
         <div class="memora-time-slots-grid">
             <?php foreach ( $slots as $slot ) : 
                 $is_15         = ( substr( trim( $slot ), -2 ) === '15' );
-                $btn_classes   = 'memora-time-slot-btn' . ( $is_15 ? ' is-slot-15' : '' );
-                $disabled_attr = $is_15 ? ' disabled' : '';
+                $is_booked     = in_array( $slot, $booked_slots, true );
+                $is_past       = ( $slot <= $current_h_i );
+                $is_white      = ( $is_15 && ! $is_booked && ! $is_past );
+
+                $btn_classes   = 'memora-time-slot-btn';
+                if ( $is_booked ) {
+                    $btn_classes .= ' is-booked';
+                } elseif ( $is_past ) {
+                    $btn_classes .= ' is-past';
+                }
+                if ( $is_white ) {
+                    $btn_classes .= ' is-slot-15';
+                }
+                $disabled_attr = ( $is_15 || $is_booked || $is_past ) ? ' disabled' : '';
             ?>
                 <button type="button" class="<?php echo esc_attr( $btn_classes ); ?>" data-time="<?php echo esc_attr( $slot ); ?>"<?php echo $disabled_attr; ?>>
                     <?php echo esc_html( $slot ); ?>
