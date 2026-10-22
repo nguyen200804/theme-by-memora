@@ -266,62 +266,80 @@
     white-space: nowrap;
 }
 
-/* Cột ngày & giờ cố định bên trái (Sticky Left) */
-.memora-crm-col-time,
-.memora-crm-th-date {
-    position: sticky;
-    left: 0;
-    background: #ffffff;
-    z-index: 10;
-    width: 75px;
-    min-width: 75px;
-    max-width: 75px;
-    text-align: center;
-    font-weight: 700;
-    color: #334155;
+/* --- Header nền đỏ liền mạch (Không bị hở khoảng cách) --- */
+.memora-crm-table thead {
+    background: #7b1113;
 }
 
-/* Header cấp 1: Tên phòng & Ngày (Màu đỏ Booc-đô #7b1113 y hệt ảnh) */
-.memora-crm-th-date {
+.memora-crm-table thead tr {
+    background: #7b1113;
+}
+
+/* Hàng Header 1: Tên Phòng & Ngày */
+.memora-crm-tr-room th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: 38px;
+    padding: 8px 12px;
     background: #7b1113 !important;
     color: #ffffff !important;
     font-size: 14px;
     font-weight: 800;
-    z-index: 30 !important;
-    top: 0;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-sizing: border-box;
 }
 
-.memora-crm-th-room {
-    background: #7b1113;
-    color: #ffffff;
-    font-size: 15px;
-    font-weight: 800;
-    text-align: center;
-    letter-spacing: 0.5px;
+/* Ô Ngày (Góc trên cùng bên trái) */
+.memora-crm-tr-room th.memora-crm-th-date {
     position: sticky;
     top: 0;
-    z-index: 20;
-    padding: 10px 14px;
+    left: 0;
+    z-index: 35 !important;
+    width: 75px;
+    min-width: 75px;
+    max-width: 75px;
+    background: #7b1113 !important;
+    color: #ffffff !important;
+    font-size: 14px;
+    font-weight: 800;
+    border-right: 2px solid #52090b !important;
 }
 
-/* Header cấp 2: Tên các cột thuộc phòng */
-.memora-crm-th-sub {
-    background: #7b1113;
-    color: #ffffff;
+/* Hàng Header 2: Tên các cột con */
+.memora-crm-tr-cols th {
+    position: sticky;
+    top: 38px;
+    z-index: 20;
+    height: 34px;
+    padding: 7px 8px;
+    background: #7b1113 !important;
+    color: #ffffff !important;
     font-size: 12px;
     font-weight: 700;
     text-align: center;
-    position: sticky;
-    top: 39px; /* Chiều cao header phòng */
-    z-index: 20;
-    padding: 8px 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: none !important;
+    border-bottom: 2px solid #52090b !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-sizing: border-box;
 }
 
-.memora-crm-th-sub.memora-crm-col-time {
+/* Ô Giờ (Header cột giờ ở hàng 2) */
+.memora-crm-tr-cols th.memora-crm-th-time-hdr {
+    position: sticky;
+    top: 38px;
+    left: 0;
+    z-index: 35 !important;
+    width: 75px;
+    min-width: 75px;
+    max-width: 75px;
     background: #7b1113 !important;
     color: #ffffff !important;
-    z-index: 30 !important;
+    font-size: 13px;
+    font-weight: 700;
+    border-right: 2px solid #52090b !important;
 }
 
 /* Kích thước chiều rộng các cột con */

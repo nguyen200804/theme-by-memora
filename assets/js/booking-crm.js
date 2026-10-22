@@ -329,8 +329,8 @@
             <div class="memora-crm-grid-wrapper">
                 <table class="memora-crm-table">
                     <thead>
-                        <tr>
-                            <th class="memora-crm-th-date" rowspan="2">${displayShortDate}</th>
+                        <tr class="memora-crm-tr-room">
+                            <th class="memora-crm-th-date">${displayShortDate}</th>
         `;
 
         rooms.forEach(room => {
@@ -339,7 +339,8 @@
 
         html += `
                         </tr>
-                        <tr>
+                        <tr class="memora-crm-tr-cols">
+                            <th class="memora-crm-th-time-hdr">Giờ</th>
         `;
 
         rooms.forEach(room => {
