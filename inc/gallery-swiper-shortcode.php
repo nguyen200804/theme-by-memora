@@ -609,7 +609,15 @@ function memora_gallery_swiper_shortcode( $atts ) {
             </div>
 
             <!-- Star pagination -->
-            <div class="swiper-pagination memora-star-pagination" id="<?php echo esc_attr( $uid ); ?>-pagination"></div>
+            <div class="swiper-pagination memora-star-pagination" id="<?php echo esc_attr( $uid ); ?>-pagination" data-total-slides="<?php echo esc_attr( $total_slides ); ?>">
+                <?php if ( $total_slides > 5 ) : ?>
+                    <span class="swiper-pagination-bullet" data-star-index="0" role="button" aria-label="Lùi 2 ảnh" tabindex="0"></span>
+                    <span class="swiper-pagination-bullet" data-star-index="1" role="button" aria-label="Lùi 1 ảnh" tabindex="0"></span>
+                    <span class="swiper-pagination-bullet swiper-pagination-bullet-active" data-star-index="2" role="button" aria-label="Ảnh hiện tại" tabindex="0"></span>
+                    <span class="swiper-pagination-bullet" data-star-index="3" role="button" aria-label="Tiến 1 ảnh" tabindex="0"></span>
+                    <span class="swiper-pagination-bullet" data-star-index="4" role="button" aria-label="Tiến 2 ảnh" tabindex="0"></span>
+                <?php endif; ?>
+            </div>
         </div>
 
     </div>
@@ -793,6 +801,15 @@ function memora_gallery_swiper_shortcode( $atts ) {
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet:has(+ .swiper-pagination-bullet-active)::after {
             background-color: rgba(115, 62, 28, 0.75);
         }
+
+        @keyframes memoraStarPulse_<?php echo esc_attr( $uid ); ?> {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.18); }
+            100% { transform: scale(1); }
+        }
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet.is-pulse {
+            animation: memoraStarPulse_<?php echo esc_attr( $uid ); ?> 0.3s ease;
+        }
     </style>
 
     <script>
@@ -832,7 +849,11 @@ function memora_gallery_swiper_shortcode( $atts ) {
                 return;
             }
 
-            var swiperInstance = new SwiperClass('#' + SWIPER_ID, {
+            var totalSlides = <?php echo (int) $total_slides; ?>;
+            var isMoreThan5 = totalSlides > 5;
+            var paginationEl = document.getElementById(SWIPER_ID + '-pagination');
+
+            var swiperOptions = {
                 effect       : '<?php echo $effect; ?>',
                 speed        : <?php echo $speed; ?>,
                 loop         : <?php echo $loop; ?>,
@@ -843,10 +864,10 @@ function memora_gallery_swiper_shortcode( $atts ) {
                 resizeObserver: true,
                 watchOverflow: true,
                 grabCursor   : true,
-                pagination: {
+                pagination   : !isMoreThan5 ? {
                     el       : '#' + SWIPER_ID + '-pagination',
                     clickable: true,
-                },
+                } : false,
                 <?php if ( $show_nav_left || $show_nav_right ) : ?>
                 navigation: {
                     prevEl: <?php echo $show_nav_left ? "'#' + SWIPER_ID + '-prev, #' + SWIPER_ID + ' .swiper-button-prev'" : 'null'; ?>,
@@ -857,7 +878,46 @@ function memora_gallery_swiper_shortcode( $atts ) {
                     prevSlideMessage: 'Slide trước',
                     nextSlideMessage: 'Slide tiếp theo',
                 },
-            });
+            };
+
+            var swiperInstance = new SwiperClass('#' + SWIPER_ID, swiperOptions);
+
+            if (isMoreThan5 && paginationEl) {
+                function goToOffset(offset) {
+                    if (!swiperInstance || swiperInstance.destroyed) return;
+                    if (offset === 1) {
+                        swiperInstance.slideNext();
+                    } else if (offset === -1) {
+                        swiperInstance.slidePrev();
+                    } else {
+                        var target = (swiperInstance.realIndex + offset + totalSlides) % totalSlides;
+                        if (typeof swiperInstance.slideToLoop === 'function' && swiperInstance.params.loop) {
+                            swiperInstance.slideToLoop(target);
+                        } else {
+                            swiperInstance.slideTo(target);
+                        }
+                    }
+                }
+
+                paginationEl.addEventListener('click', function(e) {
+                    var bullet = e.target.closest('.swiper-pagination-bullet');
+                    if (!bullet) return;
+                    var idx = parseInt(bullet.getAttribute('data-star-index'), 10);
+                    if (idx === 0) goToOffset(-2);
+                    else if (idx === 1) goToOffset(-1);
+                    else if (idx === 3) goToOffset(1);
+                    else if (idx === 4) goToOffset(2);
+                });
+
+                swiperInstance.on('slideChange', function() {
+                    var centerBullet = paginationEl.querySelector('[data-star-index="2"]');
+                    if (centerBullet) {
+                        centerBullet.classList.remove('is-pulse');
+                        void centerBullet.offsetWidth;
+                        centerBullet.classList.add('is-pulse');
+                    }
+                });
+            }
 
             // Cap nhat lai kich thuoc sau khi trinh duyet ve xong layout flexbox
             setTimeout(function() {

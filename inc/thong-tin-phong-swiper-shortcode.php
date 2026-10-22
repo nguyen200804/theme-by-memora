@@ -247,7 +247,15 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
                 </div>
 
                 <!-- Pagination hình ngôi sao màu nâu #733e1c -->
-                <div class="swiper-pagination memora-star-pagination" id="<?php echo esc_attr( $uid ); ?>-pagination"></div>
+                <div class="swiper-pagination memora-star-pagination" id="<?php echo esc_attr( $uid ); ?>-pagination" data-total-slides="<?php echo esc_attr( $total_slides ); ?>">
+                    <?php if ( $total_slides > 5 ) : ?>
+                        <span class="swiper-pagination-bullet" data-star-index="0" role="button" aria-label="Lùi 2 ảnh" tabindex="0"></span>
+                        <span class="swiper-pagination-bullet" data-star-index="1" role="button" aria-label="Lùi 1 ảnh" tabindex="0"></span>
+                        <span class="swiper-pagination-bullet swiper-pagination-bullet-active" data-star-index="2" role="button" aria-label="Ảnh hiện tại" tabindex="0"></span>
+                        <span class="swiper-pagination-bullet" data-star-index="3" role="button" aria-label="Tiến 1 ảnh" tabindex="0"></span>
+                        <span class="swiper-pagination-bullet" data-star-index="4" role="button" aria-label="Tiến 2 ảnh" tabindex="0"></span>
+                    <?php endif; ?>
+                </div>
                 <?php endif; ?>
             </div>
         </div>
@@ -425,6 +433,15 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
             background-color: #733e1c;
         }
 
+        @keyframes memoraStarPulse_ttp_<?php echo esc_attr( $uid ); ?> {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.18); }
+            100% { transform: scale(1); }
+        }
+        #<?php echo esc_attr( $uid ); ?>-wrap .memora-star-pagination .swiper-pagination-bullet.is-pulse {
+            animation: memoraStarPulse_ttp_<?php echo esc_attr( $uid ); ?> 0.3s ease;
+        }
+
         /* -------------------------------------------
            MÔ TẢ WYSIWYG BÊN DƯỚI
         ------------------------------------------- */
@@ -511,14 +528,18 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
                 });
             }
 
+            var totalSlides = <?php echo (int) $total_slides; ?>;
+            var isMoreThan5 = totalSlides > 5;
+            var paginationEl = document.getElementById(SWIPER_ID + '-pagination');
+
             var swiperInstance = new Swiper('#' + SWIPER_ID, {
                 speed    : <?php echo $trans_speed; ?>,
                 loop     : <?php echo $loop_val; ?>,
                 effect   : '<?php echo esc_js( $atts['effect'] ); ?>',
-                pagination: {
+                pagination: !isMoreThan5 ? {
                     el       : '#' + SWIPER_ID + '-pagination',
                     clickable: true,
-                },
+                } : false,
                 navigation: {
                     prevEl: '#' + WRAP_ID + ' .memora-ttp-prev',
                     nextEl: '#' + WRAP_ID + ' .memora-ttp-next',
@@ -526,6 +547,14 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
                 on: {
                     slideChange: function () {
                         updateDesc(this.realIndex);
+                        if (isMoreThan5 && paginationEl) {
+                            var centerBullet = paginationEl.querySelector('[data-star-index="2"]');
+                            if (centerBullet) {
+                                centerBullet.classList.remove('is-pulse');
+                                void centerBullet.offsetWidth;
+                                centerBullet.classList.add('is-pulse');
+                            }
+                        }
                     },
                     init: function () {
                         updateDesc(this.realIndex);
@@ -536,6 +565,34 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
                     nextSlideMessage: 'Slide tiếp theo',
                 },
             });
+
+            if (isMoreThan5 && paginationEl) {
+                function goToOffset(offset) {
+                    if (!swiperInstance || swiperInstance.destroyed) return;
+                    if (offset === 1) {
+                        swiperInstance.slideNext();
+                    } else if (offset === -1) {
+                        swiperInstance.slidePrev();
+                    } else {
+                        var target = (swiperInstance.realIndex + offset + totalSlides) % totalSlides;
+                        if (typeof swiperInstance.slideToLoop === 'function' && swiperInstance.params.loop) {
+                            swiperInstance.slideToLoop(target);
+                        } else {
+                            swiperInstance.slideTo(target);
+                        }
+                    }
+                }
+
+                paginationEl.addEventListener('click', function(e) {
+                    var bullet = e.target.closest('.swiper-pagination-bullet');
+                    if (!bullet) return;
+                    var idx = parseInt(bullet.getAttribute('data-star-index'), 10);
+                    if (idx === 0) goToOffset(-2);
+                    else if (idx === 1) goToOffset(-1);
+                    else if (idx === 3) goToOffset(1);
+                    else if (idx === 4) goToOffset(2);
+                });
+            }
         }
 
         if (document.readyState === 'loading') {

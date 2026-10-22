@@ -482,8 +482,19 @@ function memora_danh_sach_phong_shortcode( $atts ) {
                                 </div>
                             <?php endif; ?>
                         </div>
-                        <?php if ( count( $c_room['images'] ) > 1 ) : ?>
-                        <div class="swiper-pagination memora-star-pagination"></div>
+                        <?php 
+                        $c_img_count = count( $c_room['images'] );
+                        if ( $c_img_count > 1 ) : 
+                        ?>
+                        <div class="swiper-pagination memora-star-pagination" data-total-slides="<?php echo esc_attr( $c_img_count ); ?>">
+                            <?php if ( $c_img_count > 5 ) : ?>
+                                <span class="swiper-pagination-bullet" data-star-index="0" role="button" aria-label="Lùi 2 ảnh" tabindex="0"></span>
+                                <span class="swiper-pagination-bullet" data-star-index="1" role="button" aria-label="Lùi 1 ảnh" tabindex="0"></span>
+                                <span class="swiper-pagination-bullet swiper-pagination-bullet-active" data-star-index="2" role="button" aria-label="Ảnh hiện tại" tabindex="0"></span>
+                                <span class="swiper-pagination-bullet" data-star-index="3" role="button" aria-label="Tiến 1 ảnh" tabindex="0"></span>
+                                <span class="swiper-pagination-bullet" data-star-index="4" role="button" aria-label="Tiến 2 ảnh" tabindex="0"></span>
+                            <?php endif; ?>
+                        </div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -553,8 +564,19 @@ function memora_danh_sach_phong_shortcode( $atts ) {
                                 </div>
                             <?php endif; ?>
                         </div>
-                        <?php if ( count( $w_room['images'] ) > 1 ) : ?>
-                        <div class="swiper-pagination memora-star-pagination"></div>
+                        <?php 
+                        $w_img_count = count( $w_room['images'] );
+                        if ( $w_img_count > 1 ) : 
+                        ?>
+                        <div class="swiper-pagination memora-star-pagination" data-total-slides="<?php echo esc_attr( $w_img_count ); ?>">
+                            <?php if ( $w_img_count > 5 ) : ?>
+                                <span class="swiper-pagination-bullet" data-star-index="0" role="button" aria-label="Lùi 2 ảnh" tabindex="0"></span>
+                                <span class="swiper-pagination-bullet" data-star-index="1" role="button" aria-label="Lùi 1 ảnh" tabindex="0"></span>
+                                <span class="swiper-pagination-bullet swiper-pagination-bullet-active" data-star-index="2" role="button" aria-label="Ảnh hiện tại" tabindex="0"></span>
+                                <span class="swiper-pagination-bullet" data-star-index="3" role="button" aria-label="Tiến 1 ảnh" tabindex="0"></span>
+                                <span class="swiper-pagination-bullet" data-star-index="4" role="button" aria-label="Tiến 2 ảnh" tabindex="0"></span>
+                            <?php endif; ?>
+                        </div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -905,6 +927,14 @@ function memora_danh_sach_phong_shortcode( $atts ) {
             background-color: rgba(115, 62, 28, 0.75);
         }
 
+        @keyframes memoraStarPulse_dsp_<?php echo esc_attr( $uid ); ?> {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.18); }
+            100% { transform: scale(1); }
+        }
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet.is-pulse {
+            animation: memoraStarPulse_dsp_<?php echo esc_attr( $uid ); ?> 0.3s ease;
+        }
 
     </style>
 
@@ -929,15 +959,57 @@ function memora_danh_sach_phong_shortcode( $atts ) {
 
                 var shouldLoop = sliderEl.getAttribute('data-loop') === 'true';
                 var paginationEl = sliderEl.querySelector('.memora-star-pagination');
+                var totalSlides = paginationEl ? parseInt(paginationEl.getAttribute('data-total-slides') || '0', 10) : 0;
+                if (!totalSlides) {
+                    totalSlides = sliderEl.querySelectorAll('.swiper-slide:not(.swiper-slide-duplicate)').length;
+                }
+                var isMoreThan5 = totalSlides > 5;
 
-                new Swiper(sliderEl, {
+                var swiperInstance = new Swiper(sliderEl, {
                     speed: <?php echo (int) $atts['speed']; ?>,
                     loop: shouldLoop,
-                    pagination: paginationEl ? {
+                    pagination: (paginationEl && !isMoreThan5) ? {
                         el: paginationEl,
                         clickable: true,
                     } : false,
                 });
+
+                if (isMoreThan5 && paginationEl) {
+                    function goToOffset(offset) {
+                        if (!swiperInstance || swiperInstance.destroyed) return;
+                        if (offset === 1) {
+                            swiperInstance.slideNext();
+                        } else if (offset === -1) {
+                            swiperInstance.slidePrev();
+                        } else {
+                            var target = (swiperInstance.realIndex + offset + totalSlides) % totalSlides;
+                            if (typeof swiperInstance.slideToLoop === 'function' && swiperInstance.params.loop) {
+                                swiperInstance.slideToLoop(target);
+                            } else {
+                                swiperInstance.slideTo(target);
+                            }
+                        }
+                    }
+
+                    paginationEl.addEventListener('click', function(e) {
+                        var bullet = e.target.closest('.swiper-pagination-bullet');
+                        if (!bullet) return;
+                        var idx = parseInt(bullet.getAttribute('data-star-index'), 10);
+                        if (idx === 0) goToOffset(-2);
+                        else if (idx === 1) goToOffset(-1);
+                        else if (idx === 3) goToOffset(1);
+                        else if (idx === 4) goToOffset(2);
+                    });
+
+                    swiperInstance.on('slideChange', function() {
+                        var centerBullet = paginationEl.querySelector('[data-star-index="2"]');
+                        if (centerBullet) {
+                            centerBullet.classList.remove('is-pulse');
+                            void centerBullet.offsetWidth;
+                            centerBullet.classList.add('is-pulse');
+                        }
+                    });
+                }
             });
         }
 
