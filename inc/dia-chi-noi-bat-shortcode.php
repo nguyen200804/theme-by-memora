@@ -662,21 +662,11 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
             right: 0px;
         }
 
-        /* Đảm bảo pagination ngôi sao luôn căn giữa tuyệt đối ở đáy slider */
+        /* Đảm bảo pagination ngôi sao dynamicBullets luôn căn giữa tuyệt đối ở đáy slider */
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .memora-star-pagination {
-            position: absolute !important;
             bottom: 2cqw !important;
-            left: 0 !important;
-            right: 0 !important;
-            width: 100% !important;
-            display: flex !important;
-            justify-content: center !important;
-            align-items: flex-end !important;
-            margin: 0 auto !important;
             z-index: 10 !important;
-            text-align: center !important;
             pointer-events: auto !important;
-            box-sizing: border-box !important;
         }
 
         <?php if ( $aspect_ratio !== '' ) : ?>

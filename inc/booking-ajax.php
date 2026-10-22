@@ -159,7 +159,7 @@ function memora_ajax_submit_booking() {
     $order_id      = 0;
 
     if ( class_exists( 'WooCommerce' ) && function_exists( 'WC' ) ) {
-        $payment_method = isset( $_POST['payment_method'] ) ? sanitize_text_field( wp_unslash( $_POST['payment_method'] ) ) : 'bacs';
+        $payment_method = isset( $_POST['payment_method'] ) ? sanitize_text_field( wp_unslash( $_POST['payment_method'] ) ) : 'vietqr';
 
         $order_result = memora_create_wc_order_for_booking( array(
             'name'           => $name,
@@ -290,11 +290,14 @@ function memora_create_wc_order_for_booking( $data ) {
     $safe_email = preg_replace( '/[^a-z0-9]/i', '', strtolower( $data['phone'] ) ) . '@memora.booking';
     $order->set_billing_email( $safe_email );
 
-    // --- Phương thức thanh toán: BACS / VietQR ---
-    $payment_method = ! empty( $data['payment_method'] ) ? $data['payment_method'] : 'bacs';
+    // --- Phương thức thanh toán: Ưu tiên cổng VietQR (id = 'vietqr') ---
+    $payment_method = ! empty( $data['payment_method'] ) ? $data['payment_method'] : 'vietqr';
     $gateways       = ( function_exists( 'WC' ) && WC()->payment_gateways ) ? WC()->payment_gateways()->payment_gateways() : array();
+    if ( isset( $gateways['vietqr'] ) && $payment_method === 'bacs' ) {
+        $payment_method = 'vietqr';
+    }
     $chosen_gateway = isset( $gateways[ $payment_method ] ) ? $gateways[ $payment_method ] : null;
-    $payment_title  = $chosen_gateway ? $chosen_gateway->get_title() : 'Scan VietQR — Chuyển khoản';
+    $payment_title  = $chosen_gateway ? $chosen_gateway->get_title() : 'Chuyển khoản ngân hàng';
 
     $order->set_payment_method( $payment_method );
     $order->set_payment_method_title( $payment_title );

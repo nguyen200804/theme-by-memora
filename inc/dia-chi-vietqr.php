@@ -1,15 +1,19 @@
 <?php
 /**
- * Cấu hình Ngân hàng & Thanh toán VietQR theo từng Chi nhánh (taxonomy: dia-chi)
+ * Tích hợp Plugin VietQR (Casso Team) theo từng Chi nhánh (taxonomy: dia-chi)
  *
- * Tính năng:
- * 1. Danh sách ngân hàng chuẩn Napas / VietQR (mã BIN, mã viết tắt, tên hiển thị).
- * 2. Trường cấu hình Ngân hàng / VietQR trong WP Admin (Thêm mới & Chỉnh sửa term dia-chi)
- *    kèm khung Xem trước mã QR (Live Preview) trực tiếp.
- * 3. Cột "Ngân hàng (VietQR)" trên bảng danh sách Địa chỉ (edit-tags.php?taxonomy=dia-chi).
- * 4. Hàm helper trung tâm memora_get_vietqr_config() tự động tra cứu ngân hàng theo:
- *    Term dia-chi -> Snapshot trong WC Order -> ACF Options -> WooCommerce BACS mặc định.
- * 5. Đồng bộ tự động với WooCommerce BACS (filter woocommerce_bacs_accounts) theo từng đơn hàng.
+ * Cơ chế hoạt động:
+ * 1. Tích hợp trực tiếp với plugin "VietQR" (WC_Gateway_VietQR - section=vietqr).
+ * 2. Cho phép cấu hình Ngân hàng (Bank name), Chủ TK (Account name), Số TK (Account number)
+ *    và Tiền tố nội dung (Prefix) riêng cho từng term của taxonomy 'dia-chi' ở cả 2 nơi:
+ *    - Ngay trong trang cài đặt WooCommerce -> Payments -> VietQR (section=vietqr)
+ *    - Trong trang quản trị Phòng chụp ảnh -> Địa chỉ (edit-tags.php?taxonomy=dia-chi)
+ * 3. Khi khách đặt lịch và thanh toán đơn hàng thuộc chi nhánh nào, tự động truyền thông tin
+ *    ngân hàng của chi nhánh đó vào plugin VietQR thông qua:
+ *    - Filter 'woocommerce_vietqr_account_fields'
+ *    - Filter 'option_woocommerce_vietqr_accounts'
+ *    - Cập nhật trực tiếp thuộc tính $gateway->account_details & $gateway->prefix của WC_Gateway_VietQR
+ *      trước khi render trang Thank You, View Order và Email.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,278 +21,480 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 //====================================
-// 1. DANH SÁCH NGÂN HÀNG CHUẨN VIETQR (NAPAS)
+// 1. LẤY DANH SÁCH NGÂN HÀNG TỪ PLUGIN VIETQR
 //====================================
-function memora_get_vietqr_banks_list() {
+/**
+ * Lấy danh sách ngân hàng chuẩn từ plugin VietQR (bao gồm mã BIN 6 số, tên ngân hàng, logo)
+ */
+function memora_get_vietqr_plugin_banks() {
+    static $cached_banks = null;
+    if ( $cached_banks !== null ) {
+        return $cached_banks;
+    }
+
+    // 1. VietQR v4.x+: gọi WC_Gateway_VietQR::get_banks()
+    if ( class_exists( 'WC_Gateway_VietQR' ) && method_exists( 'WC_Gateway_VietQR', 'get_banks' ) ) {
+        $res = WC_Gateway_VietQR::get_banks();
+        if ( ! empty( $res['data'] ) && is_array( $res['data'] ) ) {
+            $cached_banks = $res['data'];
+            return $cached_banks;
+        }
+    }
+
+    // 2. VietQR v3.x: đọc từ cache trong option 'woocommerce_vietqr_settings'
+    $vq_settings = get_option( 'woocommerce_vietqr_settings', array() );
+    if ( is_array( $vq_settings ) && ! empty( $vq_settings['vietqr_banks']['data'] ) && is_array( $vq_settings['vietqr_banks']['data'] ) ) {
+        $cached_banks = $vq_settings['vietqr_banks']['data'];
+        return $cached_banks;
+    }
+
+    // 3. Fallback danh sách 37 ngân hàng chuẩn Napas / VietQR (khớp cấu trúc API VietQR)
+    $cached_banks = array(
+        array( 'bin' => '970436', 'code' => 'VCB',   'short_name' => 'Vietcombank',  'name' => 'Ngân hàng TMCP Ngoại thương Việt Nam',          'logo' => 'https://api.vietqr.io/img/VCB.png' ),
+        array( 'bin' => '970415', 'code' => 'ICB',   'short_name' => 'VietinBank',   'name' => 'Ngân hàng TMCP Công thương Việt Nam',           'logo' => 'https://api.vietqr.io/img/ICB.png' ),
+        array( 'bin' => '970418', 'code' => 'BIDV',  'short_name' => 'BIDV',         'name' => 'Ngân hàng TMCP Đầu tư và Phát triển Việt Nam',  'logo' => 'https://api.vietqr.io/img/BIDV.png' ),
+        array( 'bin' => '970405', 'code' => 'VBA',   'short_name' => 'Agribank',     'name' => 'Ngân hàng Nông nghiệp và Phát triển Nông thôn', 'logo' => 'https://api.vietqr.io/img/VBA.png' ),
+        array( 'bin' => '970407', 'code' => 'TCB',   'short_name' => 'Techcombank',  'name' => 'Ngân hàng TMCP Kỹ thương Việt Nam',             'logo' => 'https://api.vietqr.io/img/TCB.png' ),
+        array( 'bin' => '970422', 'code' => 'MB',    'short_name' => 'MBBank',       'name' => 'Ngân hàng TMCP Quân đội',                       'logo' => 'https://api.vietqr.io/img/MB.png' ),
+        array( 'bin' => '970416', 'code' => 'ACB',   'short_name' => 'ACB',          'name' => 'Ngân hàng TMCP Á Châu',                         'logo' => 'https://api.vietqr.io/img/ACB.png' ),
+        array( 'bin' => '970432', 'code' => 'VPB',   'short_name' => 'VPBank',       'name' => 'Ngân hàng TMCP Việt Nam Thịnh Vượng',           'logo' => 'https://api.vietqr.io/img/VPB.png' ),
+        array( 'bin' => '970423', 'code' => 'TPB',   'short_name' => 'TPBank',       'name' => 'Ngân hàng TMCP Tiên Phong',                     'logo' => 'https://api.vietqr.io/img/TPB.png' ),
+        array( 'bin' => '970403', 'code' => 'STB',   'short_name' => 'Sacombank',    'name' => 'Ngân hàng TMCP Sài Gòn Thương Tín',             'logo' => 'https://api.vietqr.io/img/STB.png' ),
+        array( 'bin' => '970437', 'code' => 'HDB',   'short_name' => 'HDBank',       'name' => 'Ngân hàng TMCP Phát triển TP. Hồ Chí Minh',     'logo' => 'https://api.vietqr.io/img/HDB.png' ),
+        array( 'bin' => '970441', 'code' => 'VIB',   'short_name' => 'VIB',          'name' => 'Ngân hàng TMCP Quốc tế Việt Nam',               'logo' => 'https://api.vietqr.io/img/VIB.png' ),
+        array( 'bin' => '970443', 'code' => 'SHB',   'short_name' => 'SHB',          'name' => 'Ngân hàng TMCP Sài Gòn - Hà Nội',               'logo' => 'https://api.vietqr.io/img/SHB.png' ),
+        array( 'bin' => '970431', 'code' => 'EIB',   'short_name' => 'Eximbank',     'name' => 'Ngân hàng TMCP Xuất Nhập khẩu Việt Nam',        'logo' => 'https://api.vietqr.io/img/EIB.png' ),
+        array( 'bin' => '970426', 'code' => 'MSB',   'short_name' => 'MSB',          'name' => 'Ngân hàng TMCP Hàng Hải Việt Nam',              'logo' => 'https://api.vietqr.io/img/MSB.png' ),
+        array( 'bin' => '970448', 'code' => 'OCB',   'short_name' => 'OCB',          'name' => 'Ngân hàng TMCP Phương Đông',                    'logo' => 'https://api.vietqr.io/img/OCB.png' ),
+        array( 'bin' => '970449', 'code' => 'LPB',   'short_name' => 'LPBank',       'name' => 'Ngân hàng TMCP Lộc Phát Việt Nam',              'logo' => 'https://api.vietqr.io/img/LPB.png' ),
+        array( 'bin' => '970440', 'code' => 'SEAB',  'short_name' => 'SeABank',      'name' => 'Ngân hàng TMCP Đông Nam Á',                     'logo' => 'https://api.vietqr.io/img/SEAB.png' ),
+        array( 'bin' => '970428', 'code' => 'NAB',   'short_name' => 'NamABank',     'name' => 'Ngân hàng TMCP Nam Á',                          'logo' => 'https://api.vietqr.io/img/NAB.png' ),
+        array( 'bin' => '970409', 'code' => 'BAB',   'short_name' => 'BacABank',     'name' => 'Ngân hàng TMCP Bắc Á',                          'logo' => 'https://api.vietqr.io/img/BAB.png' ),
+        array( 'bin' => '970412', 'code' => 'PVCB',  'short_name' => 'PVcomBank',    'name' => 'Ngân hàng TMCP Đại Chúng Việt Nam',             'logo' => 'https://api.vietqr.io/img/PVCB.png' ),
+        array( 'bin' => '970425', 'code' => 'ABB',   'short_name' => 'ABBank',       'name' => 'Ngân hàng TMCP An Bình',                        'logo' => 'https://api.vietqr.io/img/ABB.png' ),
+        array( 'bin' => '970427', 'code' => 'VAB',   'short_name' => 'VietABank',    'name' => 'Ngân hàng TMCP Việt Á',                         'logo' => 'https://api.vietqr.io/img/VAB.png' ),
+        array( 'bin' => '546034', 'code' => 'CAKE',  'short_name' => 'CAKE',         'name' => 'TMCP Việt Nam Thịnh Vượng - Ngân hàng số CAKE', 'logo' => 'https://api.vietqr.io/img/CAKE.png' ),
+        array( 'bin' => '963388', 'code' => 'TIMO',  'short_name' => 'Timo',         'name' => 'Ngân hàng số Timo by Ban Viet Bank',            'logo' => 'https://api.vietqr.io/img/TIMO.png' ),
+    );
+
+    return $cached_banks;
+}
+
+/**
+ * Tìm thông tin ngân hàng theo BIN (VD: 970418) hoặc mã code (VD: BIDV, MB, VCB)
+ */
+function memora_find_vietqr_bank_by_id( $bank_id_or_code ) {
+    $bank_id_or_code = trim( (string) $bank_id_or_code );
+    if ( $bank_id_or_code === '' ) {
+        return null;
+    }
+
+    $banks = memora_get_vietqr_plugin_banks();
+    $upper = strtoupper( $bank_id_or_code );
+
+    foreach ( $banks as $b ) {
+        $bin   = isset( $b['bin'] ) ? (string) $b['bin'] : '';
+        $code  = isset( $b['code'] ) ? strtoupper( (string) $b['code'] ) : '';
+        $short = isset( $b['short_name'] ) ? strtoupper( (string) $b['short_name'] ) : ( isset( $b['shortName'] ) ? strtoupper( (string) $b['shortName'] ) : '' );
+
+        if ( $bin === $bank_id_or_code || $code === $upper || $short === $upper ) {
+            return $b;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Làm sạch chuỗi Prefix theo đúng quy tắc của plugin VietQR (không dấu cách, tối đa 15 ký tự chữ/số)
+ */
+function memora_clean_vietqr_prefix( $prefix ) {
+    $prefix = str_replace( ' ', '', trim( (string) $prefix ) );
+    if ( strlen( $prefix ) > 15 ) {
+        $prefix = substr( $prefix, 0, 15 );
+    }
+    return preg_replace( '/[^A-Za-z0-9\-]/', '', $prefix );
+}
+
+
+//====================================
+// 2. ĐỌC & LƯU CẤU HÌNH VIETQR CỦA TỪNG TERM 'dia-chi'
+//====================================
+/**
+ * Lấy cấu hình tài khoản VietQR của 1 term dia-chi
+ *
+ * @param int $term_id Term ID của taxonomy dia-chi
+ * @return array|null  Trả về mảng { bank_id (BIN), bank_name, account_name, account_number, prefix, dia_chi_id, dia_chi_name } hoặc null nếu chưa cấu hình
+ */
+function memora_get_branch_vietqr_account( $term_id ) {
+    $term_id = intval( $term_id );
+    if ( $term_id <= 0 ) {
+        return null;
+    }
+
+    $bank_id        = trim( (string) get_term_meta( $term_id, '_memora_vietqr_bank_id', true ) );
+    $bank_name      = trim( (string) get_term_meta( $term_id, '_memora_vietqr_bank_name', true ) );
+    $account_name   = trim( (string) get_term_meta( $term_id, '_memora_vietqr_account_name', true ) );
+    $account_number = trim( (string) get_term_meta( $term_id, '_memora_vietqr_account_no', true ) );
+    $prefix         = trim( (string) get_term_meta( $term_id, '_memora_vietqr_prefix', true ) );
+
+    if ( empty( $bank_id ) || empty( $account_number ) ) {
+        return null;
+    }
+
+    // Đảm bảo bank_id luôn là mã BIN 6 số mà plugin VietQR yêu cầu (VD: '970418')
+    $matched_bank = memora_find_vietqr_bank_by_id( $bank_id );
+    if ( $matched_bank ) {
+        $bank_id = (string) $matched_bank['bin'];
+        if ( empty( $bank_name ) || $bank_name === $matched_bank['code'] || $bank_name === ( $matched_bank['short_name'] ?? '' ) ) {
+            $bank_name = $matched_bank['name'];
+        }
+    }
+
+    // Nếu chi nhánh không điền prefix riêng, lấy prefix mặc định trong cài đặt VietQR
+    if ( empty( $prefix ) ) {
+        $vq_settings = get_option( 'woocommerce_vietqr_settings', array() );
+        $prefix      = ! empty( $vq_settings['prefix'] ) ? $vq_settings['prefix'] : 'MEMORA';
+    }
+
+    $term = get_term( $term_id, 'dia-chi' );
+
     return array(
-        'MB'    => array( 'code' => 'MB',    'bin' => '970422', 'short' => 'MBBank',       'name' => 'MBBank - Ngân hàng TMCP Quân Đội' ),
-        'VCB'   => array( 'code' => 'VCB',   'bin' => '970436', 'short' => 'Vietcombank',  'name' => 'Vietcombank - Ngân hàng TMCP Ngoại thương VN' ),
-        'TCB'   => array( 'code' => 'TCB',   'bin' => '970407', 'short' => 'Techcombank',  'name' => 'Techcombank - Ngân hàng TMCP Kỹ thương VN' ),
-        'ACB'   => array( 'code' => 'ACB',   'bin' => '970416', 'short' => 'ACB',          'name' => 'ACB - Ngân hàng TMCP Á Châu' ),
-        'BIDV'  => array( 'code' => 'BIDV',  'bin' => '970418', 'short' => 'BIDV',         'name' => 'BIDV - Ngân hàng TMCP Đầu tư & Phát triển VN' ),
-        'ICB'   => array( 'code' => 'ICB',   'bin' => '970415', 'short' => 'VietinBank',   'name' => 'VietinBank - Ngân hàng TMCP Công thương VN' ),
-        'VPB'   => array( 'code' => 'VPB',   'bin' => '970432', 'short' => 'VPBank',       'name' => 'VPBank - Ngân hàng TMCP Việt Nam Thịnh Vượng' ),
-        'TPB'   => array( 'code' => 'TPB',   'bin' => '970423', 'short' => 'TPBank',       'name' => 'TPBank - Ngân hàng TMCP Tiên Phong' ),
-        'VBA'   => array( 'code' => 'VBA',   'bin' => '970405', 'short' => 'Agribank',     'name' => 'Agribank - Ngân hàng NN & PTNT Việt Nam' ),
-        'STB'   => array( 'code' => 'STB',   'bin' => '970403', 'short' => 'Sacombank',    'name' => 'Sacombank - Ngân hàng TMCP Sài Gòn Thương Tín' ),
-        'VIB'   => array( 'code' => 'VIB',   'bin' => '970441', 'short' => 'VIB',          'name' => 'VIB - Ngân hàng TMCP Quốc tế Việt Nam' ),
-        'SHB'   => array( 'code' => 'SHB',   'bin' => '970443', 'short' => 'SHB',          'name' => 'SHB - Ngân hàng TMCP Sài Gòn - Hà Nội' ),
-        'MSB'   => array( 'code' => 'MSB',   'bin' => '970426', 'short' => 'MSB',          'name' => 'MSB - Ngân hàng TMCP Hàng Hải Việt Nam' ),
-        'OCB'   => array( 'code' => 'OCB',   'bin' => '970448', 'short' => 'OCB',          'name' => 'OCB - Ngân hàng TMCP Phương Đông' ),
-        'HDB'   => array( 'code' => 'HDB',   'bin' => '970437', 'short' => 'HDBank',       'name' => 'HDBank - Ngân hàng TMCP Phát triển TP.HCM' ),
-        'LPB'   => array( 'code' => 'LPB',   'bin' => '970449', 'short' => 'LPBank',       'name' => 'LPBank - Ngân hàng TMCP Lộc Phát Việt Nam' ),
-        'SEAB'  => array( 'code' => 'SEAB',  'bin' => '970440', 'short' => 'SeABank',      'name' => 'SeABank - Ngân hàng TMCP Đông Nam Á' ),
-        'EIB'   => array( 'code' => 'EIB',   'bin' => '970431', 'short' => 'Eximbank',     'name' => 'Eximbank - Ngân hàng TMCP Xuất Nhập khẩu VN' ),
-        'NAB'   => array( 'code' => 'NAB',   'bin' => '970428', 'short' => 'NamABank',     'name' => 'Nam A Bank - Ngân hàng TMCP Nam Á' ),
-        'BAB'   => array( 'code' => 'BAB',   'bin' => '970409', 'short' => 'BacABank',     'name' => 'Bac A Bank - Ngân hàng TMCP Bắc Á' ),
-        'PVCB'  => array( 'code' => 'PVCB',  'bin' => '970412', 'short' => 'PVcomBank',    'name' => 'PVcomBank - Ngân hàng TMCP Đại Chúng VN' ),
-        'BVB'   => array( 'code' => 'BVB',   'bin' => '970438', 'short' => 'BaoVietBank',  'name' => 'BaoVietBank - Ngân hàng TMCP Bảo Việt' ),
-        'ABB'   => array( 'code' => 'ABB',   'bin' => '970425', 'short' => 'ABBank',       'name' => 'ABBank - Ngân hàng TMCP An Bình' ),
-        'VAB'   => array( 'code' => 'VAB',   'bin' => '970427', 'short' => 'VietABank',    'name' => 'VietABank - Ngân hàng TMCP Việt Á' ),
-        'KLB'   => array( 'code' => 'KLB',   'bin' => '970452', 'short' => 'KienlongBank', 'name' => 'KienlongBank - Ngân hàng TMCP Kiên Long' ),
-        'CAKE'  => array( 'code' => 'CAKE',  'bin' => '546034', 'short' => 'CAKE',         'name' => 'CAKE by VPBank - Ngân hàng số CAKE' ),
-        'TIMO'  => array( 'code' => 'TIMO',  'bin' => '963388', 'short' => 'Timo',         'name' => 'Timo by Ban Viet Bank' ),
+        'dia_chi_id'     => $term_id,
+        'dia_chi_name'   => ( $term && ! is_wp_error( $term ) ) ? $term->name : '',
+        'bank_id'        => $bank_id,        // Mã BIN 6 số (VD: 970418)
+        'bank_name'      => $bank_name,      // Tên đầy đủ ngân hàng (VD: Ngân hàng TMCP Đầu tư và Phát triển Việt Nam)
+        'bank_short'     => $matched_bank ? ( $matched_bank['short_name'] ?? $matched_bank['shortName'] ?? $matched_bank['code'] ?? '' ) : $bank_id,
+        'account_name'   => $account_name,
+        'account_number' => $account_number,
+        'prefix'         => memora_clean_vietqr_prefix( $prefix ),
     );
 }
 
 /**
- * Tra cứu thông tin ngân hàng chuẩn từ mã code, mã BIN hoặc tên ngân hàng bất kỳ
+ * Lưu cấu hình tài khoản VietQR cho 1 term dia-chi
+ *
+ * @param int    $term_id        Term ID của dia-chi
+ * @param string $raw_bank_val   Giá trị từ select: "{bin}:{bank_name}" hoặc "{bin}"
+ * @param string $account_name   Tên chủ tài khoản
+ * @param string $account_number Số tài khoản
+ * @param string $prefix         Prefix nội dung chuyển khoản
  */
-function memora_match_vietqr_bank( $raw_bank ) {
-    $raw_bank = trim( (string) $raw_bank );
-    if ( $raw_bank === '' ) {
-        return null;
+function memora_save_branch_vietqr_account( $term_id, $raw_bank_val, $account_name, $account_number, $prefix = '' ) {
+    $term_id = intval( $term_id );
+    if ( $term_id <= 0 ) {
+        return;
     }
 
-    $banks = memora_get_vietqr_banks_list();
-    $upper = strtoupper( $raw_bank );
+    $raw_bank_val   = trim( sanitize_text_field( $raw_bank_val ) );
+    $account_name   = strtoupper( trim( sanitize_text_field( $account_name ) ) );
+    $account_number = trim( sanitize_text_field( $account_number ) );
+    $prefix         = memora_clean_vietqr_prefix( sanitize_text_field( $prefix ) );
 
-    // 1. Khớp trực tiếp theo key (VD: MB, VCB, TCB...)
-    if ( isset( $banks[ $upper ] ) ) {
-        return $banks[ $upper ];
-    }
+    $bank_id   = '';
+    $bank_name = '';
 
-    // 2. Khớp theo BIN hoặc tên viết tắt (short)
-    foreach ( $banks as $b ) {
-        if ( $b['bin'] === $raw_bank || strtoupper( $b['short'] ) === $upper ) {
-            return $b;
+    if ( ! empty( $raw_bank_val ) ) {
+        if ( strpos( $raw_bank_val, ':' ) !== false ) {
+            $parts     = explode( ':', $raw_bank_val, 2 );
+            $bank_id   = trim( $parts[0] );
+            $bank_name = trim( $parts[1] );
+        } else {
+            $matched = memora_find_vietqr_bank_by_id( $raw_bank_val );
+            if ( $matched ) {
+                $bank_id   = (string) $matched['bin'];
+                $bank_name = (string) $matched['name'];
+            } else {
+                $bank_id   = $raw_bank_val;
+                $bank_name = $raw_bank_val;
+            }
         }
     }
 
-    // 3. Khớp gần đúng trong chuỗi tên
-    foreach ( $banks as $b ) {
-        if ( stripos( $raw_bank, $b['short'] ) !== false || stripos( $b['name'], $raw_bank ) !== false ) {
-            return $b;
-        }
-    }
-
-    return array(
-        'code'  => $raw_bank,
-        'bin'   => $raw_bank,
-        'short' => $raw_bank,
-        'name'  => $raw_bank,
-    );
+    update_term_meta( $term_id, '_memora_vietqr_bank_id',      $bank_id );
+    update_term_meta( $term_id, '_memora_vietqr_bank_name',    $bank_name );
+    update_term_meta( $term_id, '_memora_vietqr_account_name', $account_name );
+    update_term_meta( $term_id, '_memora_vietqr_account_no',   $account_number );
+    update_term_meta( $term_id, '_memora_vietqr_prefix',       $prefix );
 }
 
 
 //====================================
-// 2. TRƯỜNG CẤU HÌNH VIETQR TRONG WP ADMIN (TAXONOMY: dia-chi)
+// 3. CẤU HÌNH NGAY TRONG TRANG SETTINGS CỦA PLUGIN VIETQR
+//    (wp-admin/admin.php?page=wc-settings&tab=checkout&section=vietqr)
+//====================================
+add_filter( 'woocommerce_settings_api_form_fields_vietqr', 'memora_add_branch_fields_to_vietqr_settings', 20, 1 );
+function memora_add_branch_fields_to_vietqr_settings( $form_fields ) {
+    $form_fields['memora_dia_chi_accounts'] = array(
+        'type' => 'memora_dia_chi_accounts',
+    );
+    return $form_fields;
+}
+
+add_filter( 'woocommerce_generate_memora_dia_chi_accounts_html', 'memora_render_branch_accounts_in_vietqr_settings', 10, 4 );
+function memora_render_branch_accounts_in_vietqr_settings( $html, $key, $data, $gateway ) {
+    $terms = get_terms( array(
+        'taxonomy'   => 'dia-chi',
+        'hide_empty' => false,
+    ) );
+
+    if ( is_wp_error( $terms ) || empty( $terms ) ) {
+        return '';
+    }
+
+    $banks          = memora_get_vietqr_plugin_banks();
+    $default_prefix = method_exists( $gateway, 'get_option' ) ? $gateway->get_option( 'prefix', 'QUESTX' ) : 'QUESTX';
+
+    ob_start();
+    ?>
+    <tr valign="top">
+        <th scope="row" class="titledesc" style="padding-top:24px;">
+            <?php esc_html_e( 'Tài khoản theo Chi nhánh (Địa chỉ):', 'memora' ); ?>
+            <p class="description" style="font-weight:400;margin-top:6px;">
+                Cấu hình ngân hàng VietQR riêng cho từng term trong <code>taxonomy=dia-chi</code>.<br>
+                Nếu để trống Số tài khoản ở chi nhánh nào, chi nhánh đó sẽ tự động dùng tài khoản mặc định phía trên.
+            </p>
+        </th>
+        <td class="forminp" style="padding-top:20px;">
+            <div style="display:flex;flex-direction:column;gap:16px;max-width:850px;">
+                <?php foreach ( $terms as $term ) :
+                    $tid            = $term->term_id;
+                    $saved_bank_id  = (string) get_term_meta( $tid, '_memora_vietqr_bank_id', true );
+                    $saved_bank_nm  = (string) get_term_meta( $tid, '_memora_vietqr_bank_name', true );
+                    $saved_acc_name = (string) get_term_meta( $tid, '_memora_vietqr_account_name', true );
+                    $saved_acc_no   = (string) get_term_meta( $tid, '_memora_vietqr_account_no', true );
+                    $saved_prefix   = (string) get_term_meta( $tid, '_memora_vietqr_prefix', true );
+
+                    // Tương thích nếu trước đó lưu mã code ngắn (MB, VCB, BIDV...)
+                    if ( ! empty( $saved_bank_id ) && ! is_numeric( $saved_bank_id ) ) {
+                        $m = memora_find_vietqr_bank_by_id( $saved_bank_id );
+                        if ( $m ) {
+                            $saved_bank_id = (string) $m['bin'];
+                            $saved_bank_nm = (string) $m['name'];
+                        }
+                    }
+                    $is_configured = ( ! empty( $saved_bank_id ) && ! empty( $saved_acc_no ) );
+                ?>
+                <div style="background:#ffffff;border:1px solid <?php echo $is_configured ? '#86efac' : '#cbd5e1'; ?>;border-left:4px solid <?php echo $is_configured ? '#16a34a' : '#94a3b8'; ?>;border-radius:8px;padding:14px 18px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;border-bottom:1px solid #f1f5f9;padding-bottom:8px;">
+                        <strong style="font-size:14px;color:#0f172a;">
+                            📍 Chi nhánh: <?php echo esc_html( $term->name ); ?>
+                            <span style="color:#64748b;font-weight:400;font-size:12px;">(ID: <?php echo intval( $tid ); ?>)</span>
+                        </strong>
+                        <?php if ( $is_configured ) : ?>
+                            <span style="background:#dcfce7;color:#166534;font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;">✓ Đang dùng TK riêng</span>
+                        <?php else : ?>
+                            <span style="background:#f1f5f9;color:#64748b;font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;">Dùng TK mặc định</span>
+                        <?php endif; ?>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div style="grid-column:1 / -1;">
+                            <label style="display:block;font-size:12px;font-weight:600;color:#334155;margin-bottom:4px;">Bank name (Ngân hàng):</label>
+                            <select class="memora-branch-vietqr-select" name="memora_branch_vietqr_bank[<?php echo intval( $tid ); ?>]" style="width:100%;max-width:100%;">
+                                <option value="">— Chọn ngân hàng cho chi nhánh <?php echo esc_attr( $term->name ); ?> —</option>
+                                <?php foreach ( $banks as $bank ) :
+                                    $bin         = (string) ( $bank['bin'] ?? '' );
+                                    $b_name      = (string) ( $bank['name'] ?? '' );
+                                    $b_short     = (string) ( $bank['short_name'] ?? $bank['shortName'] ?? $bank['code'] ?? '' );
+                                    $b_logo      = (string) ( $bank['logo'] ?? '' );
+                                    $opt_val     = $bin . ':' . $b_name;
+                                    $opt_text    = $b_short . ' - ' . $b_name;
+                                    $is_selected = ( $saved_bank_id !== '' && $saved_bank_id === $bin );
+                                ?>
+                                    <option value="<?php echo esc_attr( $opt_val ); ?>" title="<?php echo esc_url( $b_logo ); ?>" <?php selected( $is_selected, true ); ?>>
+                                        <?php echo esc_html( $opt_text ); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#334155;margin-bottom:4px;">Account name (Chủ tài khoản):</label>
+                            <input type="text" name="memora_branch_vietqr_acc_name[<?php echo intval( $tid ); ?>]" value="<?php echo esc_attr( $saved_acc_name ); ?>" placeholder="VD: DO KHAC TRUNG NGUYEN" style="width:100%;text-transform:uppercase;" />
+                        </div>
+
+                        <div>
+                            <label style="display:block;font-size:12px;font-weight:600;color:#334155;margin-bottom:4px;">Account number (Số tài khoản):</label>
+                            <input type="text" name="memora_branch_vietqr_acc_no[<?php echo intval( $tid ); ?>]" value="<?php echo esc_attr( $saved_acc_no ); ?>" placeholder="Nhập số tài khoản..." style="width:100%;" />
+                        </div>
+
+                        <div style="grid-column:1 / -1;">
+                            <label style="display:block;font-size:12px;font-weight:600;color:#334155;margin-bottom:4px;">Prefix (Tiền tố nội dung chuyển khoản):</label>
+                            <input type="text" name="memora_branch_vietqr_prefix[<?php echo intval( $tid ); ?>]" value="<?php echo esc_attr( $saved_prefix ); ?>" placeholder="Mặc định: <?php echo esc_attr( $default_prefix ); ?>" style="width:220px;" />
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <script>
+            jQuery(function($) {
+                var s2Opts = { width: '100%' };
+                if (typeof formatOptions === 'function') {
+                    s2Opts.templateResult = formatOptions;
+                }
+                if ($.fn.select2) {
+                    $('.memora-branch-vietqr-select').select2(s2Opts);
+                } else if ($.fn.selectWoo) {
+                    $('.memora-branch-vietqr-select').selectWoo(s2Opts);
+                }
+            });
+            </script>
+        </td>
+    </tr>
+    <?php
+    return ob_get_clean();
+}
+
+/**
+ * Lưu cấu hình ngân hàng của các chi nhánh khi bấm "Save changes" trong WooCommerce > Settings > Payments > VietQR
+ */
+add_action( 'woocommerce_update_options_payment_gateways_vietqr', 'memora_save_branch_accounts_from_vietqr_settings', 20 );
+function memora_save_branch_accounts_from_vietqr_settings() {
+    if ( ! isset( $_POST['memora_branch_vietqr_acc_no'] ) || ! is_array( $_POST['memora_branch_vietqr_acc_no'] ) ) {
+        return;
+    }
+
+    $banks     = isset( $_POST['memora_branch_vietqr_bank'] )     ? wp_unslash( $_POST['memora_branch_vietqr_bank'] )     : array();
+    $acc_names = isset( $_POST['memora_branch_vietqr_acc_name'] ) ? wp_unslash( $_POST['memora_branch_vietqr_acc_name'] ) : array();
+    $acc_nos   = isset( $_POST['memora_branch_vietqr_acc_no'] )   ? wp_unslash( $_POST['memora_branch_vietqr_acc_no'] )   : array();
+    $prefixes  = isset( $_POST['memora_branch_vietqr_prefix'] )   ? wp_unslash( $_POST['memora_branch_vietqr_prefix'] )   : array();
+
+    foreach ( $acc_nos as $tid => $acc_no ) {
+        $tid      = intval( $tid );
+        $bank_val = isset( $banks[ $tid ] ) ? $banks[ $tid ] : '';
+        $acc_name = isset( $acc_names[ $tid ] ) ? $acc_names[ $tid ] : '';
+        $prefix   = isset( $prefixes[ $tid ] ) ? $prefixes[ $tid ] : '';
+
+        memora_save_branch_vietqr_account( $tid, $bank_val, $acc_name, $acc_no, $prefix );
+    }
+}
+
+add_filter( 'woocommerce_settings_api_sanitized_fields_vietqr', function( $sanitized_fields ) {
+    unset( $sanitized_fields['memora_dia_chi_accounts'] );
+    return $sanitized_fields;
+} );
+
+
+//====================================
+// 4. CẤU HÌNH TRONG TRANG QUẢN TRỊ TAXONOMY 'dia-chi'
+//    (wp-admin/edit-tags.php?taxonomy=dia-chi&post_type=phong-chup-anh)
 //====================================
 add_action( 'dia-chi_add_form_fields', 'memora_dia_chi_add_vietqr_fields', 20 );
 function memora_dia_chi_add_vietqr_fields() {
-    $banks = memora_get_vietqr_banks_list();
+    $banks = memora_get_vietqr_plugin_banks();
     ?>
     <div class="form-field term-vietqr-wrap" style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:14px 16px;margin:16px 0;">
-        <h3 style="margin:0 0 10px;font-size:14px;color:#0f172a;">💳 Cấu hình Ngân hàng / VietQR (Chi nhánh này)</h3>
+        <h3 style="margin:0 0 10px;font-size:14px;color:#0f172a;">💳 Cấu hình VietQR cho Chi nhánh này</h3>
 
-        <label for="memora_vietqr_bank_id" style="font-weight:600;margin-top:8px;display:block;">Ngân hàng thụ hưởng</label>
-        <select name="memora_vietqr_bank_id" id="memora_vietqr_bank_id" style="width:100%;max-width:100%;">
-            <option value="">— Dùng tài khoản mặc định —</option>
-            <?php foreach ( $banks as $code => $info ) : ?>
-                <option value="<?php echo esc_attr( $code ); ?>">
-                    <?php echo esc_html( $info['name'] . ' (' . $code . ')' ); ?>
-                </option>
+        <label for="memora_vietqr_bank" style="font-weight:600;margin-top:8px;display:block;">Bank name (Ngân hàng)</label>
+        <select name="memora_vietqr_bank" id="memora_vietqr_bank" style="width:100%;max-width:100%;">
+            <option value="">— Dùng tài khoản VietQR mặc định —</option>
+            <?php foreach ( $banks as $bank ) :
+                $bin      = (string) ( $bank['bin'] ?? '' );
+                $b_name   = (string) ( $bank['name'] ?? '' );
+                $b_short  = (string) ( $bank['short_name'] ?? $bank['shortName'] ?? $bank['code'] ?? '' );
+                $opt_val  = $bin . ':' . $b_name;
+                $opt_text = $b_short . ' - ' . $b_name;
+            ?>
+                <option value="<?php echo esc_attr( $opt_val ); ?>"><?php echo esc_html( $opt_text ); ?></option>
             <?php endforeach; ?>
         </select>
 
-        <label for="memora_vietqr_account_no" style="font-weight:600;margin-top:10px;display:block;">Số tài khoản</label>
-        <input type="text" name="memora_vietqr_account_no" id="memora_vietqr_account_no" value="" placeholder="VD: 0123456789" />
+        <label for="memora_vietqr_account_name" style="font-weight:600;margin-top:10px;display:block;">Account name (Chủ tài khoản)</label>
+        <input type="text" name="memora_vietqr_account_name" id="memora_vietqr_account_name" value="" placeholder="VD: DO KHAC TRUNG NGUYEN" style="text-transform:uppercase;" />
 
-        <label for="memora_vietqr_account_name" style="font-weight:600;margin-top:10px;display:block;">Tên chủ tài khoản</label>
-        <input type="text" name="memora_vietqr_account_name" id="memora_vietqr_account_name" value="" placeholder="VD: NGUYEN VAN A" style="text-transform:uppercase;" />
+        <label for="memora_vietqr_account_no" style="font-weight:600;margin-top:10px;display:block;">Account number (Số tài khoản)</label>
+        <input type="text" name="memora_vietqr_account_no" id="memora_vietqr_account_no" value="" placeholder="VD: 6160199890" />
 
-        <label for="memora_vietqr_prefix" style="font-weight:600;margin-top:10px;display:block;">Tiền tố nội dung chuyển khoản</label>
-        <input type="text" name="memora_vietqr_prefix" id="memora_vietqr_prefix" value="MEMORA" placeholder="MEMORA" />
-        <p class="description">Nội dung CK thực tế sẽ là: <code>[Tiền tố] [Mã đặt lịch 4 số]</code> (VD: <code>MEMORA 6842</code>).</p>
+        <label for="memora_vietqr_prefix" style="font-weight:600;margin-top:10px;display:block;">Prefix (Tiền tố nội dung CK)</label>
+        <input type="text" name="memora_vietqr_prefix" id="memora_vietqr_prefix" value="" placeholder="VD: QUESTX" />
     </div>
     <?php
 }
 
 add_action( 'dia-chi_edit_form_fields', 'memora_dia_chi_edit_vietqr_fields', 20, 2 );
 function memora_dia_chi_edit_vietqr_fields( $term ) {
-    $tid          = $term->term_id;
-    $banks        = memora_get_vietqr_banks_list();
-    $bank_id      = get_term_meta( $tid, '_memora_vietqr_bank_id', true ) ?: get_term_meta( $tid, 'vietqr_bank_id', true );
-    $account_no   = get_term_meta( $tid, '_memora_vietqr_account_no', true ) ?: get_term_meta( $tid, 'vietqr_account_no', true );
-    $account_name = get_term_meta( $tid, '_memora_vietqr_account_name', true ) ?: get_term_meta( $tid, 'vietqr_account_name', true );
-    $template     = get_term_meta( $tid, '_memora_vietqr_template', true ) ?: 'compact2';
-    $prefix       = get_term_meta( $tid, '_memora_vietqr_prefix', true ) ?: 'MEMORA';
+    $tid            = $term->term_id;
+    $banks          = memora_get_vietqr_plugin_banks();
+    $saved_bank_id  = (string) get_term_meta( $tid, '_memora_vietqr_bank_id', true );
+    $saved_acc_name = (string) get_term_meta( $tid, '_memora_vietqr_account_name', true );
+    $saved_acc_no   = (string) get_term_meta( $tid, '_memora_vietqr_account_no', true );
+    $saved_prefix   = (string) get_term_meta( $tid, '_memora_vietqr_prefix', true );
 
-    $preview_url  = '';
-    if ( ! empty( $bank_id ) && ! empty( $account_no ) ) {
-        $preview_url = memora_build_vietqr_url( array(
-            'bank_id'      => $bank_id,
-            'account_no'   => $account_no,
-            'account_name' => $account_name,
-            'template'     => $template,
-        ), 200000, $prefix . ' 1234' );
+    if ( ! empty( $saved_bank_id ) && ! is_numeric( $saved_bank_id ) ) {
+        $m = memora_find_vietqr_bank_by_id( $saved_bank_id );
+        if ( $m ) {
+            $saved_bank_id = (string) $m['bin'];
+        }
     }
     ?>
     <tr class="form-field term-vietqr-edit-wrap">
         <th scope="row">
-            <label>💳 Tài khoản Ngân hàng / VietQR</label>
+            <label>💳 Cấu hình VietQR (Chi nhánh)</label>
             <p class="description" style="font-weight:400;margin-top:6px;">
-                Khách đặt lịch thuộc chi nhánh <strong><?php echo esc_html( $term->name ); ?></strong> sẽ quét mã QR và chuyển khoản vào tài khoản này.
+                Đồng bộ trực tiếp với plugin <strong>VietQR</strong> trong WooCommerce cho chi nhánh <strong><?php echo esc_html( $term->name ); ?></strong>.
             </p>
         </th>
         <td>
-            <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:18px 20px;max-width:780px;">
-                <div style="flex:1 1 360px;min-width:280px;">
-                    <div style="margin-bottom:14px;">
-                        <label for="memora_vietqr_bank_id" style="display:block;font-weight:600;margin-bottom:5px;color:#1e293b;">1. Ngân hàng thụ hưởng</label>
-                        <select name="memora_vietqr_bank_id" id="memora_vietqr_bank_id" style="width:100%;max-width:100%;">
-                            <option value="">— Chưa chọn (Dùng tài khoản mặc định) —</option>
-                            <?php foreach ( $banks as $code => $info ) : ?>
-                                <option value="<?php echo esc_attr( $code ); ?>" <?php selected( strtoupper( (string) $bank_id ), $code ); ?>>
-                                    <?php echo esc_html( $info['name'] . ' (' . $code . ' - BIN ' . $info['bin'] . ')' ); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div style="margin-bottom:14px;">
-                        <label for="memora_vietqr_account_no" style="display:block;font-weight:600;margin-bottom:5px;color:#1e293b;">2. Số tài khoản nhận tiền</label>
-                        <input type="text" name="memora_vietqr_account_no" id="memora_vietqr_account_no" value="<?php echo esc_attr( $account_no ); ?>" placeholder="Nhập số tài khoản ngân hàng..." style="width:100%;" />
-                    </div>
-
-                    <div style="margin-bottom:14px;">
-                        <label for="memora_vietqr_account_name" style="display:block;font-weight:600;margin-bottom:5px;color:#1e293b;">3. Tên chủ tài khoản (Không dấu)</label>
-                        <input type="text" name="memora_vietqr_account_name" id="memora_vietqr_account_name" value="<?php echo esc_attr( $account_name ); ?>" placeholder="VD: NGUYEN VAN A" style="width:100%;text-transform:uppercase;" />
-                    </div>
-
-                    <div style="display:flex;gap:12px;flex-wrap:wrap;">
-                        <div style="flex:1 1 160px;">
-                            <label for="memora_vietqr_prefix" style="display:block;font-weight:600;margin-bottom:5px;color:#1e293b;">4. Tiền tố nội dung CK</label>
-                            <input type="text" name="memora_vietqr_prefix" id="memora_vietqr_prefix" value="<?php echo esc_attr( $prefix ); ?>" placeholder="MEMORA" style="width:100%;" />
-                        </div>
-                        <div style="flex:1 1 160px;">
-                            <label for="memora_vietqr_template" style="display:block;font-weight:600;margin-bottom:5px;color:#1e293b;">5. Mẫu khung QR</label>
-                            <select name="memora_vietqr_template" id="memora_vietqr_template" style="width:100%;">
-                                <option value="compact2" <?php selected( $template, 'compact2' ); ?>>Compact 2 (Đầy đủ thông tin)</option>
-                                <option value="compact" <?php selected( $template, 'compact' ); ?>>Compact (Kèm logo VietQR)</option>
-                                <option value="qr_only" <?php selected( $template, 'qr_only' ); ?>>Chỉ mã QR (QR Only)</option>
-                                <option value="print" <?php selected( $template, 'print' ); ?>>Bản in đầy đủ (Print)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <p class="description" style="margin-top:8px;">
-                        Nội dung chuyển khoản tự động trên đơn hàng sẽ có dạng: <code><strong id="memora-qr-prefix-demo"><?php echo esc_html( $prefix ?: 'MEMORA' ); ?></strong> 1234</code>
-                    </p>
+            <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:16px 18px;max-width:600px;">
+                <div style="margin-bottom:12px;">
+                    <label for="memora_vietqr_bank" style="display:block;font-weight:600;margin-bottom:4px;">Bank name:</label>
+                    <select name="memora_vietqr_bank" id="memora_vietqr_bank" style="width:100%;max-width:100%;">
+                        <option value="">— Dùng tài khoản VietQR mặc định —</option>
+                        <?php foreach ( $banks as $bank ) :
+                            $bin         = (string) ( $bank['bin'] ?? '' );
+                            $b_name      = (string) ( $bank['name'] ?? '' );
+                            $b_short     = (string) ( $bank['short_name'] ?? $bank['shortName'] ?? $bank['code'] ?? '' );
+                            $opt_val     = $bin . ':' . $b_name;
+                            $opt_text    = $b_short . ' - ' . $b_name;
+                            $is_selected = ( $saved_bank_id !== '' && $saved_bank_id === $bin );
+                        ?>
+                            <option value="<?php echo esc_attr( $opt_val ); ?>" <?php selected( $is_selected, true ); ?>>
+                                <?php echo esc_html( $opt_text ); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
-                <!-- KHUNG XEM TRƯỚC MÃ VIETQR TRỰC TIẾP -->
-                <div style="flex:0 0 210px;text-align:center;background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,0.04);">
-                    <div style="font-size:12px;font-weight:700;color:#475569;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Xem trước VietQR</div>
-                    <div id="memora-vietqr-preview-box" style="min-height:180px;display:flex;align-items:center;justify-content:center;">
-                        <?php if ( $preview_url ) : ?>
-                            <img id="memora-vietqr-preview-img" src="<?php echo esc_url( $preview_url ); ?>" alt="VietQR Preview" style="max-width:185px;height:auto;border-radius:6px;display:block;" />
-                        <?php else : ?>
-                            <div id="memora-vietqr-preview-empty" style="font-size:12px;color:#94a3b8;padding:20px 10px;line-height:1.5;">
-                                Chọn <strong>Ngân hàng</strong> và nhập <strong>Số tài khoản</strong> để xem trước mã QR tại đây.
-                            </div>
-                            <img id="memora-vietqr-preview-img" src="" alt="VietQR Preview" style="max-width:185px;height:auto;border-radius:6px;display:none;" />
-                        <?php endif; ?>
-                    </div>
-                    <div style="font-size:11px;color:#64748b;margin-top:6px;">(Minh họa đơn 200.000đ)</div>
+                <div style="margin-bottom:12px;">
+                    <label for="memora_vietqr_account_name" style="display:block;font-weight:600;margin-bottom:4px;">Account name:</label>
+                    <input type="text" name="memora_vietqr_account_name" id="memora_vietqr_account_name" value="<?php echo esc_attr( $saved_acc_name ); ?>" placeholder="VD: DO KHAC TRUNG NGUYEN" style="width:100%;text-transform:uppercase;" />
+                </div>
+
+                <div style="margin-bottom:12px;">
+                    <label for="memora_vietqr_account_no" style="display:block;font-weight:600;margin-bottom:4px;">Account number:</label>
+                    <input type="text" name="memora_vietqr_account_no" id="memora_vietqr_account_no" value="<?php echo esc_attr( $saved_acc_no ); ?>" placeholder="VD: 6160199890" style="width:100%;" />
+                </div>
+
+                <div>
+                    <label for="memora_vietqr_prefix" style="display:block;font-weight:600;margin-bottom:4px;">Prefix:</label>
+                    <input type="text" name="memora_vietqr_prefix" id="memora_vietqr_prefix" value="<?php echo esc_attr( $saved_prefix ); ?>" placeholder="VD: QUESTX" style="width:220px;" />
                 </div>
             </div>
-
-            <script>
-            jQuery(function($) {
-                function updateVietQrPreview() {
-                    var bank = $.trim($('#memora_vietqr_bank_id').val());
-                    var accNo = $.trim($('#memora_vietqr_account_no').val());
-                    var accName = $.trim($('#memora_vietqr_account_name').val()).toUpperCase();
-                    var tpl = $.trim($('#memora_vietqr_template').val()) || 'compact2';
-                    var prefix = $.trim($('#memora_vietqr_prefix').val()) || 'MEMORA';
-
-                    $('#memora-qr-prefix-demo').text(prefix);
-
-                    if (!bank || !accNo) {
-                        $('#memora-vietqr-preview-img').hide();
-                        $('#memora-vietqr-preview-empty').show();
-                        return;
-                    }
-
-                    var url = 'https://img.vietqr.io/image/' + encodeURIComponent(bank) + '-' + encodeURIComponent(accNo) + '-' + encodeURIComponent(tpl) + '.png'
-                        + '?amount=200000'
-                        + '&addInfo=' + encodeURIComponent(prefix + ' 1234')
-                        + '&accountName=' + encodeURIComponent(accName);
-
-                    $('#memora-vietqr-preview-empty').hide();
-                    $('#memora-vietqr-preview-img').attr('src', url).show();
-                }
-
-                $('#memora_vietqr_bank_id, #memora_vietqr_template').on('change', updateVietQrPreview);
-                $('#memora_vietqr_account_no, #memora_vietqr_account_name, #memora_vietqr_prefix').on('input', function() {
-                    clearTimeout(window._memoraQrTimer);
-                    window._memoraQrTimer = setTimeout(updateVietQrPreview, 350);
-                });
-            });
-            </script>
         </td>
     </tr>
     <?php
 }
 
-/**
- * Lưu thông tin Ngân hàng / VietQR khi thêm mới hoặc cập nhật term dia-chi
- */
 add_action( 'created_dia-chi', 'memora_save_dia_chi_vietqr_meta', 15, 2 );
 add_action( 'edited_dia-chi', 'memora_save_dia_chi_vietqr_meta', 15, 2 );
 function memora_save_dia_chi_vietqr_meta( $term_id ) {
-    if ( ! isset( $_POST['memora_vietqr_bank_id'] ) && ! isset( $_POST['memora_vietqr_account_no'] ) ) {
+    if ( ! isset( $_POST['memora_vietqr_bank'] ) && ! isset( $_POST['memora_vietqr_account_no'] ) ) {
         return;
     }
 
-    $bank_id      = isset( $_POST['memora_vietqr_bank_id'] )      ? sanitize_text_field( wp_unslash( $_POST['memora_vietqr_bank_id'] ) )      : '';
-    $account_no   = isset( $_POST['memora_vietqr_account_no'] )   ? sanitize_text_field( wp_unslash( $_POST['memora_vietqr_account_no'] ) )   : '';
-    $account_name = isset( $_POST['memora_vietqr_account_name'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_POST['memora_vietqr_account_name'] ) ) ) : '';
-    $template     = isset( $_POST['memora_vietqr_template'] )     ? sanitize_text_field( wp_unslash( $_POST['memora_vietqr_template'] ) )     : 'compact2';
-    $prefix       = isset( $_POST['memora_vietqr_prefix'] )       ? sanitize_text_field( wp_unslash( $_POST['memora_vietqr_prefix'] ) )       : 'MEMORA';
+    $bank_val = isset( $_POST['memora_vietqr_bank'] )         ? wp_unslash( $_POST['memora_vietqr_bank'] )         : '';
+    $acc_name = isset( $_POST['memora_vietqr_account_name'] ) ? wp_unslash( $_POST['memora_vietqr_account_name'] ) : '';
+    $acc_no   = isset( $_POST['memora_vietqr_account_no'] )   ? wp_unslash( $_POST['memora_vietqr_account_no'] )   : '';
+    $prefix   = isset( $_POST['memora_vietqr_prefix'] )       ? wp_unslash( $_POST['memora_vietqr_prefix'] )       : '';
 
-    $matched_bank = memora_match_vietqr_bank( $bank_id );
-    $bank_name    = $matched_bank ? $matched_bank['short'] : $bank_id;
-
-    update_term_meta( $term_id, '_memora_vietqr_bank_id',      $bank_id );
-    update_term_meta( $term_id, '_memora_vietqr_bank_name',    $bank_name );
-    update_term_meta( $term_id, '_memora_vietqr_account_no',   $account_no );
-    update_term_meta( $term_id, '_memora_vietqr_account_name', $account_name );
-    update_term_meta( $term_id, '_memora_vietqr_template',     $template ?: 'compact2' );
-    update_term_meta( $term_id, '_memora_vietqr_prefix',       $prefix ?: 'MEMORA' );
-
-    // Đồng bộ cả vào meta key không gạch dưới để tương thích nếu có đọc qua ACF get_field()
-    update_term_meta( $term_id, 'vietqr_bank_id',      $bank_id );
-    update_term_meta( $term_id, 'vietqr_bank_name',    $bank_name );
-    update_term_meta( $term_id, 'vietqr_account_no',   $account_no );
-    update_term_meta( $term_id, 'vietqr_account_name', $account_name );
-    update_term_meta( $term_id, 'vietqr_template',     $template ?: 'compact2' );
+    memora_save_branch_vietqr_account( $term_id, $bank_val, $acc_name, $acc_no, $prefix );
 }
 
-
-//====================================
-// 3. CỘT "NGÂN HÀNG (VIETQR)" TRONG BẢNG DANH SÁCH ĐỊA CHỈ
-//====================================
+/**
+ * Hiển thị cột "Ngân hàng (VietQR)" trên bảng danh sách Địa chỉ (edit-tags.php?taxonomy=dia-chi)
+ */
 add_filter( 'manage_edit-dia-chi_columns', 'memora_dia_chi_add_vietqr_column', 20 );
 function memora_dia_chi_add_vietqr_column( $columns ) {
     $new_columns = array();
@@ -310,22 +516,16 @@ function memora_dia_chi_render_vietqr_column( $content, $column_name, $term_id )
         return $content;
     }
 
-    $bank_id      = get_term_meta( $term_id, '_memora_vietqr_bank_id', true ) ?: get_term_meta( $term_id, 'vietqr_bank_id', true );
-    $account_no   = get_term_meta( $term_id, '_memora_vietqr_account_no', true ) ?: get_term_meta( $term_id, 'vietqr_account_no', true );
-    $account_name = get_term_meta( $term_id, '_memora_vietqr_account_name', true ) ?: get_term_meta( $term_id, 'vietqr_account_name', true );
-
-    if ( empty( $bank_id ) || empty( $account_no ) ) {
-        return '<span style="color:#94a3b8;font-size:12px;font-style:italic;">Chưa cài đặt (Dùng mặc định)</span>';
+    $cfg = memora_get_branch_vietqr_account( $term_id );
+    if ( ! $cfg ) {
+        return '<span style="color:#94a3b8;font-size:12px;font-style:italic;">Dùng TK VietQR mặc định</span>';
     }
 
-    $matched   = memora_match_vietqr_bank( $bank_id );
-    $bank_disp = $matched ? $matched['short'] : $bank_id;
-
     $html  = '<div style="line-height:1.4;font-size:12px;">';
-    $html .= '<span style="display:inline-block;background:#dcfce7;color:#166534;font-weight:700;padding:1px 7px;border-radius:4px;margin-right:4px;">' . esc_html( $bank_disp ) . '</span>';
-    $html .= '<code style="font-weight:700;color:#0f172a;background:#f1f5f9;padding:1px 5px;border-radius:3px;">' . esc_html( $account_no ) . '</code>';
-    if ( ! empty( $account_name ) ) {
-        $html .= '<div style="color:#475569;margin-top:2px;font-size:11px;">' . esc_html( $account_name ) . '</div>';
+    $html .= '<span style="display:inline-block;background:#dcfce7;color:#166534;font-weight:700;padding:1px 7px;border-radius:4px;margin-right:4px;">' . esc_html( $cfg['bank_short'] ) . '</span>';
+    $html .= '<code style="font-weight:700;color:#0f172a;background:#f1f5f9;padding:1px 5px;border-radius:3px;">' . esc_html( $cfg['account_number'] ) . '</code>';
+    if ( ! empty( $cfg['account_name'] ) ) {
+        $html .= '<div style="color:#475569;margin-top:2px;font-size:11px;">' . esc_html( $cfg['account_name'] ) . '</div>';
     }
     $html .= '</div>';
 
@@ -334,111 +534,19 @@ function memora_dia_chi_render_vietqr_column( $content, $column_name, $term_id )
 
 
 //====================================
-// 4. HELPER TRUNG TÂM: LẤY CẤU HÌNH VIETQR THEO CHI NHÁNH / ĐƠN HÀNG
+// 5. TRA CỨU TÀI KHOẢN VIETQR THEO ĐƠN HÀNG WOOCOMMERCE
 //====================================
 /**
- * Xây dựng URL ảnh mã QR từ img.vietqr.io
- *
- * @param array  $bank_config      { bank_id, account_no, account_name, template }
- * @param float  $amount           Số tiền cần chuyển
- * @param string $transfer_content Nội dung chuyển khoản
- * @return string                  URL ảnh QR hoặc chuỗi rỗng nếu thiếu thông tin
- */
-function memora_build_vietqr_url( $bank_config, $amount = 0, $transfer_content = '' ) {
-    $bank_id      = ! empty( $bank_config['bank_id'] ) ? trim( (string) $bank_config['bank_id'] ) : '';
-    $account_no   = ! empty( $bank_config['account_no'] ) ? trim( (string) $bank_config['account_no'] ) : '';
-    $account_name = ! empty( $bank_config['account_name'] ) ? trim( (string) $bank_config['account_name'] ) : '';
-    $template     = ! empty( $bank_config['template'] ) ? trim( (string) $bank_config['template'] ) : 'compact2';
-
-    if ( empty( $bank_id ) || empty( $account_no ) ) {
-        return '';
-    }
-
-    $matched = memora_match_vietqr_bank( $bank_id );
-    $qr_bank = $matched ? $matched['code'] : $bank_id;
-
-    $params = array();
-    if ( floatval( $amount ) > 0 ) {
-        $params['amount'] = (int) round( floatval( $amount ) );
-    }
-    if ( $transfer_content !== '' ) {
-        $params['addInfo'] = $transfer_content;
-    }
-    if ( $account_name !== '' ) {
-        $params['accountName'] = $account_name;
-    }
-
-    $query_str = ! empty( $params ) ? ( '?' . http_build_query( $params ) ) : '';
-    return 'https://img.vietqr.io/image/' . rawurlencode( $qr_bank ) . '-' . rawurlencode( $account_no ) . '-' . rawurlencode( $template ) . '.png' . $query_str;
-}
-
-/**
- * Lấy cấu hình ngân hàng VietQR của một Term dia-chi cụ thể (không fallback)
- */
-function memora_get_term_vietqr_data( $dia_chi_id ) {
-    $dia_chi_id = intval( $dia_chi_id );
-    if ( $dia_chi_id <= 0 ) {
-        return null;
-    }
-
-    $bank_id      = get_term_meta( $dia_chi_id, '_memora_vietqr_bank_id', true );
-    $account_no   = get_term_meta( $dia_chi_id, '_memora_vietqr_account_no', true );
-    $account_name = get_term_meta( $dia_chi_id, '_memora_vietqr_account_name', true );
-    $bank_name    = get_term_meta( $dia_chi_id, '_memora_vietqr_bank_name', true );
-    $template     = get_term_meta( $dia_chi_id, '_memora_vietqr_template', true );
-    $prefix       = get_term_meta( $dia_chi_id, '_memora_vietqr_prefix', true );
-
-    // Fallback đọc qua ACF nếu có
-    if ( ( empty( $bank_id ) || empty( $account_no ) ) && function_exists( 'get_field' ) ) {
-        $acf_source = 'term_' . $dia_chi_id;
-        if ( empty( $bank_id ) )      $bank_id      = (string) get_field( 'vietqr_bank_id', $acf_source );
-        if ( empty( $account_no ) )   $account_no   = (string) get_field( 'vietqr_account_no', $acf_source );
-        if ( empty( $account_name ) ) $account_name = (string) get_field( 'vietqr_account_name', $acf_source );
-        if ( empty( $bank_name ) )    $bank_name    = (string) get_field( 'vietqr_bank_name', $acf_source );
-        if ( empty( $template ) )     $template     = (string) get_field( 'vietqr_template', $acf_source );
-    }
-
-    if ( empty( $bank_id ) || empty( $account_no ) ) {
-        return null;
-    }
-
-    $matched = memora_match_vietqr_bank( $bank_id );
-    $term    = get_term( $dia_chi_id, 'dia-chi' );
-
-    return array(
-        'dia_chi_id'   => $dia_chi_id,
-        'dia_chi_name' => ( $term && ! is_wp_error( $term ) ) ? $term->name : '',
-        'bank_id'      => $matched ? $matched['code'] : $bank_id,
-        'bank_bin'     => $matched ? $matched['bin']  : $bank_id,
-        'bank_name'    => ! empty( $bank_name ) ? $bank_name : ( $matched ? $matched['short'] : $bank_id ),
-        'account_no'   => trim( (string) $account_no ),
-        'account_name' => trim( (string) $account_name ),
-        'template'     => ! empty( $template ) ? $template : 'compact2',
-        'prefix'       => ! empty( $prefix ) ? $prefix : 'MEMORA',
-        'source'       => 'term_dia_chi',
-    );
-}
-
-/**
- * Giải mã cấu hình VietQR theo thứ tự ưu tiên:
- * 1. Term dia-chi (từ $dia_chi_id hoặc từ $order / WC Session / URL)
- * 2. Snapshot đã lưu trong WC Order (nếu term bị xóa hoặc chưa có)
- * 3. ACF Options Page chung (vietqr_bank_id, vietqr_account_no...)
- * 4. Tài khoản BACS mặc định trong WooCommerce Settings
- *
- * @param int                $dia_chi_id Term ID của taxonomy dia-chi (0 để tự phát hiện)
- * @param WC_Order|int|null  $order      Đối tượng hoặc ID đơn hàng WooCommerce
- * @return array                         Mảng cấu hình ngân hàng đầy đủ
+ * Tìm cấu hình VietQR theo WC_Order (hoặc Order ID / Session hiện tại)
  */
 function memora_get_vietqr_config( $dia_chi_id = 0, $order = null ) {
-    $dia_chi_id   = intval( $dia_chi_id );
-    $dia_chi_name = '';
+    $dia_chi_id = intval( $dia_chi_id );
 
     if ( is_numeric( $order ) && intval( $order ) > 0 && function_exists( 'wc_get_order' ) ) {
         $order = wc_get_order( intval( $order ) );
     }
 
-    // Bước 1: Tự động tìm dia_chi_id từ WC_Order nếu chưa truyền
+    // 1. Lấy dia_chi_id từ WC_Order
     if ( $order instanceof WC_Order ) {
         if ( $dia_chi_id <= 0 ) {
             $dia_chi_id = intval( $order->get_meta( '_booking_dia_chi_id' ) );
@@ -449,10 +557,9 @@ function memora_get_vietqr_config( $dia_chi_id = 0, $order = null ) {
                 $dia_chi_id = memora_get_location_id_from_room( $room_id );
             }
         }
-        $dia_chi_name = (string) $order->get_meta( '_booking_dia_chi_name' );
     }
 
-    // Bước 2: Tìm từ WC Session (khi đang ở trang Checkout) hoặc URL
+    // 2. Lấy dia_chi_id từ WC Session (khi đang ở bước Checkout)
     if ( $dia_chi_id <= 0 && function_exists( 'WC' ) && WC()->session ) {
         $pending = WC()->session->get( 'memora_booking_pending_data' );
         if ( is_array( $pending ) ) {
@@ -461,303 +568,189 @@ function memora_get_vietqr_config( $dia_chi_id = 0, $order = null ) {
             } elseif ( ! empty( $pending['room_id'] ) && function_exists( 'memora_get_location_id_from_room' ) ) {
                 $dia_chi_id = memora_get_location_id_from_room( intval( $pending['room_id'] ) );
             }
-            if ( ! empty( $pending['dia_chi_name'] ) ) {
-                $dia_chi_name = (string) $pending['dia_chi_name'];
-            }
         }
     }
 
-    if ( $dia_chi_id <= 0 && function_exists( 'memora_resolve_booking_location_id' ) ) {
-        $dia_chi_id = memora_resolve_booking_location_id();
-    }
-
-    // Bước 3: Lấy cấu hình trực tiếp từ Term dia-chi
+    // 3. Nếu xác định được term dia-chi và term đó có cấu hình ngân hàng riêng
     if ( $dia_chi_id > 0 ) {
-        $term_cfg = memora_get_term_vietqr_data( $dia_chi_id );
-        if ( $term_cfg ) {
-            return $term_cfg;
-        }
-    }
-
-    // Bước 4: Kiểm tra Snapshot đã lưu trong WC Order (nếu có)
-    if ( $order instanceof WC_Order ) {
-        $snap_bank = (string) $order->get_meta( '_booking_vietqr_bank_id' );
-        $snap_acc  = (string) $order->get_meta( '_booking_vietqr_account_no' );
-        if ( ! empty( $snap_bank ) && ! empty( $snap_acc ) ) {
-            $matched = memora_match_vietqr_bank( $snap_bank );
+        $branch_acc = memora_get_branch_vietqr_account( $dia_chi_id );
+        if ( $branch_acc ) {
             return array(
-                'dia_chi_id'   => $dia_chi_id,
-                'dia_chi_name' => $dia_chi_name,
-                'bank_id'      => $matched ? $matched['code'] : $snap_bank,
-                'bank_bin'     => $matched ? $matched['bin']  : $snap_bank,
-                'bank_name'    => (string) $order->get_meta( '_booking_vietqr_bank_name' ) ?: ( $matched ? $matched['short'] : $snap_bank ),
-                'account_no'   => $snap_acc,
-                'account_name' => (string) $order->get_meta( '_booking_vietqr_account_name' ),
-                'template'     => (string) $order->get_meta( '_booking_vietqr_template' ) ?: 'compact2',
-                'prefix'       => (string) $order->get_meta( '_booking_vietqr_prefix' ) ?: 'MEMORA',
-                'source'       => 'order_snapshot',
+                'dia_chi_id'     => $branch_acc['dia_chi_id'],
+                'dia_chi_name'   => $branch_acc['dia_chi_name'],
+                'bank_id'        => $branch_acc['bank_id'],
+                'bank_bin'       => $branch_acc['bank_id'],
+                'bank_name'      => $branch_acc['bank_name'],
+                'account_no'     => $branch_acc['account_number'],
+                'account_number' => $branch_acc['account_number'],
+                'account_name'   => $branch_acc['account_name'],
+                'prefix'         => $branch_acc['prefix'],
+                'template'       => 'compact',
+                'source'         => 'term_dia_chi',
             );
         }
     }
 
-    // Bước 5: Fallback về ACF Options chung
-    $opt_bank_id = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_bank_id', 'option' ) : '';
-    $opt_acc_no  = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_account_no', 'option' ) : '';
-    if ( ! empty( $opt_bank_id ) && ! empty( $opt_acc_no ) ) {
-        $opt_acc_name  = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_account_name', 'option' ) : '';
-        $opt_bank_name = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_bank_name', 'option' ) : '';
-        $opt_tpl       = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_template', 'option' ) : 'compact2';
-        $matched       = memora_match_vietqr_bank( $opt_bank_id );
+    // 4. Fallback về tài khoản mặc định trong plugin VietQR (woocommerce_vietqr_accounts)
+    remove_filter( 'option_woocommerce_vietqr_accounts', 'memora_filter_option_woocommerce_vietqr_accounts', 20 );
+    $default_accounts = get_option( 'woocommerce_vietqr_accounts', array() );
+    add_filter( 'option_woocommerce_vietqr_accounts', 'memora_filter_option_woocommerce_vietqr_accounts', 20, 1 );
 
+    $vq_settings    = get_option( 'woocommerce_vietqr_settings', array() );
+    $default_prefix = ! empty( $vq_settings['prefix'] ) ? $vq_settings['prefix'] : 'QUESTX';
+
+    if ( is_array( $default_accounts ) && ! empty( $default_accounts[0]['account_number'] ) ) {
+        $acc = $default_accounts[0];
         return array(
-            'dia_chi_id'   => $dia_chi_id,
-            'dia_chi_name' => $dia_chi_name,
-            'bank_id'      => $matched ? $matched['code'] : $opt_bank_id,
-            'bank_bin'     => $matched ? $matched['bin']  : $opt_bank_id,
-            'bank_name'    => ! empty( $opt_bank_name ) ? $opt_bank_name : ( $matched ? $matched['short'] : $opt_bank_id ),
-            'account_no'   => trim( $opt_acc_no ),
-            'account_name' => trim( $opt_acc_name ),
-            'template'     => ! empty( $opt_tpl ) ? $opt_tpl : 'compact2',
-            'prefix'       => 'MEMORA',
-            'source'       => 'acf_option',
+            'dia_chi_id'     => $dia_chi_id,
+            'dia_chi_name'   => '',
+            'bank_id'        => (string) ( $acc['bank_id'] ?? '' ),
+            'bank_bin'       => (string) ( $acc['bank_id'] ?? '' ),
+            'bank_name'      => (string) ( $acc['bank_name'] ?? '' ),
+            'account_no'     => (string) ( $acc['account_number'] ?? '' ),
+            'account_number' => (string) ( $acc['account_number'] ?? '' ),
+            'account_name'   => (string) ( $acc['account_name'] ?? '' ),
+            'prefix'         => $default_prefix,
+            'template'       => 'compact',
+            'source'         => 'vietqr_plugin_default',
         );
     }
 
-    // Bước 6: Fallback về WooCommerce BACS Accounts mặc định
-    $raw_bacs = get_option( 'woocommerce_bacs_accounts', array() );
-    if ( is_array( $raw_bacs ) && ! empty( $raw_bacs[0]['account_number'] ) ) {
-        $first    = $raw_bacs[0];
-        $b_input  = ! empty( $first['bank_name'] ) ? $first['bank_name'] : ( ! empty( $first['bic'] ) ? $first['bic'] : '' );
-        $matched  = memora_match_vietqr_bank( $b_input );
-
-        return array(
-            'dia_chi_id'   => $dia_chi_id,
-            'dia_chi_name' => $dia_chi_name,
-            'bank_id'      => $matched ? $matched['code'] : $b_input,
-            'bank_bin'     => $matched ? $matched['bin']  : $b_input,
-            'bank_name'    => ! empty( $first['bank_name'] ) ? $first['bank_name'] : ( $matched ? $matched['short'] : '' ),
-            'account_no'   => trim( (string) $first['account_number'] ),
-            'account_name' => trim( (string) ( $first['account_name'] ?? '' ) ),
-            'template'     => 'compact2',
-            'prefix'       => 'MEMORA',
-            'source'       => 'wc_bacs_default',
-        );
-    }
-
-    return array(
-        'dia_chi_id'   => $dia_chi_id,
-        'dia_chi_name' => $dia_chi_name,
-        'bank_id'      => '',
-        'bank_bin'     => '',
-        'bank_name'    => '',
-        'account_no'   => '',
-        'account_name' => '',
-        'template'     => 'compact2',
-        'prefix'       => 'MEMORA',
-        'source'       => 'none',
-    );
+    return array();
 }
 
 /**
- * Lưu snapshot cấu hình ngân hàng VietQR của chi nhánh vào WC_Order
+ * Lưu snapshot tài khoản ngân hàng VietQR đã áp dụng vào đơn hàng
  */
 function memora_save_vietqr_snapshot_to_order( $order, $dia_chi_id = 0 ) {
     if ( ! ( $order instanceof WC_Order ) ) {
         return;
     }
     $cfg = memora_get_vietqr_config( $dia_chi_id, $order );
-    if ( ! empty( $cfg['bank_id'] ) && ! empty( $cfg['account_no'] ) ) {
+    if ( ! empty( $cfg['bank_id'] ) && ! empty( $cfg['account_number'] ) ) {
         $order->update_meta_data( '_booking_vietqr_bank_id',      $cfg['bank_id'] );
-        $order->update_meta_data( '_booking_vietqr_bank_bin',     $cfg['bank_bin'] ?? '' );
         $order->update_meta_data( '_booking_vietqr_bank_name',    $cfg['bank_name'] );
-        $order->update_meta_data( '_booking_vietqr_account_no',   $cfg['account_no'] );
+        $order->update_meta_data( '_booking_vietqr_account_no',   $cfg['account_number'] );
         $order->update_meta_data( '_booking_vietqr_account_name', $cfg['account_name'] );
-        $order->update_meta_data( '_booking_vietqr_template',     $cfg['template'] );
-        $order->update_meta_data( '_booking_vietqr_prefix',       $cfg['prefix'] );
+        $order->update_meta_data( '_booking_vietqr_prefix',       $cfg['prefix'] ?? '' );
     }
 }
 
 
 //====================================
-// 5. ĐỒNG BỘ TỰ ĐỘNG VỚI WOOCOMMERCE BACS ACCOUNTS
+// 6. HOOK TRỰC TIẾP VÀO PLUGIN VIETQR (WC_Gateway_VietQR)
 //====================================
-add_filter( 'option_woocommerce_bacs_accounts', 'memora_filter_wc_bacs_accounts_by_dia_chi', 20, 1 );
-add_filter( 'woocommerce_bacs_accounts', 'memora_filter_wc_bacs_accounts_by_dia_chi', 20, 2 );
-function memora_filter_wc_bacs_accounts_by_dia_chi( $accounts, $order_id = 0 ) {
+/**
+ * Đồng bộ trực tiếp thuộc tính $gateway->account_details và $gateway->prefix
+ * của đối tượng WC_Gateway_VietQR theo đúng chi nhánh của $order_id
+ */
+function memora_sync_vietqr_gateway_for_order( $order_id ) {
+    $order_id = absint( $order_id );
+    if ( $order_id <= 0 ) {
+        return;
+    }
+
+    $GLOBALS['memora_current_thankyou_order_id'] = $order_id;
+
+    $cfg = memora_get_vietqr_config( 0, $order_id );
+    if ( empty( $cfg['bank_id'] ) || empty( $cfg['account_number'] ) ) {
+        return;
+    }
+
+    if ( function_exists( 'WC' ) && WC()->payment_gateways ) {
+        $gateways = WC()->payment_gateways()->payment_gateways();
+        if ( isset( $gateways['vietqr'] ) && is_object( $gateways['vietqr'] ) ) {
+            $gateways['vietqr']->account_details = array(
+                array(
+                    'account_name'   => $cfg['account_name'],
+                    'account_number' => $cfg['account_number'],
+                    'bank_name'      => $cfg['bank_name'],
+                    'bank_id'        => $cfg['bank_id'],
+                ),
+            );
+            if ( ! empty( $cfg['prefix'] ) ) {
+                $gateways['vietqr']->prefix = $cfg['prefix'];
+            }
+        }
+    }
+}
+
+// Chạy ở priority 1 (trước khi WC_Gateway_VietQR::thankyou_page chạy ở priority 10)
+add_action( 'woocommerce_thankyou_vietqr', 'memora_sync_vietqr_gateway_for_order', 1, 1 );
+add_action( 'woocommerce_view_order', 'memora_sync_vietqr_gateway_for_order', 1, 1 );
+add_action( 'woocommerce_email_before_order_table', function( $order ) {
+    if ( $order instanceof WC_Order ) {
+        memora_sync_vietqr_gateway_for_order( $order->get_id() );
+    }
+}, 1, 1 );
+
+/**
+ * Filter chính thức của plugin VietQR: 'woocommerce_vietqr_account_fields'
+ * Đảm bảo mã QR và bảng thông tin chuyển khoản của plugin VietQR luôn nhận đúng ngân hàng của chi nhánh
+ */
+add_filter( 'woocommerce_vietqr_account_fields', 'memora_filter_vietqr_plugin_account_fields', 20, 2 );
+function memora_filter_vietqr_plugin_account_fields( $account_fields, $order_id ) {
+    $cfg = memora_get_vietqr_config( 0, $order_id );
+    if ( empty( $cfg['bank_id'] ) || empty( $cfg['account_number'] ) ) {
+        return $account_fields;
+    }
+
+    if ( isset( $account_fields['bank_name'] ) ) {
+        $account_fields['bank_name']['value'] = $cfg['bank_name'];
+    }
+    if ( isset( $account_fields['bank_id'] ) ) {
+        $account_fields['bank_id']['value'] = $cfg['bank_id'];
+    }
+    if ( isset( $account_fields['account_number'] ) ) {
+        $account_fields['account_number']['value'] = $cfg['account_number'];
+    }
+    if ( isset( $account_fields['account_name'] ) ) {
+        $account_fields['account_name']['value'] = $cfg['account_name'];
+    }
+    if ( isset( $account_fields['memo'] ) && ! empty( $cfg['prefix'] ) ) {
+        $account_fields['memo']['value'] = $cfg['prefix'] . $order_id;
+    }
+
+    return $account_fields;
+}
+
+/**
+ * Filter option 'woocommerce_vietqr_accounts' khi khởi tạo gateway ngoài Frontend
+ */
+add_filter( 'option_woocommerce_vietqr_accounts', 'memora_filter_option_woocommerce_vietqr_accounts', 20, 1 );
+function memora_filter_option_woocommerce_vietqr_accounts( $accounts ) {
     // Không can thiệp trong màn hình cài đặt WooCommerce Admin
     if ( is_admin() && ! wp_doing_ajax() ) {
         return $accounts;
     }
 
-    static $is_filtering = false;
-    if ( $is_filtering ) {
+    static $in_filter = false;
+    if ( $in_filter ) {
         return $accounts;
     }
-    $is_filtering = true;
+    $in_filter = true;
 
-    $resolved_order_id = absint( $order_id );
-    if ( ! $resolved_order_id && ! empty( $GLOBALS['memora_current_thankyou_order_id'] ) ) {
-        $resolved_order_id = absint( $GLOBALS['memora_current_thankyou_order_id'] );
-    }
-    if ( ! $resolved_order_id ) {
-        $resolved_order_id = absint( get_query_var( 'order-received' ) );
-    }
-    if ( ! $resolved_order_id && ! empty( $_GET['order_id'] ) ) {
-        $resolved_order_id = absint( $_GET['order_id'] );
+    $order_id = ! empty( $GLOBALS['memora_current_thankyou_order_id'] )
+        ? absint( $GLOBALS['memora_current_thankyou_order_id'] )
+        : absint( get_query_var( 'order-received' ) );
+
+    if ( ! $order_id && ! empty( $_GET['order_id'] ) ) {
+        $order_id = absint( $_GET['order_id'] );
     }
 
-    $cfg = memora_get_vietqr_config( 0, $resolved_order_id > 0 ? $resolved_order_id : null );
-    $is_filtering = false;
+    $cfg = memora_get_vietqr_config( 0, $order_id > 0 ? $order_id : null );
+    $in_filter = false;
 
-    if ( ! empty( $cfg['bank_id'] ) && ! empty( $cfg['account_no'] ) ) {
+    if ( ! empty( $cfg['bank_id'] ) && ! empty( $cfg['account_number'] ) ) {
         return array(
             array(
                 'account_name'   => $cfg['account_name'],
-                'account_number' => $cfg['account_no'],
+                'account_number' => $cfg['account_number'],
                 'bank_name'      => $cfg['bank_name'],
-                'sort_code'      => $cfg['bank_bin'] ?: $cfg['bank_id'],
-                'iban'           => $cfg['bank_id'],
-                'bic'            => $cfg['bank_bin'] ?: $cfg['bank_id'],
+                'bank_id'        => $cfg['bank_id'],
             ),
         );
     }
 
     return $accounts;
 }
-
-/**
- * Render khối HTML thẻ thanh toán VietQR chuẩn Memora (dùng chung cho cả [thankyou_booking] và native WC Order Received)
- */
-function memora_render_vietqr_payment_box( $order_or_id = null, $fallback_code = '', $fallback_amount = 0 ) {
-    static $rendered_orders = array();
-
-    $order = null;
-    if ( $order_or_id instanceof WC_Order ) {
-        $order = $order_or_id;
-    } elseif ( is_numeric( $order_or_id ) && intval( $order_or_id ) > 0 && function_exists( 'wc_get_order' ) ) {
-        $order = wc_get_order( intval( $order_or_id ) );
-    }
-
-    $render_key = $order ? 'order_' . $order->get_id() : 'code_' . $fallback_code;
-    if ( isset( $rendered_orders[ $render_key ] ) ) {
-        return '';
-    }
-
-    $cfg = memora_get_vietqr_config( 0, $order );
-    if ( empty( $cfg['bank_id'] ) || empty( $cfg['account_no'] ) ) {
-        return '';
-    }
-
-    $rendered_orders[ $render_key ] = true;
-
-    $code = $fallback_code;
-    if ( empty( $code ) && $order ) {
-        $code = $order->get_meta( '_memora_booking_code' ) ?: $order->get_meta( '_booking_code' ) ?: strval( $order->get_id() );
-    }
-    if ( empty( $code ) ) {
-        $code = '6640';
-    }
-
-    $amount = $fallback_amount;
-    if ( $amount <= 0 && $order ) {
-        $amount = (int) $order->get_total();
-    }
-
-    $prefix           = ! empty( $cfg['prefix'] ) ? trim( $cfg['prefix'] ) : 'MEMORA';
-    $transfer_content = $prefix . ' ' . $code;
-    $qr_url           = memora_build_vietqr_url( $cfg, $amount, $transfer_content );
-    $branch_name      = ! empty( $cfg['dia_chi_name'] ) ? $cfg['dia_chi_name'] : ( $order ? (string) $order->get_meta( '_booking_dia_chi_name' ) : '' );
-
-    ob_start();
-    ?>
-    <!-- PHẦN THANH TOÁN VIETQR THEO CHI NHÁNH -->
-    <div class="memora-payment-section">
-        <div class="memora-payment-title">
-            Thanh toán qua chuyển khoản
-            <?php if ( ! empty( $branch_name ) ) : ?>
-                <div style="font-size:0.78em;font-weight:600;color:#5a3e30;margin-top:2px;">
-                    Chi nhánh: <?php echo esc_html( $branch_name ); ?>
-                </div>
-            <?php endif; ?>
-        </div>
-        <div class="memora-payment-body">
-            <div class="memora-payment-qr">
-                <img
-                    src="<?php echo esc_url( $qr_url ); ?>"
-                    alt="QR chuyển khoản <?php echo esc_attr( $transfer_content ); ?>"
-                    loading="lazy"
-                />
-            </div>
-            <div class="memora-payment-info">
-                <?php if ( ! empty( $cfg['bank_name'] ) ) : ?>
-                <div class="memora-payment-row">
-                    <span class="memora-payment-label">Ngân hàng</span>
-                    <span class="memora-payment-value"><?php echo esc_html( $cfg['bank_name'] ); ?></span>
-                </div>
-                <?php endif; ?>
-                <div class="memora-payment-row">
-                    <span class="memora-payment-label">Số TK</span>
-                    <span class="memora-payment-value memora-payment-copyable" data-copy="<?php echo esc_attr( $cfg['account_no'] ); ?>">
-                        <?php echo esc_html( $cfg['account_no'] ); ?>
-                        <button class="memora-copy-btn" type="button" title="Sao chép">📋</button>
-                    </span>
-                </div>
-                <?php if ( ! empty( $cfg['account_name'] ) ) : ?>
-                <div class="memora-payment-row">
-                    <span class="memora-payment-label">Chủ TK</span>
-                    <span class="memora-payment-value"><?php echo esc_html( $cfg['account_name'] ); ?></span>
-                </div>
-                <?php endif; ?>
-                <?php if ( $amount > 0 ) : ?>
-                <div class="memora-payment-row memora-payment-row--amount">
-                    <span class="memora-payment-label">Số tiền</span>
-                    <span class="memora-payment-value"><?php echo esc_html( number_format( $amount, 0, ',', '.' ) ); ?>đ</span>
-                </div>
-                <?php endif; ?>
-                <div class="memora-payment-row memora-payment-row--content">
-                    <span class="memora-payment-label">Nội dung CK</span>
-                    <span class="memora-payment-value memora-payment-copyable" data-copy="<?php echo esc_attr( $transfer_content ); ?>">
-                        <?php echo esc_html( $transfer_content ); ?>
-                        <button class="memora-copy-btn" type="button" title="Sao chép">📋</button>
-                    </span>
-                </div>
-            </div>
-        </div>
-        <div class="memora-payment-note">
-            ⏱ Sau khi chuyển khoản, lịch chụp sẽ được xác nhận trong vòng <strong>15 phút</strong>.
-        </div>
-    </div>
-    <script>
-    (function(){
-        document.querySelectorAll('.memora-copy-btn').forEach(function(btn){
-            if (btn.dataset.boundCopy) return;
-            btn.dataset.boundCopy = '1';
-            btn.addEventListener('click', function(){
-                var row = btn.closest('.memora-payment-copyable');
-                var text = row ? row.dataset.copy : '';
-                if (!text) return;
-                navigator.clipboard.writeText(text).then(function(){
-                    btn.textContent = '✅';
-                    setTimeout(function(){ btn.textContent = '📋'; }, 1500);
-                });
-            });
-        });
-    })();
-    </script>
-    <?php
-    return ob_get_clean();
-}
-
-/**
- * Tự động hiển thị khối VietQR theo Chi nhánh trên trang Order Received chuẩn của WooCommerce
- * (Nếu trang đã dùng [thankyou_booking] / [checkout_booking] thì static cache sẽ tự bỏ qua không in trùng)
- */
-add_action( 'woocommerce_thankyou_bacs', 'memora_wc_thankyou_bacs_render_branch_vietqr', 5, 1 );
-function memora_wc_thankyou_bacs_render_branch_vietqr( $order_id ) {
-    if ( ! $order_id ) {
-        return;
-    }
-    $GLOBALS['memora_current_thankyou_order_id'] = absint( $order_id );
-    echo memora_render_vietqr_payment_box( $order_id );
-}
-

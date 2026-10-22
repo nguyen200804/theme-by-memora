@@ -430,14 +430,9 @@ function memora_render_thankyou_html( $code = '', $order_id = 0 ) {
     if ( empty( $pkg ) )  $pkg  = 'Gói chụp Memora';
     $display_code = $code ? $code : ( $wc_order ? strval( $wc_order->get_id() ) : '6640' );
 
-    if ( $order_id > 0 ) {
-        $GLOBALS['memora_current_thankyou_order_id'] = $order_id;
+    if ( $order_id > 0 && function_exists( 'memora_sync_vietqr_gateway_for_order' ) ) {
+        memora_sync_vietqr_gateway_for_order( $order_id );
     }
-
-    // Lấy khối VietQR động theo đúng Chi nhánh (taxonomy: dia-chi) của đơn hàng
-    $vietqr_box_html = function_exists( 'memora_render_vietqr_payment_box' )
-        ? memora_render_vietqr_payment_box( $wc_order, $display_code, $total_price )
-        : '';
 
     ob_start();
     ?>
@@ -486,24 +481,25 @@ function memora_render_thankyou_html( $code = '', $order_id = 0 ) {
             <div class="memora-code-notice">**Quý khách vui lòng lưu lại code chụp để tra cứu</div>
         </div>
 
-        <?php if ( ! empty( $vietqr_box_html ) ) : ?>
-            <?php echo $vietqr_box_html; ?>
-        <?php else : ?>
-            <?php
-            // Fallback: Gọi hook thanh toán mặc định của WooCommerce nếu chưa cấu hình VietQR
-            $wc_thankyou_output = '';
-            if ( $order_id > 0 && $wc_order ) {
-                ob_start();
-                do_action( 'woocommerce_thankyou_' . $wc_order->get_payment_method(), $order_id );
-                do_action( 'woocommerce_thankyou', $order_id );
-                $wc_thankyou_output = ob_get_clean();
+        <?php
+        // Gọi hook của plugin VietQR (woocommerce_thankyou_vietqr) đã được đồng bộ ngân hàng theo Chi nhánh (dia-chi)
+        $wc_thankyou_output = '';
+        if ( $order_id > 0 && $wc_order ) {
+            ob_start();
+            $pay_method = $wc_order->get_payment_method();
+            if ( ( empty( $pay_method ) || $pay_method === 'bacs' ) && has_action( 'woocommerce_thankyou_vietqr' ) ) {
+                $pay_method = 'vietqr';
             }
-            if ( ! empty( trim( $wc_thankyou_output ) ) ) :
-            ?>
-            <div class="memora-wc-thankyou-hook">
-                <?php echo $wc_thankyou_output; ?>
-            </div>
-            <?php endif; ?>
+            do_action( 'woocommerce_thankyou_' . $pay_method, $order_id );
+            do_action( 'woocommerce_thankyou', $order_id );
+            $wc_thankyou_output = ob_get_clean();
+        }
+        ?>
+
+        <?php if ( ! empty( trim( $wc_thankyou_output ) ) ) : ?>
+        <div class="memora-wc-thankyou-hook">
+            <?php echo $wc_thankyou_output; ?>
+        </div>
         <?php endif; ?>
 
         <div class="memora-note-card">

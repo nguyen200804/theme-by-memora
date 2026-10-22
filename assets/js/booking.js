@@ -519,7 +519,7 @@
                     room_id: state.roomId || '',
                     room_name: state.roomName || '',
                     dia_chi_id: state.diaChiId || '',
-                    payment_method: $('input[name="payment_method"]:checked').val() || 'bacs'
+                    payment_method: $('input[name="payment_method"]:checked').val() || 'vietqr'
                 },
                 success: function (response) {
                     $btn.prop('disabled', false).css('opacity', '1');
