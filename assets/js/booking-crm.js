@@ -562,6 +562,29 @@
     }
 
     /**
+     * Chuyển chuỗi tiền (VD: "150000", "150.000", "150k", "cọc 90k") thành số VNĐ chuẩn
+     */
+    function parseMoneyInput(raw) {
+        if (!raw) return 0;
+        const str = String(raw).trim();
+        if (!str) return 0;
+
+        const kMatch = str.match(/(\d+(?:[.,]\d+)?)\s*k\b/i);
+        if (kMatch) {
+            return parseFloat(kMatch[1].replace(',', '.')) * 1000;
+        }
+
+        const digits = str.replace(/[^0-9]/g, '');
+        if (!digits) return 0;
+
+        let val = parseFloat(digits) || 0;
+        if (val > 0 && val < 1000) {
+            val *= 1000;
+        }
+        return val;
+    }
+
+    /**
      * Gửi AJAX cập nhật 1 trường trực tiếp
      */
     function updateOrderField(orderId, field, value) {
@@ -579,6 +602,17 @@
             success: function(res) {
                 if (res.success) {
                     showToast('Đã lưu thay đổi.');
+                    if (res.data && res.data.updated_data && state.schedule && state.schedule.matrix) {
+                        const updated = res.data.updated_data;
+                        Object.keys(state.schedule.matrix).forEach(rId => {
+                            const slots = state.schedule.matrix[rId];
+                            Object.keys(slots).forEach(sTime => {
+                                if (slots[sTime].order_id === orderId) {
+                                    slots[sTime] = updated;
+                                }
+                            });
+                        });
+                    }
                 } else {
                     showToast(res.data?.message || 'Lỗi khi cập nhật.', 'error');
                 }
@@ -689,6 +723,11 @@
      * Submit form đặt lịch nhanh
      */
     function handleQuickBookSubmit() {
+        let depositVal = parseMoneyInput($('#memora-quick-deposit').val());
+        if (depositVal <= 0) {
+            depositVal = parseMoneyInput($('#memora-quick-bg').val());
+        }
+
         const formData = {
             action: 'memora_crm_quick_book',
             nonce: memora_crm_vars.nonce,
@@ -701,7 +740,8 @@
             package_name: $('#memora-quick-pkg').val(),
             background_note: $('#memora-quick-bg').val(),
             payment_status: $('#memora-quick-pay').val(),
-            deposit_price: parseFloat($('#memora-quick-deposit').val()) || 0
+            deposit_price: depositVal,
+            total_price: depositVal
         };
 
         if (!formData.name) {
@@ -758,6 +798,7 @@
         $('#memora-detail-phone-input').val(foundBooking.phone || '');
         $('#memora-detail-pkg-input').val(foundBooking.package_name || '');
         $('#memora-detail-bg-input').val(foundBooking.background_note || '');
+        $('#memora-detail-deposit-input').val(foundBooking.deposit_price || foundBooking.total_price || '');
 
         const depositFmt = foundBooking.deposit_price ? new Intl.NumberFormat('vi-VN').format(foundBooking.deposit_price) + 'đ' : '0đ';
         const totalFmt   = foundBooking.total_price ? new Intl.NumberFormat('vi-VN').format(foundBooking.total_price) + 'đ' : '0đ';
@@ -789,6 +830,10 @@
         const phone          = $('#memora-detail-phone-input').val().trim();
         const packageName    = $('#memora-detail-pkg-input').val().trim();
         const backgroundNote = $('#memora-detail-bg-input').val().trim();
+        let depositPrice     = parseMoneyInput($('#memora-detail-deposit-input').val());
+        if (depositPrice <= 0) {
+            depositPrice = parseMoneyInput(backgroundNote);
+        }
 
         const $btn = $('#memora-crm-btn-save-info');
         $btn.prop('disabled', true).text('Đang lưu...');
@@ -804,7 +849,8 @@
                 customer_name: customerName,
                 phone: phone,
                 package_name: packageName,
-                background_note: backgroundNote
+                background_note: backgroundNote,
+                deposit_price: depositPrice
             },
             success: function(res) {
                 $btn.prop('disabled', false).text('💾 Lưu thông tin');
@@ -814,6 +860,9 @@
                     if (res.data.updated_data) {
                         const updated = res.data.updated_data;
                         state.activeBooking = updated;
+                        const depFmt = updated.deposit_price ? new Intl.NumberFormat('vi-VN').format(updated.deposit_price) + 'đ' : '0đ';
+                        const totFmt = updated.total_price ? new Intl.NumberFormat('vi-VN').format(updated.total_price) + 'đ' : '0đ';
+                        $('#memora-detail-price').text(`Cọc: ${depFmt} / Tổng: ${totFmt}`);
                         
                         if (state.schedule && state.schedule.matrix) {
                             Object.keys(state.schedule.matrix).forEach(rId => {
@@ -827,7 +876,7 @@
                         }
                     }
 
-                    renderGrid(state.schedule);
+                    fetchSchedule(true);
                 } else {
                     alert(res.data?.message || 'Lỗi khi lưu thông tin.');
                 }

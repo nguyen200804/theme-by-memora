@@ -132,6 +132,84 @@ function memora_crm_get_status_config( $group = '' ) {
 }
 
 /**
+ * Chuyển chuỗi tiền tệ (VD: "150000", "150.000", "150,000", "150k", "cọc 90k") thành số VNĐ chuẩn.
+ *
+ * @param mixed $raw
+ * @return float
+ */
+function memora_crm_parse_money_value( $raw ) {
+    if ( is_numeric( $raw ) ) {
+        $val = floatval( $raw );
+        if ( $val > 0 && $val < 1000 ) {
+            return $val * 1000;
+        }
+        return $val;
+    }
+
+    $str = trim( (string) $raw );
+    if ( '' === $str ) {
+        return 0;
+    }
+
+    // Nếu có hậu tố "k" (VD: "90k", "cọc 150k", "150.5k")
+    if ( preg_match( '/(\d+(?:[\.,]\d+)?)\s*k\b/iu', $str, $m ) ) {
+        $num = floatval( str_replace( ',', '.', $m[1] ) );
+        return $num * 1000;
+    }
+
+    // Chỉ lấy chữ số (bỏ dấu chấm/phẩy phân cách hàng nghìn của VNĐ như "150.000" hoặc "150,000")
+    $digits = preg_replace( '/[^0-9]/', '', $str );
+    if ( '' === $digits ) {
+        return 0;
+    }
+
+    $val = floatval( $digits );
+    if ( $val > 0 && $val < 1000 ) {
+        $val *= 1000;
+    }
+    return $val;
+}
+
+/**
+ * Đồng bộ tổng tiền (Total) vào line items và WC_Order để hiển thị đúng trên bảng WooCommerce Orders.
+ *
+ * @param WC_Order $order
+ * @param float    $amount
+ */
+function memora_crm_sync_wc_order_total( $order, $amount ) {
+    if ( ! $order instanceof WC_Order ) {
+        return;
+    }
+    $amount = floatval( $amount );
+    $items  = $order->get_items();
+
+    if ( ! empty( $items ) ) {
+        foreach ( $items as $item ) {
+            if ( is_a( $item, 'WC_Order_Item_Product' ) ) {
+                $item->set_subtotal( $amount );
+                $item->set_total( $amount );
+                $item->save();
+            } elseif ( is_a( $item, 'WC_Order_Item_Fee' ) ) {
+                $item->set_amount( $amount );
+                $item->set_total( $amount );
+                $item->save();
+            }
+        }
+    } else {
+        $item = new WC_Order_Item_Fee();
+        $item->set_name( 'Đặt lịch chụp ảnh Memora' );
+        $item->set_amount( $amount );
+        $item->set_total( $amount );
+        $item->set_tax_status( 'none' );
+        $item->set_taxes( array() );
+        $order->add_item( $item );
+    }
+
+    $order->calculate_totals( false );
+    $order->set_total( $amount );
+}
+
+/**
  * 2. TRÍCH XUẤT TOÀN BỘ THÔNG TIN CRM TỪ ĐƠN HÀNG WOOCOMMERCE
  *
  * @param int|WC_Order $order_or_id
@@ -166,8 +244,28 @@ function memora_crm_get_order_data( $order_or_id ) {
     $branch_name = $order->get_meta( '_booking_dia_chi_name' );
 
     // Tiền cọc & tổng tiền
-    $deposit = floatval( $order->get_meta( '_booking_deposit_price' ) );
-    $total   = floatval( $order->get_meta( '_booking_total_price' ) ?: $order->get_total() );
+    $deposit = memora_crm_parse_money_value( $order->get_meta( '_booking_deposit_price' ) );
+    $total   = memora_crm_parse_money_value( $order->get_meta( '_booking_total_price' ) ?: $order->get_total() );
+
+    // Nếu chưa có tiền cọc nhưng trong ghi chú Background có ghi "cọc 90k" / "150k" thì tự trích xuất
+    $raw_bg_meta = (string) $order->get_meta( '_booking_background_note' );
+    if ( $deposit <= 0 && '' !== $raw_bg_meta && preg_match( '/(\d+(?:[\.,]\d+)?)\s*k\b/iu', $raw_bg_meta ) ) {
+        $deposit = memora_crm_parse_money_value( $raw_bg_meta );
+    }
+
+    if ( $total <= 0 && $deposit > 0 ) {
+        $total = $deposit;
+    }
+
+    // Tự động đồng bộ lại Total của WooCommerce Order nếu đơn cũ bị lưu total = 0 hoặc lệch khi đã có tiền cọc
+    if ( $total > 0 && floatval( $order->get_total() ) != $total ) {
+        if ( $deposit > 0 ) {
+            $order->update_meta_data( '_booking_deposit_price', $deposit );
+        }
+        $order->update_meta_data( '_booking_total_price', $total );
+        memora_crm_sync_wc_order_total( $order, $total );
+        $order->save();
+    }
 
     // --- Các trạng thái CRM chuyên biệt (kèm fallback thông minh nếu đơn chưa lưu) ---
     // 1. Thanh toán
@@ -303,6 +401,19 @@ function memora_crm_update_order_field( $order_id, $field_name, $value ) {
             $order->update_meta_data( '_booking_phong_name', $room_post->post_title );
             $order->update_meta_data( '_booking_room_name', $room_post->post_title );
         }
+    } elseif ( 'background_note' === $field_name ) {
+        // Nếu người dùng nhập "cọc 90k" / "150k" trực tiếp vào cột Background mà đơn đang 0đ thì cập nhật luôn tiền cọc & Total
+        if ( preg_match( '/(\d+(?:[\.,]\d+)?)\s*k\b/iu', $new_value ) ) {
+            $extracted_dep = memora_crm_parse_money_value( $new_value );
+            if ( $extracted_dep > 0 ) {
+                $order->update_meta_data( '_booking_deposit_price', $extracted_dep );
+                $cur_total = memora_crm_parse_money_value( $order->get_meta( '_booking_total_price' ) );
+                if ( $cur_total <= 0 || $cur_total === memora_crm_parse_money_value( $old_value ) ) {
+                    $order->update_meta_data( '_booking_total_price', $extracted_dep );
+                    memora_crm_sync_wc_order_total( $order, $extracted_dep );
+                }
+            }
+        }
     }
 
     // Ghi Order Note để kiểm soát lịch sử thao tác
@@ -376,6 +487,22 @@ function memora_crm_update_booking_info( $order_id, $data ) {
         }
     }
 
+    if ( isset( $data['deposit_price'] ) ) {
+        $dep     = memora_crm_parse_money_value( $data['deposit_price'] );
+        $old_dep = memora_crm_parse_money_value( $order->get_meta( '_booking_deposit_price' ) );
+        if ( $dep <= 0 && ! empty( $data['background_note'] ) && preg_match( '/(\d+(?:[\.,]\d+)?)\s*k\b/iu', $data['background_note'] ) ) {
+            $dep = memora_crm_parse_money_value( $data['background_note'] );
+        }
+        if ( $dep !== $old_dep || floatval( $order->get_total() ) !== $dep ) {
+            $order->update_meta_data( '_booking_deposit_price', $dep );
+            $order->update_meta_data( '_booking_total_price', $dep );
+            memora_crm_sync_wc_order_total( $order, $dep );
+            if ( $dep !== $old_dep ) {
+                $changes[] = sprintf( 'Tiền cọc/Tổng: %s -> %s', number_format( $old_dep, 0, ',', '.' ), number_format( $dep, 0, ',', '.' ) );
+            }
+        }
+    }
+
     if ( ! empty( $changes ) ) {
         $current_user = wp_get_current_user();
         $actor_name   = $current_user->exists() ? $current_user->display_name : 'Hệ thống CRM';
@@ -388,6 +515,46 @@ function memora_crm_update_booking_info( $order_id, $data ) {
     $order->save();
 
     return true;
+}
+
+/**
+ * 3c. ĐỒNG BỘ TỰ ĐỘNG CÁC ĐƠN HÀNG ĐẶT LỊCH CÓ TIỀN CỌC NHƯNG WOOCOMMERCE TOTAL ĐANG BẰNG 0
+ */
+add_action( 'admin_init', 'memora_crm_sync_zero_total_orders' );
+function memora_crm_sync_zero_total_orders() {
+    if ( ! function_exists( 'wc_get_orders' ) ) {
+        return;
+    }
+
+    $recent_orders = wc_get_orders( array(
+        'limit'   => 25,
+        'orderby' => 'date',
+        'order'   => 'DESC',
+        'status'  => array( 'wc-pending', 'wc-processing', 'wc-on-hold', 'wc-completed' ),
+    ) );
+
+    if ( empty( $recent_orders ) ) {
+        return;
+    }
+
+    foreach ( $recent_orders as $order ) {
+        $deposit = memora_crm_parse_money_value( $order->get_meta( '_booking_deposit_price' ) );
+        $total   = memora_crm_parse_money_value( $order->get_meta( '_booking_total_price' ) );
+        $bg_note = (string) $order->get_meta( '_booking_background_note' );
+        if ( $deposit <= 0 && '' !== $bg_note && preg_match( '/(\d+(?:[\.,]\d+)?)\s*k\b/iu', $bg_note ) ) {
+            $deposit = memora_crm_parse_money_value( $bg_note );
+        }
+        $amount = $total > 0 ? $total : $deposit;
+
+        if ( $amount > 0 && floatval( $order->get_total() ) != $amount ) {
+            if ( $deposit > 0 ) {
+                $order->update_meta_data( '_booking_deposit_price', $deposit );
+            }
+            $order->update_meta_data( '_booking_total_price', $amount );
+            memora_crm_sync_wc_order_total( $order, $amount );
+            $order->save();
+        }
+    }
 }
 
 /**

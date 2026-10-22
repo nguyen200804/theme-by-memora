@@ -325,6 +325,12 @@ function memora_crm_ajax_update_booking_info() {
         'package_name'    => isset( $_POST['package_name'] ) ? sanitize_text_field( wp_unslash( $_POST['package_name'] ) ) : '',
         'background_note' => isset( $_POST['background_note'] ) ? sanitize_text_field( wp_unslash( $_POST['background_note'] ) ) : '',
     );
+    if ( isset( $_POST['deposit_price'] ) ) {
+        $raw_dep = sanitize_text_field( wp_unslash( $_POST['deposit_price'] ) );
+        $data['deposit_price'] = function_exists( 'memora_crm_parse_money_value' )
+            ? memora_crm_parse_money_value( $raw_dep )
+            : floatval( preg_replace( '/[^0-9]/', '', $raw_dep ) );
+    }
 
     if ( function_exists( 'memora_crm_update_booking_info' ) ) {
         $res = memora_crm_update_booking_info( $order_id, $data );
@@ -357,8 +363,21 @@ function memora_crm_ajax_quick_book() {
     $package_name = isset( $_POST['package_name'] )  ? sanitize_text_field( wp_unslash( $_POST['package_name'] ) )  : '5';
     $bg_note      = isset( $_POST['background_note'] ) ? sanitize_text_field( wp_unslash( $_POST['background_note'] ) ) : '';
     $payment_stat = isset( $_POST['payment_status'] )? sanitize_text_field( wp_unslash( $_POST['payment_status'] ) ) : 'da_ck';
-    $total_price  = isset( $_POST['total_price'] )   ? floatval( $_POST['total_price'] )                            : 0;
-    $deposit_price= isset( $_POST['deposit_price'] ) ? floatval( $_POST['deposit_price'] )                          : 0;
+    $raw_total    = isset( $_POST['total_price'] )   ? sanitize_text_field( wp_unslash( $_POST['total_price'] ) )   : '0';
+    $raw_deposit  = isset( $_POST['deposit_price'] ) ? sanitize_text_field( wp_unslash( $_POST['deposit_price'] ) ) : '0';
+    $total_price  = function_exists( 'memora_crm_parse_money_value' ) ? memora_crm_parse_money_value( $raw_total )   : floatval( preg_replace( '/[^0-9]/', '', $raw_total ) );
+    $deposit_price= function_exists( 'memora_crm_parse_money_value' ) ? memora_crm_parse_money_value( $raw_deposit ) : floatval( preg_replace( '/[^0-9]/', '', $raw_deposit ) );
+
+    // Nếu không nhập ô Tiền cọc nhưng có ghi "cọc 90k" / "150k" trong Background / Ghi chú thì tự trích xuất
+    if ( $deposit_price <= 0 && ! empty( $bg_note ) && preg_match( '/(\d+(?:[\.,]\d+)?)\s*k\b/iu', $bg_note ) && function_exists( 'memora_crm_parse_money_value' ) ) {
+        $deposit_price = memora_crm_parse_money_value( $bg_note );
+    }
+
+    // Nếu đặt nhanh tại quầy chỉ nhập Tiền cọc thì gán Tổng tiền = Tiền cọc để WooCommerce tính đúng Total
+    if ( $total_price <= 0 && $deposit_price > 0 ) {
+        $total_price = $deposit_price;
+    }
+    $pay_amount = $total_price > 0 ? $total_price : $deposit_price;
 
     if ( empty( $date ) || empty( $time ) || empty( $customer_name ) ) {
         wp_send_json_error( array( 'message' => 'Vui lòng nhập đầy đủ Ngày, Giờ và Tên khách hàng.' ) );
@@ -407,18 +426,37 @@ function memora_crm_ajax_quick_book() {
         $order->set_billing_phone( $phone );
     }
 
-    // Thêm line item sản phẩm đặt lịch nếu có
+    // Thêm line item sản phẩm đặt lịch vào đơn hàng
+    $item_title = sprintf( 'Đặt lịch tại quầy — %s | %s %s', $package_name, $date, $time );
     $product_id = function_exists( 'memora_get_or_create_booking_product' ) ? memora_get_or_create_booking_product() : 0;
-    if ( $product_id > 0 ) {
-        $item_id = $order->add_product( wc_get_product( $product_id ), 1, array(
-            'subtotal' => $total_price > 0 ? $total_price : $deposit_price,
-            'total'    => $total_price > 0 ? $total_price : $deposit_price,
-        ) );
-        if ( $item_id ) {
-            $item = $order->get_item( $item_id );
-            $item->set_name( sprintf( 'Đặt lịch tại quầy — %s | %s %s', $package_name, $date, $time ) );
-            $item->save();
+    $product    = ( $product_id > 0 && function_exists( 'wc_get_product' ) ) ? wc_get_product( $product_id ) : false;
+
+    if ( $product ) {
+        $item = new WC_Order_Item_Product();
+        $item->set_product( $product );
+        $item->set_quantity( 1 );
+        $item->set_name( $item_title );
+        $item->set_subtotal( $pay_amount );
+        $item->set_total( $pay_amount );
+        $item->update_meta_data( 'Mã đặt lịch', '#' . $code );
+        $item->update_meta_data( 'Ngày chụp', $date );
+        $item->update_meta_data( 'Giờ chụp', $time );
+        $item->update_meta_data( 'Gói chụp', $package_name );
+        if ( ! empty( $room_name ) ) {
+            $item->update_meta_data( 'Phòng chụp', $room_name );
         }
+        if ( ! empty( $dia_chi_name ) ) {
+            $item->update_meta_data( 'Chi nhánh', $dia_chi_name );
+        }
+        $order->add_item( $item );
+    } else {
+        $item = new WC_Order_Item_Fee();
+        $item->set_name( $item_title );
+        $item->set_amount( $pay_amount );
+        $item->set_total( $pay_amount );
+        $item->set_tax_status( 'none' );
+        $item->set_taxes( array() );
+        $order->add_item( $item );
     }
 
     // Lưu toàn bộ metadata
@@ -458,6 +496,9 @@ function memora_crm_ajax_quick_book() {
         $actor_name, $code, $date, $time, $room_name, $package_name, $customer_name, $phone
     ) );
 
+    // Tính toán tổng tiền cho WooCommerce Order để hiển thị đúng cột Total trong danh sách Orders
+    $order->calculate_totals( false );
+    $order->set_total( $pay_amount );
     $order->save();
 
     $new_booking_data = memora_crm_get_order_data( $order );

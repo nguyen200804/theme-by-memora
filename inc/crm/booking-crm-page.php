@@ -363,7 +363,7 @@ function memora_crm_render_view() {
                             </div>
                             <div>
                                 <label class="memora-crm-field-label">Tiền cọc (VNĐ)</label>
-                                <input type="number" id="memora-quick-deposit" class="memora-crm-form-control" placeholder="0">
+                                <input type="text" inputmode="numeric" id="memora-quick-deposit" class="memora-crm-form-control" placeholder="VD: 150000">
                             </div>
                             <div>
                                 <label class="memora-crm-field-label">Thanh toán</label>
@@ -413,6 +413,10 @@ function memora_crm_render_view() {
                         <div>
                             <label class="memora-crm-field-label">Background / Ghi chú</label>
                             <input type="text" id="memora-detail-bg-input" class="memora-crm-form-control" placeholder="Nhập phông nền / ghi chú...">
+                        </div>
+                        <div class="memora-crm-form-full">
+                            <label class="memora-crm-field-label">Tiền cọc / Tổng tiền (VNĐ)</label>
+                            <input type="text" inputmode="numeric" id="memora-detail-deposit-input" class="memora-crm-form-control" placeholder="VD: 150000">
                         </div>
                     </div>
 
