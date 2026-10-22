@@ -26,7 +26,8 @@ function memora_crm_verify_request() {
         wp_send_json_error( array( 'message' => 'Vui lòng đăng nhập để thao tác CRM.' ), 401 );
     }
 
-    $can_access = current_user_can( 'manage_woocommerce' ) 
+    $can_access = ( function_exists( 'memora_crm_user_has_access' ) && memora_crm_user_has_access() )
+               || current_user_can( 'manage_woocommerce' ) 
                || current_user_can( 'edit_shop_orders' ) 
                || current_user_can( 'manage_options' );
 
@@ -212,6 +213,15 @@ function memora_crm_ajax_get_schedule() {
             $booking_time = trim( $data['time'] );
             if ( empty( $booking_time ) ) continue;
 
+            // Lọc theo chi nhánh: nếu đơn hàng thuộc chi nhánh khác thì bỏ qua
+            $order_dia_chi = intval( $data['dia_chi_id'] );
+            if ( $order_dia_chi <= 0 && ! empty( $data['room_id'] ) && function_exists( 'memora_get_location_id_from_room' ) ) {
+                $order_dia_chi = memora_get_location_id_from_room( $data['room_id'] );
+            }
+            if ( $dia_chi_id > 0 && $order_dia_chi > 0 && $order_dia_chi !== $dia_chi_id ) {
+                continue;
+            }
+
             // Xác định room_id
             $order_room_id = $data['room_id'];
             if ( $order_room_id <= 0 || ! isset( $matrix[ (string) $order_room_id ] ) ) {
@@ -318,6 +328,14 @@ function memora_crm_ajax_quick_book() {
 
     if ( empty( $date ) || empty( $time ) || empty( $customer_name ) ) {
         wp_send_json_error( array( 'message' => 'Vui lòng nhập đầy đủ Ngày, Giờ và Tên khách hàng.' ) );
+    }
+
+    // Kiểm tra trùng lịch trước khi tạo đơn tại quầy
+    if ( function_exists( 'memora_get_booked_slots' ) ) {
+        $booked_slots = memora_get_booked_slots( $date, $room_id, $dia_chi_id );
+        if ( in_array( $time, $booked_slots, true ) ) {
+            wp_send_json_error( array( 'message' => 'Khung giờ ' . $time . ' của phòng này đã có lịch đặt. Vui lòng chọn giờ hoặc phòng khác!' ) );
+        }
     }
 
     // Tên phòng & tên chi nhánh
@@ -440,6 +458,21 @@ function memora_crm_ajax_move_booking() {
     $old_room = $order->get_meta( '_booking_room_name' ) ?: 'Phòng cũ';
     $old_time = $order->get_meta( '_booking_time' );
     $old_date = $order->get_meta( '_booking_date' );
+
+    // Kiểm tra xem slot mới có bị trùng lịch với đơn khác không
+    if ( function_exists( 'memora_get_booked_slots' ) ) {
+        $target_date = ! empty( $new_date ) ? $new_date : $old_date;
+        $target_room = $new_room_id > 0 ? $new_room_id : intval( $order->get_meta( '_booking_phong_id' ) );
+        $target_loc  = intval( $order->get_meta( '_booking_dia_chi_id' ) );
+        if ( $target_room > 0 && function_exists( 'memora_get_location_id_from_room' ) ) {
+            $loc = memora_get_location_id_from_room( $target_room );
+            if ( $loc > 0 ) $target_loc = $loc;
+        }
+        $target_booked = memora_get_booked_slots( $target_date, $target_room, $target_loc, $order_id );
+        if ( in_array( $new_time, $target_booked, true ) ) {
+            wp_send_json_error( array( 'message' => 'Khung giờ ' . $new_time . ' của phòng này đã có lịch hẹn. Không thể chuyển vào giờ này!' ) );
+        }
+    }
 
     // Cập nhật giờ
     $order->update_meta_data( '_booking_time', $new_time );

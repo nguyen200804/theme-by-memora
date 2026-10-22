@@ -14,13 +14,142 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * 0. KIỂM TRA QUYỀN HẠN VÀ ĐIỀU HƯỚNG BẢO MẬT CHO TRANG CRM
+ */
+
+/**
+ * Kiểm tra xem user có quyền truy cập CRM không.
+ * Chỉ user thuộc quyền 'administrator' hoặc 'editor' mới được phép.
+ *
+ * @param WP_User|null $user
+ * @return bool
+ */
+function memora_crm_user_has_access( $user = null ) {
+    if ( ! $user ) {
+        $user = wp_get_current_user();
+    }
+    if ( ! $user || ! $user->exists() ) {
+        return false;
+    }
+
+    $roles = (array) $user->roles;
+    if ( in_array( 'administrator', $roles, true ) || in_array( 'editor', $roles, true ) ) {
+        return true;
+    }
+
+    if ( is_multisite() && is_super_admin( $user->ID ) ) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Kiểm tra xem request hiện tại có phải là trang /quan-li-dat-lich/ hay không.
+ *
+ * @return bool
+ */
+function memora_is_crm_page() {
+    if ( is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+        return false;
+    }
+
+    // 1. Kiểm tra qua WordPress is_page
+    if ( function_exists( 'is_page' ) && is_page( 'quan-li-dat-lich' ) ) {
+        return true;
+    }
+
+    // 2. Kiểm tra qua $post object
+    global $post;
+    if ( is_singular() && is_a( $post, 'WP_Post' ) ) {
+        if ( $post->post_name === 'quan-li-dat-lich' ) {
+            return true;
+        }
+        if ( has_shortcode( $post->post_content, 'memora_booking_crm' ) ) {
+            return true;
+        }
+    }
+
+    // 3. Kiểm tra qua Request URI thực tế
+    if ( ! empty( $_SERVER['REQUEST_URI'] ) ) {
+        $path = trim( (string) parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ), '/' );
+        if ( $path === 'quan-li-dat-lich' || substr( $path, -17 ) === 'quan-li-dat-lich' ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * BẢO VỆ TRANG /quan-li-dat-lich/:
+ * Chỉ user thuộc quyền editor và administrator được vào /quan-li-dat-lich/.
+ * Nếu user khác hoặc chưa đăng nhập vào /quan-li-dat-lich/ thì sẽ 301 về trang đăng nhập.
+ */
+add_action( 'template_redirect', 'memora_crm_protect_page_and_redirect', 1 );
+function memora_crm_protect_page_and_redirect() {
+    if ( ! memora_is_crm_page() ) {
+        return;
+    }
+
+    if ( ! is_user_logged_in() || ! memora_crm_user_has_access() ) {
+        $current_url = home_url( '/quan-li-dat-lich/' );
+        $login_url   = wp_login_url( $current_url );
+        wp_redirect( $login_url, 301 );
+        exit;
+    }
+}
+
+/**
+ * TỰ ĐỘNG CHUYỂN SANG CANVAS TEMPLATE (KHÔNG HEADER, KHÔNG FOOTER) CHO /quan-li-dat-lich/
+ */
+add_filter( 'template_include', 'memora_crm_force_canvas_template', 999 );
+function memora_crm_force_canvas_template( $template ) {
+    if ( memora_is_crm_page() ) {
+        $portal_template = get_stylesheet_directory() . '/template-crm-portal.php';
+        if ( file_exists( $portal_template ) ) {
+            return $portal_template;
+        }
+    }
+    return $template;
+}
+
+/**
+ * ẨN HEADER VÀ FOOTER TRONG /quan-li-dat-lich/ (HELLO ELEMENTOR & THEME BUILDER HOOKS)
+ */
+add_filter( 'hello_elementor_header_display', 'memora_crm_disable_header_footer' );
+add_filter( 'hello_elementor_footer_display', 'memora_crm_disable_header_footer' );
+add_filter( 'hello_elementor_header_footer_display', 'memora_crm_disable_header_footer' );
+function memora_crm_disable_header_footer( $display ) {
+    if ( memora_is_crm_page() ) {
+        return false;
+    }
+    return $display;
+}
+
+add_filter( 'elementor/theme/need_override_location', function( $need_override, $location ) {
+    if ( memora_is_crm_page() && in_array( $location, array( 'header', 'footer' ), true ) ) {
+        return false;
+    }
+    return $need_override;
+}, 999, 2 );
+
+add_filter( 'body_class', function( $classes ) {
+    if ( memora_is_crm_page() ) {
+        $classes[] = 'memora-crm-portal-page';
+        $classes[] = 'elementor-template-canvas';
+    }
+    return $classes;
+} );
+
+/**
  * 1. ĐĂNG KÝ MENU QUẢN TRỊ TRONG WORDPRESS
  */
 add_action( 'admin_menu', 'memora_crm_register_admin_menu' );
 function memora_crm_register_admin_menu() {
-    $capability = 'manage_woocommerce';
-    if ( ! current_user_can( $capability ) && current_user_can( 'edit_shop_orders' ) ) {
-        $capability = 'edit_shop_orders';
+    $capability = 'edit_others_posts'; // Cho phép editor và administrator truy cập
+    if ( ! current_user_can( $capability ) && current_user_can( 'manage_woocommerce' ) ) {
+        $capability = 'manage_woocommerce';
     } elseif ( ! current_user_can( $capability ) && current_user_can( 'manage_options' ) ) {
         $capability = 'manage_options';
     }
@@ -41,17 +170,10 @@ function memora_crm_register_admin_menu() {
  */
 add_shortcode( 'memora_booking_crm', 'memora_crm_shortcode_handler' );
 function memora_crm_shortcode_handler() {
-    if ( ! is_user_logged_in() ) {
-        return '<div style="padding:30px;text-align:center;background:#fff;border-radius:8px;">Vui lòng đăng nhập để truy cập bàn làm việc CRM Lịch Chụp.</div>';
-    }
-
-    $can_access = current_user_can( 'manage_woocommerce' ) 
-               || current_user_can( 'edit_shop_orders' ) 
-               || current_user_can( 'manage_options' );
-    $can_access = apply_filters( 'memora_crm_user_can_access', $can_access, get_current_user_id() );
-
-    if ( ! $can_access ) {
-        return '<div style="padding:30px;text-align:center;background:#fff;border-radius:8px;color:#c62828;">Bạn không có quyền truy cập vào CRM này.</div>';
+    if ( ! is_user_logged_in() || ! memora_crm_user_has_access() ) {
+        $login_url = wp_login_url( home_url( '/quan-li-dat-lich/' ) );
+        wp_redirect( $login_url, 301 );
+        exit;
     }
 
     // Nạp assets cho frontend

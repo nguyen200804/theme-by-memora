@@ -211,15 +211,18 @@
             var $slotsGrid = $('.memora-time-slots-grid');
             if (!$slotsGrid.length) return;
 
-            // Ưu tiên dùng dia_chi_id từ state (URL hoặc sessionStorage)
-            // Fallback sang phong_id nếu chưa có (server sẽ tra ngược)
-            var diaChiId = state.diaChiId && state.diaChiId !== '0' ? state.diaChiId : null;
-            var phongId = state.roomId || $('.memora-choose-time-wrap').data('location-id') || 0;
+            // Lấy diaChiId từ state hoặc data-location-id của container
+            var diaChiId = (state.diaChiId && state.diaChiId !== '0') 
+                ? state.diaChiId 
+                : ($('.memora-choose-time-wrap').data('location-id') || null);
+            // Lấy phongId từ state
+            var phongId = (state.roomId && state.roomId !== '0') ? state.roomId : null;
 
             var ajaxData = { action: 'memora_get_slots', date: dateStr };
             if (diaChiId) {
                 ajaxData.dia_chi_id = diaChiId;
-            } else if (phongId) {
+            }
+            if (phongId) {
                 ajaxData.phong_id = phongId;
             }
 

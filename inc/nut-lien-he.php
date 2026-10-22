@@ -366,6 +366,10 @@ function memora_contact_button_footer_output() {
         return;
     }
 
+    if ( function_exists( 'memora_is_crm_page' ) && memora_is_crm_page() ) {
+        return;
+    }
+
     echo memora_render_contact_button();
 }
 

@@ -430,13 +430,69 @@ function memora_generate_time_slots( $start_time = '', $end_time = '', $interval
 //====================================
 // START - LẤY DANH SÁCH GIỜ ĐÃ ĐƯỢC ĐẶT TRONG NGÀY
 //====================================
-function memora_get_booked_slots( $date ) {
+/**
+ * Lấy danh sách khung giờ đã được đặt trong ngày, hỗ trợ lọc cô lập theo phòng và chi nhánh/địa chỉ.
+ *
+ * @param string $date             Ngày cần kiểm tra (định dạng d/m/Y hoặc Y-m-d).
+ * @param int    $room_id          ID post phòng chụp (phong-chup-anh). Nếu > 0: chỉ kiểm tra slot của phòng này.
+ * @param int    $location_id      Term ID của taxonomy 'dia-chi'. Nếu > 0: chỉ kiểm tra slot thuộc chi nhánh này.
+ * @param int    $exclude_order_id ID đơn hàng WC cần loại trừ (ví dụ khi dời lịch đơn đó).
+ * @return array Danh sách các slot giờ đã kín (HH:mm).
+ */
+function memora_get_booked_slots( $date, $room_id = 0, $location_id = 0, $exclude_order_id = 0 ) {
     if ( empty( $date ) ) {
         return array();
     }
 
+    $sanitized_date   = sanitize_text_field( $date );
+    $room_id          = intval( $room_id );
+    $location_id      = intval( $location_id );
+    $exclude_order_id = intval( $exclude_order_id );
+
+    // Nếu có phòng nhưng chưa có ID chi nhánh -> tra ngược từ phòng
+    if ( $room_id > 0 && $location_id <= 0 && function_exists( 'memora_get_location_id_from_room' ) ) {
+        $location_id = memora_get_location_id_from_room( $room_id );
+    }
+
+    // Chuẩn bị danh sách ngày truy vấn (hỗ trợ cả d/m/Y và Y-m-d)
+    $query_dates = array( $sanitized_date );
+    if ( strpos( $sanitized_date, '/' ) !== false ) {
+        $d_obj = DateTime::createFromFormat( 'd/m/Y', $sanitized_date );
+        if ( $d_obj ) {
+            $query_dates[] = $d_obj->format( 'Y-m-d' );
+        }
+    } elseif ( strpos( $sanitized_date, '-' ) !== false ) {
+        $d_obj = DateTime::createFromFormat( 'Y-m-d', $sanitized_date );
+        if ( $d_obj ) {
+            $query_dates[] = $d_obj->format( 'd/m/Y' );
+        }
+    }
+    $query_dates = array_unique( $query_dates );
+
+    // Nếu chỉ lọc theo chi nhánh mà chưa chọn phòng cụ thể ($room_id == 0):
+    // Đếm tổng số phòng của chi nhánh để xác định khi nào 1 slot giờ thực sự kín hoàn toàn (hết tất cả phòng).
+    $total_rooms = 1;
+    if ( $room_id <= 0 && $location_id > 0 ) {
+        $rooms_in_loc = get_posts( array(
+            'post_type'      => 'phong-chup-anh',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'tax_query'      => array(
+                array(
+                    'taxonomy' => 'dia-chi',
+                    'field'    => 'term_id',
+                    'terms'    => $location_id,
+                ),
+            ),
+        ) );
+        if ( ! empty( $rooms_in_loc ) ) {
+            $total_rooms = count( $rooms_in_loc );
+        }
+    }
+
     $booked_slots = array();
-    $sanitized_date = sanitize_text_field( $date );
+    $booked_rooms_by_time = array(); // [ '10:30' => [ 'room_1' => true, ... ] ]
 
     // 1. Lấy danh sách giờ đã đặt từ WooCommerce Orders
     if ( function_exists( 'wc_get_orders' ) ) {
@@ -447,22 +503,92 @@ function memora_get_booked_slots( $date ) {
                 'relation' => 'OR',
                 array(
                     'key'     => '_booking_date',
-                    'value'   => $sanitized_date,
-                    'compare' => '=',
+                    'value'   => $query_dates,
+                    'compare' => 'IN',
                 ),
                 array(
                     'key'     => '_memora_booking_date',
-                    'value'   => $sanitized_date,
-                    'compare' => '=',
+                    'value'   => $query_dates,
+                    'compare' => 'IN',
                 ),
             ),
         ) );
 
         if ( ! empty( $orders ) ) {
             foreach ( $orders as $order ) {
+                $order_id = $order->get_id();
+
+                // Loại trừ đơn đang chỉ định nếu có (ví dụ đơn đang được move)
+                if ( $exclude_order_id > 0 && $order_id === $exclude_order_id ) {
+                    continue;
+                }
+
+                // Bỏ qua đơn hàng đã hủy / thất bại
+                $wc_status = $order->get_status();
+                if ( in_array( $wc_status, array( 'cancelled', 'refunded', 'failed', 'trash' ), true ) ) {
+                    continue;
+                }
+                $shooting_status = $order->get_meta( '_booking_shooting_status' );
+                if ( 'huy' === $shooting_status ) {
+                    continue;
+                }
+
                 $time = $order->get_meta( '_booking_time' ) ?: $order->get_meta( '_memora_booking_time' );
-                if ( ! empty( $time ) ) {
-                    $booked_slots[] = trim( $time );
+                $time = trim( (string) $time );
+                if ( empty( $time ) ) {
+                    continue;
+                }
+
+                // Xác định chi nhánh của đơn hàng
+                $order_loc_id = intval( $order->get_meta( '_booking_dia_chi_id' ) );
+                $order_room_id = intval( $order->get_meta( '_booking_phong_id' ) );
+                $order_room_name = (string) ( $order->get_meta( '_booking_phong_name' ) ?: $order->get_meta( '_booking_room_name' ) );
+
+                if ( $order_loc_id <= 0 && $order_room_id > 0 && function_exists( 'memora_get_location_id_from_room' ) ) {
+                    $order_loc_id = memora_get_location_id_from_room( $order_room_id );
+                }
+                if ( $order_loc_id <= 0 && ! empty( $order->get_meta( '_booking_dia_chi_name' ) ) ) {
+                    $term = get_term_by( 'name', $order->get_meta( '_booking_dia_chi_name' ), 'dia-chi' );
+                    if ( $term && ! is_wp_error( $term ) ) {
+                        $order_loc_id = (int) $term->term_id;
+                    }
+                }
+
+                // --- KIỂM TRA ĐỊA CHỈ / CHI NHÁNH ---
+                // Nếu đang tra cứu cho 1 chi nhánh cụ thể ($location_id > 0)
+                // và đơn hàng thuộc chi nhánh khác đã xác định ($order_loc_id > 0) -> Bỏ qua ngay
+                if ( $location_id > 0 && $order_loc_id > 0 && $order_loc_id !== $location_id ) {
+                    continue;
+                }
+
+                // --- KIỂM TRA PHÒNG CHỤP ---
+                if ( $room_id > 0 ) {
+                    // Người dùng đang đặt / kiểm tra cho 1 phòng cụ thể
+                    $is_same_room = false;
+
+                    if ( $order_room_id > 0 ) {
+                        $is_same_room = ( $order_room_id === $room_id );
+                    } elseif ( ! empty( $order_room_name ) ) {
+                        $target_room_title = get_the_title( $room_id );
+                        if ( ! empty( $target_room_title ) ) {
+                            $is_same_room = ( stripos( $order_room_name, $target_room_title ) !== false || stripos( $target_room_title, $order_room_name ) !== false );
+                        }
+                    } else {
+                        // Đơn cũ không lưu thông tin phòng nhưng cùng chi nhánh
+                        // Nếu chi nhánh chỉ có 1 phòng thì coi như trùng phòng đó
+                        $is_same_room = ( $total_rooms <= 1 );
+                    }
+
+                    if ( $is_same_room ) {
+                        $booked_slots[] = $time;
+                    }
+                } else {
+                    // Người dùng chưa chọn phòng cụ thể: ghi nhận phòng đã được đặt tại slot giờ này
+                    $room_key = $order_room_id > 0 ? 'room_' . $order_room_id : ( ! empty( $order_room_name ) ? 'name_' . $order_room_name : 'default_' . $order_id );
+                    if ( ! isset( $booked_rooms_by_time[ $time ] ) ) {
+                        $booked_rooms_by_time[ $time ] = array();
+                    }
+                    $booked_rooms_by_time[ $time ][ $room_key ] = true;
                 }
             }
         }
@@ -477,8 +603,8 @@ function memora_get_booked_slots( $date ) {
             'relation' => 'AND',
             array(
                 'key'     => '_booking_date',
-                'value'   => $sanitized_date,
-                'compare' => '=',
+                'value'   => $query_dates,
+                'compare' => 'IN',
             ),
             array(
                 'key'     => '_booking_status',
@@ -492,14 +618,59 @@ function memora_get_booked_slots( $date ) {
     $booking_ids = get_posts( $args );
     if ( ! empty( $booking_ids ) ) {
         foreach ( $booking_ids as $id ) {
-            $time = get_post_meta( $id, '_booking_time', true );
-            if ( ! empty( $time ) ) {
-                $booked_slots[] = trim( $time );
+            $time = trim( (string) get_post_meta( $id, '_booking_time', true ) );
+            if ( empty( $time ) ) {
+                continue;
+            }
+
+            $post_loc_id    = intval( get_post_meta( $id, '_booking_dia_chi_id', true ) );
+            $post_room_id   = intval( get_post_meta( $id, '_booking_phong_id', true ) );
+            $post_room_name = (string) ( get_post_meta( $id, '_booking_phong_name', true ) ?: get_post_meta( $id, '_booking_room_name', true ) );
+
+            if ( $post_loc_id <= 0 && $post_room_id > 0 && function_exists( 'memora_get_location_id_from_room' ) ) {
+                $post_loc_id = memora_get_location_id_from_room( $post_room_id );
+            }
+
+            if ( $location_id > 0 && $post_loc_id > 0 && $post_loc_id !== $location_id ) {
+                continue;
+            }
+
+            if ( $room_id > 0 ) {
+                $is_same_room = false;
+                if ( $post_room_id > 0 ) {
+                    $is_same_room = ( $post_room_id === $room_id );
+                } elseif ( ! empty( $post_room_name ) ) {
+                    $target_room_title = get_the_title( $room_id );
+                    if ( ! empty( $target_room_title ) ) {
+                        $is_same_room = ( stripos( $post_room_name, $target_room_title ) !== false || stripos( $target_room_title, $post_room_name ) !== false );
+                    }
+                } else {
+                    $is_same_room = ( $total_rooms <= 1 );
+                }
+
+                if ( $is_same_room ) {
+                    $booked_slots[] = $time;
+                }
+            } else {
+                $room_key = $post_room_id > 0 ? 'room_' . $post_room_id : ( ! empty( $post_room_name ) ? 'name_' . $post_room_name : 'post_' . $id );
+                if ( ! isset( $booked_rooms_by_time[ $time ] ) ) {
+                    $booked_rooms_by_time[ $time ] = array();
+                }
+                $booked_rooms_by_time[ $time ][ $room_key ] = true;
             }
         }
     }
 
-    return array_unique( $booked_slots );
+    // Nếu chưa chọn phòng cụ thể: chỉ khóa slot giờ nếu số phòng đã đặt >= tổng số phòng của chi nhánh
+    if ( $room_id <= 0 && ! empty( $booked_rooms_by_time ) ) {
+        foreach ( $booked_rooms_by_time as $time_slot => $rooms_booked ) {
+            if ( count( $rooms_booked ) >= $total_rooms ) {
+                $booked_slots[] = $time_slot;
+            }
+        }
+    }
+
+    return array_values( array_unique( $booked_slots ) );
 }
 //====================================
 // END - LẤY DANH SÁCH GIỜ ĐÃ ĐƯỢC ĐẶT TRONG NGÀY

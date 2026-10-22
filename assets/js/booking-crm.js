@@ -451,16 +451,16 @@
                         <td class="memora-crm-cell memora-crm-cell--empty memora-crm-w-bg" data-room-id="${room.id}" data-room-name="${escapeHtml(room.name)}" data-time="${slotTime}"></td>
                         <td class="memora-crm-cell memora-crm-cell--empty memora-crm-w-phone" data-room-id="${room.id}" data-room-name="${escapeHtml(room.name)}" data-time="${slotTime}"></td>
                         <td class="memora-crm-cell memora-crm-cell--empty memora-crm-w-pay" data-room-id="${room.id}" data-room-name="${escapeHtml(room.name)}" data-time="${slotTime}">
-                            <div class="memora-crm-badge-wrap"><span class="memora-crm-badge-select memora-crm-badge--gray">&nbsp;</span></div>
+                            <div class="memora-crm-badge-wrap"><span class="memora-crm-badge-select memora-crm-badge--gray">-</span></div>
                         </td>
                         <td class="memora-crm-cell memora-crm-cell--empty memora-crm-w-shoot" data-room-id="${room.id}" data-room-name="${escapeHtml(room.name)}" data-time="${slotTime}">
-                            <div class="memora-crm-badge-wrap"><span class="memora-crm-badge-select memora-crm-badge--gray">&nbsp;</span></div>
+                            <div class="memora-crm-badge-wrap"><span class="memora-crm-badge-select memora-crm-badge--gray">-</span></div>
                         </td>
                         <td class="memora-crm-cell memora-crm-cell--empty memora-crm-w-inv" data-room-id="${room.id}" data-room-name="${escapeHtml(room.name)}" data-time="${slotTime}">
-                            <div class="memora-crm-badge-wrap"><span class="memora-crm-badge-select memora-crm-badge--gray">&nbsp;</span></div>
+                            <div class="memora-crm-badge-wrap"><span class="memora-crm-badge-select memora-crm-badge--gray">-</span></div>
                         </td>
                         <td class="memora-crm-cell memora-crm-cell--empty memora-crm-w-prt" data-room-id="${room.id}" data-room-name="${escapeHtml(room.name)}" data-time="${slotTime}">
-                            <div class="memora-crm-badge-wrap"><span class="memora-crm-badge-select memora-crm-badge--gray">&nbsp;</span></div>
+                            <div class="memora-crm-badge-wrap"><span class="memora-crm-badge-select memora-crm-badge--gray">-</span></div>
                         </td>
                     `;
                 }
@@ -479,16 +479,26 @@
     }
 
     /**
-     * Tạo phần tử select dropdown dạng badge màu
+     * Xác định class màu sắc dạng viên con nhộng theo trạng thái
+     */
+    function getBadgeColorClass(val) {
+        if (['da_ck', 'da_chup', 'da_in', 'tien_mat'].indexOf(val) !== -1) return 'memora-crm-badge--green';
+        if (['dang_chup', 'dang_in', 'da_coc'].indexOf(val) !== -1) return 'memora-crm-badge--orange';
+        if (['huy'].indexOf(val) !== -1) return 'memora-crm-badge--red';
+        if (['da_tra'].indexOf(val) !== -1) return 'memora-crm-badge--purple';
+        return 'memora-crm-badge--gray';
+    }
+
+    /**
+     * Tạo phần tử select dropdown dạng badge viên con nhộng
      */
     function renderBadgeSelect(orderId, field, currentValue, groupKey) {
         const groupConfigs = state.statusConfigs[groupKey] || {};
-        const currentConf = groupConfigs[currentValue] || {};
-        const bgStyle = currentConf.bg_color ? `background-color:${currentConf.bg_color};color:${currentConf.text_color};border-color:${currentConf.border_color};` : '';
+        const colorClass   = getBadgeColorClass(currentValue);
 
         let selectHtml = `
             <div class="memora-crm-badge-wrap">
-                <select class="memora-crm-badge-select" data-order-id="${orderId}" data-field="${field}" data-group="${groupKey}" style="${bgStyle}">
+                <select class="memora-crm-badge-select ${colorClass}" data-order-id="${orderId}" data-field="${field}" data-group="${groupKey}">
         `;
 
         Object.keys(groupConfigs).forEach(valKey => {
@@ -509,15 +519,8 @@
      * Cập nhật màu sắc của dropdown badge ngay lập tức
      */
     function updateBadgeStyle($select, groupKey, newVal) {
-        const groupConfigs = state.statusConfigs[groupKey] || {};
-        const conf = groupConfigs[newVal] || {};
-        if (conf.bg_color) {
-            $select.css({
-                'background-color': conf.bg_color,
-                'color': conf.text_color,
-                'border-color': conf.border_color
-            });
-        }
+        $select.removeClass('memora-crm-badge--green memora-crm-badge--orange memora-crm-badge--gray memora-crm-badge--red memora-crm-badge--purple');
+        $select.addClass(getBadgeColorClass(newVal));
     }
 
     /**

@@ -29,18 +29,17 @@ function memora_ajax_get_slots() {
         wp_send_json_error( array( 'message' => 'Ngày không hợp lệ' ) );
     }
 
-    // Lấy ID địa chỉ để generate đúng slot theo dia-chi
-    $location_id = 0;
-    if ( ! empty( $_POST['dia_chi_id'] ) && intval( $_POST['dia_chi_id'] ) > 0 ) {
-        // dia_chi_id truyền thẳng → dùng ngay
-        $location_id = intval( $_POST['dia_chi_id'] );
-    } elseif ( ! empty( $_POST['phong_id'] ) && intval( $_POST['phong_id'] ) > 0 ) {
-        // phong_id → tra ngược sang dia-chi cha
-        $location_id = memora_get_location_id_from_room( intval( $_POST['phong_id'] ) );
+    // Lấy ID phòng và ID địa chỉ để lọc slot chính xác theo từng phòng / chi nhánh
+    $room_id     = ! empty( $_POST['phong_id'] ) ? intval( $_POST['phong_id'] ) : 0;
+    $location_id = ! empty( $_POST['dia_chi_id'] ) ? intval( $_POST['dia_chi_id'] ) : 0;
+
+    if ( $location_id <= 0 && $room_id > 0 && function_exists( 'memora_get_location_id_from_room' ) ) {
+        // phong_id → tra ngược sang dia-chi cha nếu chưa có dia_chi_id
+        $location_id = memora_get_location_id_from_room( $room_id );
     }
 
     $all_slots    = memora_generate_time_slots( '', '', 15, $location_id );
-    $booked_slots = memora_get_booked_slots( $date );
+    $booked_slots = memora_get_booked_slots( $date, $room_id, $location_id );
 
     // Kiểm tra giờ quá khứ nếu chọn ngày hôm nay
     $today_d_m_y = current_time( 'd/m/Y' );
@@ -136,8 +135,8 @@ function memora_ajax_submit_booking() {
         $deposit_price = $total_price * 1.0;
     }
 
-    // Concurrency Check: Kiểm tra lại slot giờ tránh xung đột đặt cùng lúc
-    $booked_slots = memora_get_booked_slots( $date );
+    // Concurrency Check: Kiểm tra lại slot giờ tránh xung đột đặt cùng lúc (cô lập theo phòng & chi nhánh)
+    $booked_slots = memora_get_booked_slots( $date, $phong_id, $dia_chi_id );
     if ( in_array( $time, $booked_slots, true ) ) {
         wp_send_json_error( array( 'message' => 'Rất tiếc! Khung giờ ' . $time . ' ngày ' . $date . ' vừa có người đặt trước. Bạn vui lòng chọn giờ khác nhé!' ) );
     }
@@ -402,8 +401,8 @@ function memora_ajax_prepare_checkout_session() {
     $dia_chi_id   = $dia_info['id'];
     $dia_chi_name = $dia_info['name'];
 
-    // Concurrency check: kiểm tra slot còn trống không
-    $booked_slots = memora_get_booked_slots( $date );
+    // Concurrency check: kiểm tra slot còn trống không (cô lập theo phòng & chi nhánh)
+    $booked_slots = memora_get_booked_slots( $date, $room_id, $dia_chi_id );
     if ( in_array( $time, $booked_slots, true ) ) {
         wp_send_json_error( array( 'message' => 'Rất tiếc! Khung giờ ' . $time . ' ngày ' . $date . ' vừa có người đặt. Vui lòng chọn giờ khác!' ) );
     }

@@ -413,73 +413,98 @@
 }
 
 /* ==========================================================================
-   4. STATUS DROPDOWN PILLS & BADGES (Y HỆT HÌNH ẢNH MẪU)
+   4. STATUS DROPDOWN PILLS & BADGES (BO CONG VIÊN CON NHỘNG ĐỒNG NHẤT 100%)
    ========================================================================== */
 .memora-crm-badge-wrap {
-    display: inline-flex;
-    align-items: center;
-    position: relative;
-    width: 100%;
-    justify-content: center;
+    display: inline-flex !important;
+    align-items: center !important;
+    position: relative !important;
+    width: 100% !important;
+    justify-content: center !important;
 }
 
-.memora-crm-badge-select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    border-radius: 14px;
-    padding: 4px 22px 4px 10px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    outline: none;
-    border: 1px solid transparent;
-    transition: all 0.15s ease;
-    text-align: center;
-    background-repeat: no-repeat;
-    background-position: right 6px center;
-    background-size: 9px;
-    width: 100%;
-    max-width: 95px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
+/* Áp dụng đồng nhất cho cả select lẫn span để 100% giống nhau dạng pill capsule */
+.memora-crm-app select.memora-crm-badge-select,
+.memora-crm-app span.memora-crm-badge-select,
+select.memora-crm-badge-select,
+span.memora-crm-badge-select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    border-radius: 9999px !important; /* Bo cong hoàn toàn dạng con nhộng */
+    height: 25px !important;
+    min-height: 25px !important;
+    max-height: 25px !important;
+    line-height: 23px !important;
+    padding: 0 18px 0 10px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    outline: none !important;
+    border: 1px solid #cbd5e1 !important;
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    background-image: none !important; /* Xóa triệt để mũi tên mặc định của WordPress Admin */
+    box-shadow: none !important;
+    transition: all 0.15s ease !important;
+    text-align: center !important;
+    text-align-last: center !important;
+    width: auto !important;
+    min-width: 80px !important;
+    max-width: 95px !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
-.memora-crm-badge-select:hover {
-    filter: brightness(0.96);
+.memora-crm-app select.memora-crm-badge-select:hover,
+.memora-crm-app span.memora-crm-badge-select:hover {
+    filter: brightness(0.96) !important;
 }
 
-.memora-crm-badge-select:focus {
-    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+.memora-crm-app select.memora-crm-badge-select:focus {
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
 }
 
 /* Mũi tên tam giác chỉ xuống cho dropdown */
 .memora-crm-badge-wrap::after {
-    content: "▾";
-    position: absolute;
-    right: 8px;
-    font-size: 10px;
-    pointer-events: none;
-    color: currentColor;
-    opacity: 0.75;
+    content: "▾" !important;
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 9px !important;
+    line-height: 1 !important;
+    pointer-events: none !important;
+    color: currentColor !important;
+    opacity: 0.65 !important;
 }
 
-/* Màu trạng thái: Xanh lá (Đã hoàn tất / Đã chụp / Đã in) */
+/* Màu trạng thái: Xanh lá (Đã ck / Đã chụp / Đã in / Tiền mặt) */
+.memora-crm-app select.memora-crm-badge-select.memora-crm-badge--green,
+.memora-crm-app span.memora-crm-badge-select.memora-crm-badge--green,
 .memora-crm-badge--green {
     background-color: #c8e6c9 !important;
     color: #1b5e20 !important;
     border-color: #a5d6a7 !important;
 }
 
-/* Màu trạng thái: Vàng / Cam (Đang xử lý / Đã cọc) */
+/* Màu trạng thái: Vàng / Cam (Đang chụp / Đang in / Đã cọc) */
+.memora-crm-app select.memora-crm-badge-select.memora-crm-badge--orange,
+.memora-crm-app span.memora-crm-badge-select.memora-crm-badge--orange,
 .memora-crm-badge--orange {
     background-color: #fff3e0 !important;
     color: #e65100 !important;
     border-color: #ffcc80 !important;
 }
 
-/* Màu trạng thái: Xám nhạt (Chưa làm / Trống / Chờ) */
+/* Màu trạng thái: Xám nhạt (Chưa TT / Chờ chụp / Chưa in / Trống) */
+.memora-crm-app select.memora-crm-badge-select.memora-crm-badge--gray,
+.memora-crm-app span.memora-crm-badge-select.memora-crm-badge--gray,
 .memora-crm-badge--gray {
     background-color: #f1f5f9 !important;
     color: #64748b !important;
@@ -487,6 +512,8 @@
 }
 
 /* Màu trạng thái: Đỏ (Hủy) */
+.memora-crm-app select.memora-crm-badge-select.memora-crm-badge--red,
+.memora-crm-app span.memora-crm-badge-select.memora-crm-badge--red,
 .memora-crm-badge--red {
     background-color: #fee2e2 !important;
     color: #991b1b !important;
@@ -494,6 +521,8 @@
 }
 
 /* Màu trạng thái: Tím (Đã trả ảnh) */
+.memora-crm-app select.memora-crm-badge-select.memora-crm-badge--purple,
+.memora-crm-app span.memora-crm-badge-select.memora-crm-badge--purple,
 .memora-crm-badge--purple {
     background-color: #ede7f6 !important;
     color: #4a148c !important;
@@ -784,4 +813,36 @@
         background: #eeeeee !important;
     }
 }
+
+/* ==========================================================================
+   ẨN HEADER VÀ FOOTER TRONG /quan-li-dat-lich/ & CANVAS PORTAL
+   ========================================================================== */
+body.memora-crm-portal-page header,
+body.memora-crm-portal-page footer,
+body.memora-crm-portal-page #site-header,
+body.memora-crm-portal-page #site-footer,
+body.memora-crm-portal-page .site-header,
+body.memora-crm-portal-page .site-footer,
+body.memora-crm-portal-page [data-elementor-type="header"],
+body.memora-crm-portal-page [data-elementor-type="footer"],
+body.memora-crm-portal-page .elementor-location-header,
+body.memora-crm-portal-page .elementor-location-footer,
+body.memora-crm-portal-page .elementor-header,
+body.memora-crm-portal-page .elementor-footer,
+body.memora-crm-portal-page .memora-contact-btn-wrap,
+body.memora-crm-portal-page #memora_contact_button,
+body.memora-crm-portal-page .memora-menu-header-wrap,
+body.memora-crm-portal-page #memora_menu_header {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+body.memora-crm-portal-page {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #f8fafc !important;
+}
+
 
