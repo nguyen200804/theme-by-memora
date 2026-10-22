@@ -37,24 +37,36 @@
 /* ==========================================================================
    2. THANH CÔNG CỤ ĐIỀU KHIỂN (TOOLBAR)
    ========================================================================== */
+.memora-crm-app .memora-crm-toolbar,
 .memora-crm-toolbar {
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 12px 18px;
+    padding: 14px 18px;
     margin-bottom: 16px;
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
+    flex-direction: column;
+    gap: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+/* Hàng 1: Brand & Date (trái) + 4 Bộ lọc (phải) */
+.memora-crm-app .memora-crm-toolbar__top,
+.memora-crm-toolbar__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.memora-crm-app .memora-crm-toolbar__brand-date,
+.memora-crm-toolbar__brand-date,
 .memora-crm-toolbar__left {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
     flex-wrap: wrap;
 }
 
@@ -81,6 +93,7 @@
     font-weight: 700;
     color: #1e293b;
     letter-spacing: -0.3px;
+    white-space: nowrap;
 }
 
 /* Bộ điều khiển ngày */
@@ -132,6 +145,7 @@
     color: #334155;
     cursor: pointer;
     transition: all 0.15s ease;
+    white-space: nowrap;
 }
 
 .memora-crm-btn-today:hover {
@@ -140,29 +154,93 @@
     color: #0f172a;
 }
 
-/* Bộ chọn cơ sở */
-.memora-crm-select {
-    padding: 7px 12px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #334155;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    outline: none;
-    cursor: pointer;
+/* ==========================================================================
+   4 THANH LỌC NẰM NGANG BÊN PHẢI (CHI NHÁNH, PHÒNG, SLOT, TÌM KIẾM)
+   ========================================================================== */
+.memora-crm-app .memora-crm-toolbar__filters,
+.memora-crm-toolbar__filters {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    margin-left: auto !important;
 }
 
-.memora-crm-select:focus {
-    border-color: #733e1c;
-    box-shadow: 0 0 0 2px rgba(115, 62, 28, 0.15);
+/* Reset toàn diện cho các select bộ lọc trên frontend (chống Hello Elementor/Theme override width: 100%) */
+.memora-crm-app select.memora-crm-select,
+.memora-crm-toolbar select.memora-crm-select,
+select.memora-crm-select {
+    width: auto !important;
+    min-width: 120px !important;
+    max-width: 210px !important;
+    height: 38px !important;
+    line-height: 1.4 !important;
+    padding: 6px 28px 6px 12px !important;
+    margin: 0 !important;
+    display: inline-block !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #334155 !important;
+    background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E") no-repeat right 8px center / 16px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    outline: none !important;
+    cursor: pointer !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    box-sizing: border-box !important;
+    flex: 0 0 auto !important;
 }
 
-/* Nhóm hành động phải */
+.memora-crm-app select.memora-crm-select:focus,
+select.memora-crm-select:focus {
+    border-color: #733e1c !important;
+    box-shadow: 0 0 0 2px rgba(115, 62, 28, 0.15) !important;
+}
+
+/* Ô tìm kiếm nhanh */
+.memora-crm-app input.memora-crm-search-input,
+.memora-crm-toolbar input.memora-crm-search-input,
+input.memora-crm-search-input {
+    width: 170px !important;
+    min-width: 130px !important;
+    max-width: 210px !important;
+    height: 38px !important;
+    line-height: 1.4 !important;
+    padding: 6px 12px !important;
+    margin: 0 !important;
+    display: inline-block !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    color: #1e293b !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    flex: 0 0 auto !important;
+    transition: all 0.2s ease !important;
+}
+
+.memora-crm-app input.memora-crm-search-input:focus,
+input.memora-crm-search-input:focus {
+    width: 210px !important;
+    border-color: #733e1c !important;
+    box-shadow: 0 0 0 2px rgba(115, 62, 28, 0.15) !important;
+}
+
+/* ==========================================================================
+   HÀNG 2: CÁC NÚT HÀNH ĐỘNG (BÊN TRÁI)
+   ========================================================================== */
+.memora-crm-app .memora-crm-toolbar__bottom,
+.memora-crm-toolbar__bottom,
 .memora-crm-toolbar__right {
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-wrap: wrap;
+    width: 100%;
 }
 
 .memora-crm-btn-primary {
@@ -179,6 +257,7 @@
     gap: 6px;
     transition: all 0.15s ease;
     box-shadow: 0 1px 2px rgba(115, 62, 28, 0.2);
+    white-space: nowrap;
 }
 
 .memora-crm-btn-primary:hover {
@@ -198,6 +277,7 @@
     align-items: center;
     gap: 6px;
     transition: all 0.15s ease;
+    white-space: nowrap;
 }
 
 .memora-crm-btn-secondary:hover {
@@ -713,21 +793,11 @@ span.memora-crm-badge-select {
 /* ==========================================================================
    7. TÍNH NĂNG TÁC NGHIỆP NÂNG CAO (SEARCH, DETAIL MODAL, HIGHLIGHT)
    ========================================================================== */
-.memora-crm-search-input {
-    padding: 7px 12px;
-    font-size: 13px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    background: #ffffff;
-    width: 170px;
-    outline: none;
-    transition: all 0.2s ease;
-}
-
+.memora-crm-app input.memora-crm-search-input:focus,
 .memora-crm-search-input:focus {
-    width: 220px;
-    border-color: #733e1c;
-    box-shadow: 0 0 0 2px rgba(115, 62, 28, 0.15);
+    width: 220px !important;
+    border-color: #733e1c !important;
+    box-shadow: 0 0 0 2px rgba(115, 62, 28, 0.15) !important;
 }
 
 /* Ô được tìm kiếm khớp (Search Match Highlight) */

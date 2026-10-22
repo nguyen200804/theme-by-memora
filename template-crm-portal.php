@@ -59,12 +59,15 @@ if ( function_exists( 'memora_crm_enqueue_assets' ) ) {
             flex-direction: column;
             background: #f8fafc;
         }
+        .memora-crm-portal-wrapper .memora-crm-app,
         .memora-crm-portal-wrapper .memora-crm-container {
+            width: 100% !important;
             max-width: 100% !important;
             border-radius: 0 !important;
             box-shadow: none !important;
             margin: 0 !important;
             flex: 1;
+            box-sizing: border-box !important;
         }
     </style>
 </head>

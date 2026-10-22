@@ -228,42 +228,49 @@ function memora_crm_render_view() {
     <div id="memora-crm-app" class="memora-crm-app">
         <!-- 1. Toolbar điều khiển -->
         <div class="memora-crm-toolbar">
-            <div class="memora-crm-toolbar__left">
-                <div class="memora-crm-brand">
-                    <span class="memora-crm-brand__badge">Memora</span>
-                    <h2 class="memora-crm-brand__title">Bảng Điều Phối Lịch Chụp</h2>
+            <!-- Hàng 1: Tiêu đề & Chọn ngày (trái) + 4 Thanh lọc nằm ngang (phải) -->
+            <div class="memora-crm-toolbar__top">
+                <div class="memora-crm-toolbar__brand-date">
+                    <div class="memora-crm-brand">
+                        <span class="memora-crm-brand__badge">Memora</span>
+                        <h2 class="memora-crm-brand__title">Bảng Điều Phối Lịch Chụp</h2>
+                    </div>
+
+                    <!-- Bộ điều khiển ngày -->
+                    <div class="memora-crm-date-ctrl">
+                        <button type="button" class="memora-crm-btn-icon" id="memora-crm-btn-prev" title="Hôm trước">‹</button>
+                        <input type="date" id="memora-crm-date" class="memora-crm-date-input" value="<?php echo esc_attr( current_time( 'Y-m-d' ) ); ?>">
+                        <button type="button" class="memora-crm-btn-icon" id="memora-crm-btn-next" title="Hôm sau">›</button>
+                    </div>
+                    <button type="button" class="memora-crm-btn-today" id="memora-crm-btn-today">Hôm nay</button>
                 </div>
 
-                <!-- Bộ điều khiển ngày -->
-                <div class="memora-crm-date-ctrl">
-                    <button type="button" class="memora-crm-btn-icon" id="memora-crm-btn-prev" title="Hôm trước">‹</button>
-                    <input type="date" id="memora-crm-date" class="memora-crm-date-input" value="<?php echo esc_attr( current_time( 'Y-m-d' ) ); ?>">
-                    <button type="button" class="memora-crm-btn-icon" id="memora-crm-btn-next" title="Hôm sau">›</button>
+                <!-- 4 Thanh lọc nằm ngang bên phải (Chi nhánh, Phòng, Slot, Tìm kiếm) -->
+                <div class="memora-crm-toolbar__filters">
+                    <!-- 1. Bộ chọn chi nhánh / cơ sở -->
+                    <select id="memora-crm-location" class="memora-crm-select" title="Chọn chi nhánh">
+                        <option value="0">Tất cả chi nhánh</option>
+                    </select>
+
+                    <!-- 2. Bộ chọn lọc phòng chụp -->
+                    <select id="memora-crm-room-filter" class="memora-crm-select" title="Lọc theo phòng chụp">
+                        <option value="0">Tất cả phòng</option>
+                    </select>
+
+                    <!-- 3. Bộ chọn bước nhảy slot -->
+                    <select id="memora-crm-interval" class="memora-crm-select" title="Bước nhảy khung giờ">
+                        <option value="5" selected>Slot: 5 phút</option>
+                        <option value="10">Slot: 10 phút</option>
+                        <option value="15">Slot: 15 phút</option>
+                    </select>
+
+                    <!-- 4. Ô tìm kiếm nhanh khách hàng -->
+                    <input type="text" id="memora-crm-search" class="memora-crm-search-input" placeholder="🔍 Tìm tên, SĐT...">
                 </div>
-                <button type="button" class="memora-crm-btn-today" id="memora-crm-btn-today">Hôm nay</button>
-
-                <!-- Bộ chọn chi nhánh / cơ sở -->
-                <select id="memora-crm-location" class="memora-crm-select">
-                    <option value="0">Tất cả chi nhánh</option>
-                </select>
-
-                <!-- Bộ chọn lọc phòng chụp -->
-                <select id="memora-crm-room-filter" class="memora-crm-select" title="Lọc theo phòng chụp">
-                    <option value="0">Tất cả phòng</option>
-                </select>
-
-                <!-- Bộ chọn bước nhảy slot -->
-                <select id="memora-crm-interval" class="memora-crm-select" title="Bước nhảy khung giờ">
-                    <option value="5" selected>Slot: 5 phút</option>
-                    <option value="10">Slot: 10 phút</option>
-                    <option value="15">Slot: 15 phút</option>
-                </select>
-
-                <!-- Ô tìm kiếm nhanh khách hàng -->
-                <input type="text" id="memora-crm-search" class="memora-crm-search-input" placeholder="🔍 Tìm tên, SĐT...">
             </div>
 
-            <div class="memora-crm-toolbar__right">
+            <!-- Hàng 2: Các nút hành động thao tác nhanh -->
+            <div class="memora-crm-toolbar__bottom">
                 <button type="button" class="memora-crm-btn-primary" id="memora-crm-btn-quick-book">
                     <span>+</span> Đặt lịch nhanh
                 </button>
