@@ -247,7 +247,7 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
                 </div>
 
                 <!-- Pagination hình ngôi sao màu nâu #733e1c -->
-                <div class="swiper-pagination memora-star-pagination swiper-pagination-bullets swiper-pagination-horizontal" id="<?php echo esc_attr( $uid ); ?>-pagination" data-total-slides="<?php echo esc_attr( $total_slides ); ?>">
+                <div class="swiper-pagination memora-star-pagination swiper-pagination-bullets swiper-pagination-horizontal" id="<?php echo esc_attr( $uid ); ?>-pagination" data-total-slides="<?php echo esc_attr( $total_slides ); ?>" style="position: absolute !important; left: 0 !important; right: 0 !important; width: 100% !important; display: flex !important; justify-content: center !important; align-items: flex-end !important; margin: 0 auto !important; z-index: 10 !important; text-align: center !important;">
                     <?php if ( $total_slides > 5 ) : ?>
                         <span class="swiper-pagination-bullet" data-star-index="0" role="button" aria-label="Lùi 2 ảnh" tabindex="0"></span>
                         <span class="swiper-pagination-bullet" data-star-index="1" role="button" aria-label="Lùi 1 ảnh" tabindex="0"></span>
@@ -437,6 +437,33 @@ function memora_thong_tin_phong_swiper_shortcode( $atts ) {
 
         #<?php echo esc_attr( $uid ); ?>-wrap .memora-star-pagination .swiper-pagination-bullet-active::after {
             background-color: #733e1c;
+        }
+
+        /* Khi > 5 ảnh: gán kích thước vương miện cố định cho từng ngôi sao theo data-star-index */
+        #<?php echo esc_attr( $uid ); ?>-wrap .memora-star-pagination[data-total-slides] .swiper-pagination-bullet[data-star-index="0"],
+        #<?php echo esc_attr( $uid ); ?>-wrap .memora-star-pagination[data-total-slides] .swiper-pagination-bullet[data-star-index="4"] {
+            width: 14px !important;
+            height: 14px !important;
+        }
+        #<?php echo esc_attr( $uid ); ?>-wrap .memora-star-pagination[data-total-slides] .swiper-pagination-bullet[data-star-index="0"]::after,
+        #<?php echo esc_attr( $uid ); ?>-wrap .memora-star-pagination[data-total-slides] .swiper-pagination-bullet[data-star-index="4"]::after {
+            background-color: rgba(115, 62, 28, 0.45) !important;
+        }
+        #<?php echo esc_attr( $uid ); ?>-wrap .memora-star-pagination[data-total-slides] .swiper-pagination-bullet[data-star-index="1"],
+        #<?php echo esc_attr( $uid ); ?>-wrap .memora-star-pagination[data-total-slides] .swiper-pagination-bullet[data-star-index="3"] {
+            width: 17px !important;
+            height: 17px !important;
+        }
+        #<?php echo esc_attr( $uid ); ?>-wrap .memora-star-pagination[data-total-slides] .swiper-pagination-bullet[data-star-index="1"]::after,
+        #<?php echo esc_attr( $uid ); ?>-wrap .memora-star-pagination[data-total-slides] .swiper-pagination-bullet[data-star-index="3"]::after {
+            background-color: rgba(115, 62, 28, 0.75) !important;
+        }
+        #<?php echo esc_attr( $uid ); ?>-wrap .memora-star-pagination[data-total-slides] .swiper-pagination-bullet[data-star-index="2"] {
+            width: 20px !important;
+            height: 20px !important;
+        }
+        #<?php echo esc_attr( $uid ); ?>-wrap .memora-star-pagination[data-total-slides] .swiper-pagination-bullet[data-star-index="2"]::after {
+            background-color: #733e1c !important;
         }
 
         @keyframes memoraStarPulse_ttp_<?php echo esc_attr( $uid ); ?> {
