@@ -243,7 +243,7 @@ function memora_render_branch_accounts_in_vietqr_settings( $html, $key, $data, $
     }
 
     $banks          = memora_get_vietqr_plugin_banks();
-    $default_prefix = method_exists( $gateway, 'get_option' ) ? $gateway->get_option( 'prefix', 'QUESTX' ) : 'QUESTX';
+    $default_prefix = method_exists( $gateway, 'get_option' ) ? $gateway->get_option( 'prefix', 'MEMORA' ) : 'MEMORA';
 
     ob_start();
     ?>
@@ -311,7 +311,7 @@ function memora_render_branch_accounts_in_vietqr_settings( $html, $key, $data, $
 
                         <div>
                             <label style="display:block;font-size:12px;font-weight:600;color:#334155;margin-bottom:4px;">Account name (Chủ tài khoản):</label>
-                            <input type="text" name="memora_branch_vietqr_acc_name[<?php echo intval( $tid ); ?>]" value="<?php echo esc_attr( $saved_acc_name ); ?>" placeholder="VD: DO KHAC TRUNG NGUYEN" style="width:100%;text-transform:uppercase;" />
+                            <input type="text" name="memora_branch_vietqr_acc_name[<?php echo intval( $tid ); ?>]" value="<?php echo esc_attr( $saved_acc_name ); ?>" placeholder="VD: NGUYEN VAN A" style="width:100%;text-transform:uppercase;" />
                         </div>
 
                         <div>
@@ -402,13 +402,13 @@ function memora_dia_chi_add_vietqr_fields() {
         </select>
 
         <label for="memora_vietqr_account_name" style="font-weight:600;margin-top:10px;display:block;">Account name (Chủ tài khoản)</label>
-        <input type="text" name="memora_vietqr_account_name" id="memora_vietqr_account_name" value="" placeholder="VD: DO KHAC TRUNG NGUYEN" style="text-transform:uppercase;" />
+        <input type="text" name="memora_vietqr_account_name" id="memora_vietqr_account_name" value="" placeholder="VD: NGUYEN VAN A" style="text-transform:uppercase;" />
 
         <label for="memora_vietqr_account_no" style="font-weight:600;margin-top:10px;display:block;">Account number (Số tài khoản)</label>
-        <input type="text" name="memora_vietqr_account_no" id="memora_vietqr_account_no" value="" placeholder="VD: 6160199890" />
+        <input type="text" name="memora_vietqr_account_no" id="memora_vietqr_account_no" value="" placeholder="VD: 0123456789" />
 
         <label for="memora_vietqr_prefix" style="font-weight:600;margin-top:10px;display:block;">Prefix (Tiền tố nội dung CK)</label>
-        <input type="text" name="memora_vietqr_prefix" id="memora_vietqr_prefix" value="" placeholder="VD: QUESTX" />
+        <input type="text" name="memora_vietqr_prefix" id="memora_vietqr_prefix" value="" placeholder="VD: MEMORA" />
     </div>
     <?php
 }
@@ -459,17 +459,17 @@ function memora_dia_chi_edit_vietqr_fields( $term ) {
 
                 <div style="margin-bottom:12px;">
                     <label for="memora_vietqr_account_name" style="display:block;font-weight:600;margin-bottom:4px;">Account name:</label>
-                    <input type="text" name="memora_vietqr_account_name" id="memora_vietqr_account_name" value="<?php echo esc_attr( $saved_acc_name ); ?>" placeholder="VD: DO KHAC TRUNG NGUYEN" style="width:100%;text-transform:uppercase;" />
+                    <input type="text" name="memora_vietqr_account_name" id="memora_vietqr_account_name" value="<?php echo esc_attr( $saved_acc_name ); ?>" placeholder="VD: NGUYEN VAN A" style="width:100%;text-transform:uppercase;" />
                 </div>
 
                 <div style="margin-bottom:12px;">
                     <label for="memora_vietqr_account_no" style="display:block;font-weight:600;margin-bottom:4px;">Account number:</label>
-                    <input type="text" name="memora_vietqr_account_no" id="memora_vietqr_account_no" value="<?php echo esc_attr( $saved_acc_no ); ?>" placeholder="VD: 6160199890" style="width:100%;" />
+                    <input type="text" name="memora_vietqr_account_no" id="memora_vietqr_account_no" value="<?php echo esc_attr( $saved_acc_no ); ?>" placeholder="VD: 0123456789" style="width:100%;" />
                 </div>
 
                 <div>
                     <label for="memora_vietqr_prefix" style="display:block;font-weight:600;margin-bottom:4px;">Prefix:</label>
-                    <input type="text" name="memora_vietqr_prefix" id="memora_vietqr_prefix" value="<?php echo esc_attr( $saved_prefix ); ?>" placeholder="VD: QUESTX" style="width:220px;" />
+                    <input type="text" name="memora_vietqr_prefix" id="memora_vietqr_prefix" value="<?php echo esc_attr( $saved_prefix ); ?>" placeholder="VD: MEMORA" style="width:220px;" />
                 </div>
             </div>
         </td>
@@ -597,7 +597,7 @@ function memora_get_vietqr_config( $dia_chi_id = 0, $order = null ) {
     add_filter( 'option_woocommerce_vietqr_accounts', 'memora_filter_option_woocommerce_vietqr_accounts', 20, 1 );
 
     $vq_settings    = get_option( 'woocommerce_vietqr_settings', array() );
-    $default_prefix = ! empty( $vq_settings['prefix'] ) ? $vq_settings['prefix'] : 'QUESTX';
+    $default_prefix = ! empty( $vq_settings['prefix'] ) ? $vq_settings['prefix'] : 'MEMORA';
 
     if ( is_array( $default_accounts ) && ! empty( $default_accounts[0]['account_number'] ) ) {
         $acc = $default_accounts[0];
