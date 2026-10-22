@@ -207,7 +207,7 @@ function memora_crm_get_order_data( $order_or_id ) {
 
     // 5. Background / Ghi chú
     $background_note = $order->get_meta( '_booking_background_note' );
-    if ( empty( $background_note ) && $deposit > 0 ) {
+    if ( '' === (string) $background_note && ! $order->meta_exists( '_booking_background_note' ) && $deposit > 0 ) {
         // Mặc định hiển thị cọc nếu chưa nhập phông nền cụ thể
         $background_note = 'cọc ' . ( $deposit >= 1000 ? ( $deposit / 1000 ) . 'k' : $deposit );
     }
@@ -272,10 +272,15 @@ function memora_crm_update_order_field( $order_id, $field_name, $value ) {
 
     $meta_key  = $valid_fields[ $field_name ];
     $old_value = (string) $order->get_meta( $meta_key );
+    if ( 'customer_name' === $field_name && '' === $old_value ) {
+        $old_value = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
+    } elseif ( 'phone' === $field_name && '' === $old_value ) {
+        $old_value = (string) $order->get_billing_phone();
+    }
     $new_value = sanitize_text_field( wp_unslash( $value ) );
 
-    // Nếu không thay đổi thì bỏ qua
-    if ( $old_value === $new_value ) {
+    // Nếu không thay đổi và meta đã tồn tại thì bỏ qua
+    if ( $old_value === $new_value && $order->meta_exists( $meta_key ) ) {
         return true;
     }
 
@@ -363,9 +368,11 @@ function memora_crm_update_booking_info( $order_id, $data ) {
     if ( isset( $data['background_note'] ) ) {
         $bg = sanitize_text_field( wp_unslash( $data['background_note'] ) );
         $old_bg = (string) $order->get_meta( '_booking_background_note' );
-        if ( $bg !== $old_bg ) {
+        if ( $bg !== $old_bg || ! $order->meta_exists( '_booking_background_note' ) ) {
             $order->update_meta_data( '_booking_background_note', $bg );
-            $changes[] = sprintf( 'Background: "%s" -> "%s"', $old_bg ?: '(trống)', $bg );
+            if ( $bg !== $old_bg ) {
+                $changes[] = sprintf( 'Background: "%s" -> "%s"', $old_bg ?: '(trống)', $bg );
+            }
         }
     }
 
@@ -377,8 +384,8 @@ function memora_crm_update_booking_info( $order_id, $data ) {
             $actor_name,
             implode( ', ', $changes )
         ) );
-        $order->save();
     }
+    $order->save();
 
     return true;
 }

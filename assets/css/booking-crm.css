@@ -568,9 +568,9 @@ button.memora-crm-btn-refresh:hover,
 }
 
 /* Kích thước chiều rộng các cột con */
-.memora-crm-w-name   { width: 140px; min-width: 140px; }
+.memora-crm-w-name   { width: 165px; min-width: 165px; }
 .memora-crm-w-pkg    { width: 85px;  min-width: 85px;  text-align: center; }
-.memora-crm-w-bg     { width: 110px; min-width: 110px; }
+.memora-crm-w-bg     { width: 120px; min-width: 120px; }
 .memora-crm-w-phone  { width: 115px; min-width: 115px; }
 .memora-crm-w-pay    { width: 105px; min-width: 105px; text-align: center; }
 .memora-crm-w-shoot  { width: 105px; min-width: 105px; text-align: center; }
@@ -619,43 +619,89 @@ button.memora-crm-btn-refresh:hover,
     z-index: 5;
 }
 
-/* Ô dữ liệu có thể nhấp đúp để chỉnh sửa (Tên, Gói chụp, Background, SĐT) */
+/* Ô dữ liệu có thể chỉnh sửa trực tiếp (Tên, Gói chụp, Background, SĐT) */
 .memora-crm-cell--editable {
-    cursor: pointer !important;
+    cursor: text !important;
+    padding: 4px 6px !important;
     transition: background-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 
 .memora-crm-cell--editable:hover {
     background-color: #f8fafc !important;
-    box-shadow: inset 0 0 0 1px #cbd5e1 !important;
 }
 
-/* Placeholder khi ô trống */
-.memora-crm-empty-placeholder {
-    color: #94a3b8 !important;
-    font-style: italic !important;
-    font-size: 11px !important;
-    user-select: none !important;
-}
-
-/* Ô nhập liệu trực tiếp (Inline input) */
-.memora-crm-inline-input {
+.memora-crm-name-cell-inner {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
     width: 100% !important;
+}
+
+.memora-crm-name-cell-inner .memora-crm-code-tag {
+    flex-shrink: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Ô nhập liệu trực tiếp luôn sẵn sàng trên bảng (Tên, Gói chụp, Background, SĐT) */
+html body #memora-crm-app input.memora-crm-cell-input,
+.memora-crm-app input.memora-crm-cell-input,
+.memora-crm-portal-wrapper input.memora-crm-cell-input,
+input.memora-crm-cell-input {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
     height: 28px !important;
     min-height: 28px !important;
+    max-height: 28px !important;
     line-height: 26px !important;
-    border: 1.5px solid #733e1c !important;
-    border-radius: 4px !important;
-    background: #ffffff !important;
-    padding: 2px 6px !important;
+    border: 1px solid transparent !important;
+    border-radius: 5px !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    padding: 0 6px !important;
     margin: 0 !important;
-    font-size: 12px !important;
+    font-size: 13px !important;
     font-weight: 500 !important;
-    font-family: inherit !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     color: #0f172a !important;
     outline: none !important;
-    box-shadow: 0 0 0 2px rgba(115, 62, 28, 0.15) !important;
+    box-shadow: none !important;
     box-sizing: border-box !important;
+    transition: all 0.15s ease !important;
+}
+
+html body #memora-crm-app input.memora-crm-cell-input--center,
+.memora-crm-app input.memora-crm-cell-input--center,
+input.memora-crm-cell-input--center {
+    text-align: center !important;
+}
+
+html body #memora-crm-app input.memora-crm-cell-input::placeholder,
+.memora-crm-app input.memora-crm-cell-input::placeholder {
+    color: #94a3b8 !important;
+    font-style: italic !important;
+    font-weight: 400 !important;
+    font-size: 11px !important;
+}
+
+html body #memora-crm-app .memora-crm-cell--editable:hover input.memora-crm-cell-input,
+html body #memora-crm-app input.memora-crm-cell-input:hover,
+.memora-crm-app .memora-crm-cell--editable:hover input.memora-crm-cell-input,
+.memora-crm-app input.memora-crm-cell-input:hover {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+}
+
+html body #memora-crm-app input.memora-crm-cell-input:focus,
+.memora-crm-app input.memora-crm-cell-input:focus,
+.memora-crm-portal-wrapper input.memora-crm-cell-input:focus,
+input.memora-crm-cell-input:focus {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    border: 1.5px solid #733e1c !important;
+    box-shadow: 0 0 0 2px rgba(115, 62, 28, 0.15) !important;
+    outline: none !important;
 }
 
 /* ==========================================================================

@@ -161,11 +161,11 @@
             handleQuickBookSubmit();
         });
 
-        // 8. Tương tác bảng tính (Click ô)
-        const $tableBody = $('#memora-crm-table-body');
+        // 8. Tương tác bảng tính (Ủy quyền sự kiện qua #memora-crm-table-container luôn tồn tại trong DOM)
+        const $tableContainer = $('#memora-crm-table-container');
 
         // Click ô trống -> Chọn ô và mở popup đặt nhanh
-        $tableBody.on('click', '.memora-crm-cell--empty', function() {
+        $tableContainer.on('click', '.memora-crm-cell--empty', function() {
             $('.memora-crm-cell--selected').removeClass('memora-crm-cell--selected');
             const $cell = $(this);
             $cell.addClass('memora-crm-cell--selected');
@@ -178,31 +178,55 @@
             openQuickBookModal(state.selectedSlot);
         });
 
-        // Click vào mã đặt lịch hoặc tên khách -> Mở popup Chi tiết & Điều phối
-        $tableBody.on('click', '.memora-crm-code-tag', function(e) {
+        // Click vào mã đặt lịch (#CODE) -> Mở popup Chi tiết & Điều phối
+        $tableContainer.on('click', '.memora-crm-code-tag', function(e) {
             e.stopPropagation();
-            const orderId = $(this).data('order-id');
-            openDetailModal(orderId);
+            const orderId = parseInt($(this).data('order-id'), 10);
+            if (orderId) {
+                openDetailModal(orderId);
+            }
+        });
+
+        // Click vào vùng đệm của ô có thể sửa (Tên, Gói chụp, Background, SĐT) -> Focus ngay vào ô input bên trong
+        $tableContainer.on('click', '.memora-crm-cell--editable', function(e) {
+            if ($(e.target).closest('.memora-crm-code-tag, input.memora-crm-cell-input').length) {
+                return;
+            }
+            const $input = $(this).find('input.memora-crm-cell-input');
+            if ($input.length) {
+                $input.focus();
+            }
+        });
+
+        // Khi nhấn Enter hoặc Escape trong ô input trực tiếp (Tên, Gói chụp, Background, SĐT)
+        $tableContainer.on('keydown', 'input.memora-crm-cell-input', function(e) {
+            const $input = $(this);
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                $input.blur();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                const origVal = $input.attr('data-orig') || '';
+                $input.val(origVal);
+                $input.blur();
+            }
+        });
+
+        // Khi rời khỏi ô input (blur) -> Tự động lưu nếu giá trị có thay đổi
+        $tableContainer.on('blur', 'input.memora-crm-cell-input', function() {
+            handleCellInputSave($(this));
         });
 
         // Thay đổi Dropdown trạng thái (Inline Quick Update)
-        $tableBody.on('change', '.memora-crm-badge-select', function() {
+        $tableContainer.on('change', '.memora-crm-badge-select', function() {
             const $select = $(this);
-            const orderId = $select.data('order-id');
+            const orderId = parseInt($select.data('order-id'), 10);
             const field   = $select.data('field');
             const group   = $select.data('group');
             const newVal  = $select.val();
 
             updateBadgeStyle($select, group, newVal);
             updateOrderField(orderId, field, newVal);
-        });
-
-        // Sửa nhanh trực tiếp Inline Text (Tên, Gói chụp, Background, SĐT) khi nhấp đúp 2 lần
-        $tableBody.on('dblclick', '.memora-crm-cell--editable', function(e) {
-            if ($(e.target).closest('.memora-crm-code-tag').length) {
-                return;
-            }
-            startInlineEdit($(this));
         });
 
         // Lưu thông tin từ Modal Chi Tiết Đơn
@@ -424,20 +448,26 @@
                 if (booking) {
                     const orderId = booking.order_id;
                     const code = booking.code ? `#${booking.code}` : `#${orderId}`;
+                    const nameVal = escapeHtml(booking.name || '');
+                    const pkgVal  = escapeHtml(booking.package_name || '');
+                    const bgVal   = escapeHtml(booking.background_note || '');
+                    const phoneVal = escapeHtml(booking.phone || '');
 
                     html += `
-                        <td class="memora-crm-cell memora-crm-cell--editable memora-crm-w-name" data-order-id="${orderId}" data-field="customer_name" title="Nhấp đúp 2 lần để sửa Tên">
-                            <span class="memora-crm-code-tag" data-order-id="${orderId}" title="Xem chi tiết & Điều phối">${code}</span>
-                            <span class="memora-crm-inline-text">${booking.name ? escapeHtml(booking.name) : '<span class="memora-crm-empty-placeholder">(trống)</span>'}</span>
+                        <td class="memora-crm-cell memora-crm-cell--editable memora-crm-w-name" data-order-id="${orderId}" data-field="customer_name">
+                            <div class="memora-crm-name-cell-inner">
+                                <span class="memora-crm-code-tag" data-order-id="${orderId}" title="Bấm vào mã đơn để xem chi tiết & điều phối">${code}</span>
+                                <input type="text" class="memora-crm-cell-input" data-order-id="${orderId}" data-field="customer_name" data-orig="${nameVal}" value="${nameVal}" placeholder="Nhập tên..." title="Click để sửa Tên (Nhấn Enter hoặc bấm ra ngoài để lưu)">
+                            </div>
                         </td>
-                        <td class="memora-crm-cell memora-crm-cell--editable memora-crm-w-pkg text-center" data-order-id="${orderId}" data-field="package_name" title="Nhấp đúp 2 lần để sửa Gói chụp">
-                            <span class="memora-crm-inline-text">${booking.package_name ? escapeHtml(booking.package_name) : '<span class="memora-crm-empty-placeholder">(trống)</span>'}</span>
+                        <td class="memora-crm-cell memora-crm-cell--editable memora-crm-w-pkg text-center" data-order-id="${orderId}" data-field="package_name">
+                            <input type="text" class="memora-crm-cell-input memora-crm-cell-input--center" data-order-id="${orderId}" data-field="package_name" data-orig="${pkgVal}" value="${pkgVal}" placeholder="Gói..." title="Click để sửa Gói chụp (Nhấn Enter hoặc bấm ra ngoài để lưu)">
                         </td>
-                        <td class="memora-crm-cell memora-crm-cell--editable memora-crm-w-bg" data-order-id="${orderId}" data-field="background_note" title="Nhấp đúp 2 lần để sửa Background">
-                            <span class="memora-crm-inline-text">${booking.background_note ? escapeHtml(booking.background_note) : '<span class="memora-crm-empty-placeholder">(trống)</span>'}</span>
+                        <td class="memora-crm-cell memora-crm-cell--editable memora-crm-w-bg" data-order-id="${orderId}" data-field="background_note">
+                            <input type="text" class="memora-crm-cell-input" data-order-id="${orderId}" data-field="background_note" data-orig="${bgVal}" value="${bgVal}" placeholder="Background..." title="Click để sửa Background (Nhấn Enter hoặc bấm ra ngoài để lưu)">
                         </td>
-                        <td class="memora-crm-cell memora-crm-cell--editable memora-crm-w-phone" data-order-id="${orderId}" data-field="phone" title="Nhấp đúp 2 lần để sửa SĐT">
-                            <span class="memora-crm-inline-text">${booking.phone ? escapeHtml(booking.phone) : '<span class="memora-crm-empty-placeholder">(trống)</span>'}</span>
+                        <td class="memora-crm-cell memora-crm-cell--editable memora-crm-w-phone" data-order-id="${orderId}" data-field="phone">
+                            <input type="tel" class="memora-crm-cell-input" data-order-id="${orderId}" data-field="phone" data-orig="${phoneVal}" value="${phoneVal}" placeholder="Nhập SĐT..." title="Click để sửa SĐT (Nhấn Enter hoặc bấm ra ngoài để lưu)">
                         </td>
                         <td class="memora-crm-cell memora-crm-w-pay">
                             ${renderBadgeSelect(orderId, 'payment_status', booking.payment_status, 'payment')}
@@ -560,83 +590,36 @@
     }
 
     /**
-     * Bắt đầu sửa nhanh inline text khi nhấp đúp 2 lần (Tên, Gói chụp, Background, SĐT)
+     * Xử lý lưu trực tiếp khi người dùng chỉnh sửa ô input (Tên, Gói chụp, Background, SĐT)
      */
-    function startInlineEdit($cell) {
-        if ($cell.find('input.memora-crm-inline-input').length) return;
-
-        const orderId = $cell.data('order-id');
-        const field   = $cell.data('field');
+    function handleCellInputSave($input) {
+        const orderId = parseInt($input.attr('data-order-id'), 10);
+        const field   = $input.attr('data-field');
         if (!orderId || !field) return;
 
-        const $textSpan = $cell.find('.memora-crm-inline-text');
-        if (!$textSpan.length) return;
+        const origVal = ($input.attr('data-orig') || '').trim();
+        const newVal  = ($input.val() || '').trim();
 
-        // Nếu đang hiển thị placeholder (trống) thì giá trị thực là rỗng
-        let currentVal = '';
-        if (!$textSpan.find('.memora-crm-empty-placeholder').length) {
-            currentVal = $textSpan.text().trim();
+        $input.val(newVal);
+        if (newVal === origVal) return;
+
+        $input.attr('data-orig', newVal);
+        updateOrderField(orderId, field, newVal);
+
+        // Đồng bộ ngay vào ma trận bộ nhớ
+        if (state.schedule && state.schedule.matrix) {
+            Object.keys(state.schedule.matrix).forEach(rId => {
+                const slots = state.schedule.matrix[rId];
+                Object.keys(slots).forEach(sTime => {
+                    if (slots[sTime].order_id === orderId) {
+                        if (field === 'customer_name')   slots[sTime].name = newVal;
+                        if (field === 'package_name')    slots[sTime].package_name = newVal;
+                        if (field === 'background_note') slots[sTime].background_note = newVal;
+                        if (field === 'phone')           slots[sTime].phone = newVal;
+                    }
+                });
+            });
         }
-
-        const inputType = (field === 'phone') ? 'tel' : 'text';
-        const placeholderText = field === 'customer_name' ? 'Tên khách...' :
-                                field === 'package_name' ? 'Gói chụp...' :
-                                field === 'background_note' ? 'Background...' : 'SĐT...';
-
-        const $input = $(`<input type="${inputType}" class="memora-crm-inline-input" value="${escapeHtml(currentVal)}" placeholder="${placeholderText}">`);
-        
-        $textSpan.hide();
-        $cell.append($input);
-        $input.focus().select();
-
-        let isFinished = false;
-
-        function finishEdit() {
-            if (isFinished) return;
-            isFinished = true;
-
-            const newVal = $input.val().trim();
-            $input.remove();
-
-            if (newVal) {
-                $textSpan.text(newVal).show();
-            } else {
-                $textSpan.html('<span class="memora-crm-empty-placeholder">(trống)</span>').show();
-            }
-
-            if (newVal !== currentVal) {
-                updateOrderField(orderId, field, newVal);
-
-                // Cập nhật ma trận bộ nhớ
-                if (state.schedule && state.schedule.matrix) {
-                    Object.keys(state.schedule.matrix).forEach(rId => {
-                        const slots = state.schedule.matrix[rId];
-                        Object.keys(slots).forEach(sTime => {
-                            if (slots[sTime].order_id === orderId) {
-                                if (field === 'customer_name') slots[sTime].name = newVal;
-                                if (field === 'package_name') slots[sTime].package_name = newVal;
-                                if (field === 'background_note') slots[sTime].background_note = newVal;
-                                if (field === 'phone') slots[sTime].phone = newVal;
-                            }
-                        });
-                    });
-                }
-            }
-        }
-
-        $input.on('blur', finishEdit);
-        $input.on('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                $input.off('blur');
-                finishEdit();
-            } else if (e.key === 'Escape') {
-                e.preventDefault();
-                isFinished = true;
-                $input.remove();
-                $textSpan.show();
-            }
-        });
     }
 
     /**
@@ -651,7 +634,8 @@
         let firstMatch = null;
         $cells.each(function() {
             const $cell = $(this);
-            const text = $cell.text().toLowerCase();
+            const inputVal = $cell.find('input.memora-crm-cell-input').val() || '';
+            const text = ($cell.text() + ' ' + inputVal).toLowerCase();
             if (text.indexOf(query) !== -1) {
                 $cell.addClass('memora-crm-cell--matched');
                 if (!firstMatch) firstMatch = $cell;
@@ -1052,7 +1036,8 @@
     function startAutoPolling() {
         if (state.pollTimer) clearInterval(state.pollTimer);
         state.pollTimer = setInterval(function() {
-            if (!document.hidden && !$('.memora-crm-modal-overlay.is-active').length && !state.isLoading) {
+            const isEditingCell = $('#memora-crm-table-container').find('input:focus, select:focus').length > 0;
+            if (!document.hidden && !$('.memora-crm-modal-overlay.is-active').length && !isEditingCell && !state.isLoading) {
                 fetchSchedule(true); // Sync ngầm không hiện loading che màn hình
             }
         }, 25000);
