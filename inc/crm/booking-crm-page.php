@@ -103,7 +103,7 @@ function memora_crm_protect_page_and_redirect() {
 /**
  * TỰ ĐỘNG CHUYỂN SANG CANVAS TEMPLATE (KHÔNG HEADER, KHÔNG FOOTER) CHO /quan-li-dat-lich/
  */
-add_filter( 'template_include', 'memora_crm_force_canvas_template', 999 );
+add_filter( 'template_include', 'memora_crm_force_canvas_template', 999999 );
 function memora_crm_force_canvas_template( $template ) {
     if ( memora_is_crm_page() ) {
         $portal_template = get_stylesheet_directory() . '/template-crm-portal.php';
@@ -185,7 +185,7 @@ function memora_crm_shortcode_handler() {
 }
 
 /**
- * 3. ENQUEUE SCRIPTS VÀ STYLES CHO CRM
+ * 3. ENQUEUE SCRIPTS VÀ STYLES CHO CRM (DÙNG CHUNG CHO CẢ ADMIN VÀ FRONTEND)
  */
 add_action( 'admin_enqueue_scripts', 'memora_crm_admin_enqueue_assets' );
 function memora_crm_admin_enqueue_assets( $hook ) {
@@ -193,6 +193,13 @@ function memora_crm_admin_enqueue_assets( $hook ) {
         return;
     }
     memora_crm_enqueue_assets();
+}
+
+add_action( 'wp_enqueue_scripts', 'memora_crm_frontend_enqueue_assets', 9999 );
+function memora_crm_frontend_enqueue_assets() {
+    if ( memora_is_crm_page() ) {
+        memora_crm_enqueue_assets( true );
+    }
 }
 
 function memora_crm_enqueue_assets( $is_frontend = false ) {
