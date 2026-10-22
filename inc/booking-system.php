@@ -25,6 +25,11 @@ if ( file_exists( $booking_inc_dir . 'booking-helpers.php' ) ) {
     require_once $booking_inc_dir . 'booking-helpers.php';
 }
 
+// 1b. Nạp cấu hình Ngân hàng & VietQR theo từng chi nhánh (taxonomy: dia-chi)
+if ( file_exists( $booking_inc_dir . 'dia-chi-vietqr.php' ) ) {
+    require_once $booking_inc_dir . 'dia-chi-vietqr.php';
+}
+
 // 2. Nạp Custom Post Type quản trị
 if ( file_exists( $booking_inc_dir . 'booking-post-type.php' ) ) {
     require_once $booking_inc_dir . 'booking-post-type.php';

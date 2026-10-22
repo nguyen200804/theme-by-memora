@@ -254,6 +254,11 @@ function memora_link_wc_order_to_booking( $order ) {
         $order->update_meta_data( '_booking_dia_chi_name', $dia_chi_name );
     }
 
+    // Lưu snapshot tài khoản ngân hàng VietQR của chi nhánh vào đơn hàng
+    if ( function_exists( 'memora_save_vietqr_snapshot_to_order' ) ) {
+        memora_save_vietqr_snapshot_to_order( $order, $dia_chi_id );
+    }
+
     // Cập nhật tên và metadata cho line item sản phẩm trong đơn hàng
     $product_id = function_exists( 'memora_get_or_create_booking_product' ) ? memora_get_or_create_booking_product() : 0;
     foreach ( $order->get_items() as $item ) {
@@ -325,6 +330,15 @@ function memora_show_booking_info_in_order_admin( $order ) {
         <?php endif; ?>
         <?php if ( $branch ) : ?>
             <p style="margin:4px 0;"><strong>Địa chỉ chi nhánh:</strong> <?php echo esc_html( $branch ); ?></p>
+        <?php endif; ?>
+        <?php
+        $vqr_cfg = function_exists( 'memora_get_vietqr_config' ) ? memora_get_vietqr_config( 0, $order ) : array();
+        if ( ! empty( $vqr_cfg['bank_id'] ) && ! empty( $vqr_cfg['account_no'] ) ) :
+        ?>
+            <p style="margin:4px 0;">
+                <strong>Tài khoản nhận CK (VietQR):</strong>
+                <?php echo esc_html( ( $vqr_cfg['bank_name'] ?: $vqr_cfg['bank_id'] ) . ' - ' . $vqr_cfg['account_no'] . ( ! empty( $vqr_cfg['account_name'] ) ? ' (' . $vqr_cfg['account_name'] . ')' : '' ) ); ?>
+            </p>
         <?php endif; ?>
         <?php if ( $ig ) : ?>
             <p style="margin:4px 0;"><strong>Liên hệ khác (IG/Zalo):</strong> <?php echo esc_html( $ig ); ?></p>

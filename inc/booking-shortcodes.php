@@ -430,25 +430,14 @@ function memora_render_thankyou_html( $code = '', $order_id = 0 ) {
     if ( empty( $pkg ) )  $pkg  = 'Gói chụp Memora';
     $display_code = $code ? $code : ( $wc_order ? strval( $wc_order->get_id() ) : '6640' );
 
-    // --- VietQR config từ ACF Options Page (fallback) ---
-    $bank_id      = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_bank_id',      'option' ) : '';
-    $account_no   = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_account_no',   'option' ) : '';
-    $account_name = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_account_name', 'option' ) : '';
-    $bank_name    = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_bank_name',    'option' ) : '';
-    $template     = function_exists( 'get_field' ) ? (string) get_field( 'vietqr_template',     'option' ) : 'compact2';
-    if ( empty( $template ) ) $template = 'compact2';
-
-    // Build VietQR image URL (miễn phí, không cần API key)
-    $show_qr  = ( ! empty( $bank_id ) && ! empty( $account_no ) );
-    $qr_url   = '';
-    if ( $show_qr ) {
-        $qr_params = http_build_query( array(
-            'amount'      => $total_price > 0 ? $total_price : '',
-            'addInfo'     => 'MEMORA ' . $display_code,
-            'accountName' => $account_name,
-        ) );
-        $qr_url = 'https://img.vietqr.io/image/' . rawurlencode( $bank_id ) . '-' . rawurlencode( $account_no ) . '-' . rawurlencode( $template ) . '.png?' . $qr_params;
+    if ( $order_id > 0 ) {
+        $GLOBALS['memora_current_thankyou_order_id'] = $order_id;
     }
+
+    // Lấy khối VietQR động theo đúng Chi nhánh (taxonomy: dia-chi) của đơn hàng
+    $vietqr_box_html = function_exists( 'memora_render_vietqr_payment_box' )
+        ? memora_render_vietqr_payment_box( $wc_order, $display_code, $total_price )
+        : '';
 
     ob_start();
     ?>
@@ -497,87 +486,24 @@ function memora_render_thankyou_html( $code = '', $order_id = 0 ) {
             <div class="memora-code-notice">**Quý khách vui lòng lưu lại code chụp để tra cứu</div>
         </div>
 
-        <?php
-        // Gọi hook VietQR / BACS của WooCommerce nếu có order_id
-        $wc_thankyou_output = '';
-        if ( $order_id > 0 && $wc_order ) {
-            ob_start();
-            do_action( 'woocommerce_thankyou_' . $wc_order->get_payment_method(), $order_id );
-            do_action( 'woocommerce_thankyou', $order_id );
-            $wc_thankyou_output = ob_get_clean();
-        }
-        ?>
-
-        <?php if ( ! empty( trim( $wc_thankyou_output ) ) ) : ?>
-        <div class="memora-wc-thankyou-hook">
-            <?php echo $wc_thankyou_output; ?>
-        </div>
-        <?php elseif ( $show_qr ) : ?>
-        <!-- PHẦN THANH TOÁN VIETQR -->
-        <div class="memora-payment-section">
-            <div class="memora-payment-title">Thanh toán qua chuyển khoản</div>
-            <div class="memora-payment-body">
-                <div class="memora-payment-qr">
-                    <img
-                        src="<?php echo esc_url( $qr_url ); ?>"
-                        alt="QR chuyển khoản Memora <?php echo esc_attr( $display_code ); ?>"
-                        loading="lazy"
-                    />
-                </div>
-                <div class="memora-payment-info">
-                    <?php if ( ! empty( $bank_name ) ) : ?>
-                    <div class="memora-payment-row">
-                        <span class="memora-payment-label">Ngân hàng</span>
-                        <span class="memora-payment-value"><?php echo esc_html( $bank_name ); ?></span>
-                    </div>
-                    <?php endif; ?>
-                    <div class="memora-payment-row">
-                        <span class="memora-payment-label">Số TK</span>
-                        <span class="memora-payment-value memora-payment-copyable" data-copy="<?php echo esc_attr( $account_no ); ?>">
-                            <?php echo esc_html( $account_no ); ?>
-                            <button class="memora-copy-btn" type="button" title="Sao chép">📋</button>
-                        </span>
-                    </div>
-                    <?php if ( ! empty( $account_name ) ) : ?>
-                    <div class="memora-payment-row">
-                        <span class="memora-payment-label">Chủ TK</span>
-                        <span class="memora-payment-value"><?php echo esc_html( $account_name ); ?></span>
-                    </div>
-                    <?php endif; ?>
-                    <?php if ( $total_price > 0 ) : ?>
-                    <div class="memora-payment-row memora-payment-row--amount">
-                        <span class="memora-payment-label">Số tiền</span>
-                        <span class="memora-payment-value"><?php echo esc_html( number_format( $total_price, 0, ',', '.' ) ); ?>đ</span>
-                    </div>
-                    <?php endif; ?>
-                    <div class="memora-payment-row memora-payment-row--content">
-                        <span class="memora-payment-label">Nội dung CK</span>
-                        <span class="memora-payment-value memora-payment-copyable" data-copy="MEMORA <?php echo esc_attr( $display_code ); ?>">
-                            MEMORA <?php echo esc_html( $display_code ); ?>
-                            <button class="memora-copy-btn" type="button" title="Sao chép">📋</button>
-                        </span>
-                    </div>
-                </div>
+        <?php if ( ! empty( $vietqr_box_html ) ) : ?>
+            <?php echo $vietqr_box_html; ?>
+        <?php else : ?>
+            <?php
+            // Fallback: Gọi hook thanh toán mặc định của WooCommerce nếu chưa cấu hình VietQR
+            $wc_thankyou_output = '';
+            if ( $order_id > 0 && $wc_order ) {
+                ob_start();
+                do_action( 'woocommerce_thankyou_' . $wc_order->get_payment_method(), $order_id );
+                do_action( 'woocommerce_thankyou', $order_id );
+                $wc_thankyou_output = ob_get_clean();
+            }
+            if ( ! empty( trim( $wc_thankyou_output ) ) ) :
+            ?>
+            <div class="memora-wc-thankyou-hook">
+                <?php echo $wc_thankyou_output; ?>
             </div>
-            <div class="memora-payment-note">
-                ⏱ Sau khi chuyển khoản, lịch chụp sẽ được xác nhận trong vòng <strong>15 phút</strong>.
-            </div>
-        </div>
-        <script>
-        (function(){
-            document.querySelectorAll('.memora-copy-btn').forEach(function(btn){
-                btn.addEventListener('click', function(){
-                    var row = btn.closest('.memora-payment-copyable');
-                    var text = row ? row.dataset.copy : '';
-                    if (!text) return;
-                    navigator.clipboard.writeText(text).then(function(){
-                        btn.textContent = '✅';
-                        setTimeout(function(){ btn.textContent = '📋'; }, 1500);
-                    });
-                });
-            });
-        })();
-        </script>
+            <?php endif; ?>
         <?php endif; ?>
 
         <div class="memora-note-card">

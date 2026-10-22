@@ -329,6 +329,11 @@ function memora_create_wc_order_for_booking( $data ) {
         $order->update_meta_data( '_booking_dia_chi_name', $dia_chi_name );
     }
 
+    // Lưu snapshot tài khoản ngân hàng VietQR của chi nhánh vào đơn hàng
+    if ( function_exists( 'memora_save_vietqr_snapshot_to_order' ) ) {
+        memora_save_vietqr_snapshot_to_order( $order, $dia_chi_id );
+    }
+
     $order->add_order_note(
         sprintf(
             'Đặt lịch tự động | Code: #%s | Ngày: %s %s | Gói: %s | SĐT: %s | Liên hệ: %s',
