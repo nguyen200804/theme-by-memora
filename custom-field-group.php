@@ -192,9 +192,9 @@ function memora_register_marquee_field_group() {
                 'type'          => 'number',
                 'instructions'  => 'Khoảng cách ngang giữa các item. Mặc định: 40px',
                 'default_value' => 40,
-                'min'           => 5,
-                'max'           => 200,
-                'step'          => 5,
+                'min'           => 0,
+                'step'          => 1,
+                'append'        => 'px',
                 'wrapper'       => array( 'width' => '33' ),
             ),
             array(
