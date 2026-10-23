@@ -14,9 +14,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // 1. Phân quyền: Chỉ cho phép administrator và editor truy cập
-if ( ! is_user_logged_in() || ( function_exists( 'memora_crm_user_has_access' ) && ! memora_crm_user_has_access() ) ) {
+if ( ! is_user_logged_in() ) {
     $login_url = wp_login_url( home_url( '/quan-li-dat-lich/' ) );
-    wp_redirect( $login_url, 301 );
+    wp_safe_redirect( $login_url );
+    exit;
+}
+
+if ( function_exists( 'memora_crm_user_has_access' ) && ! memora_crm_user_has_access() ) {
+    wp_safe_redirect( home_url( '/' ) );
     exit;
 }
 
