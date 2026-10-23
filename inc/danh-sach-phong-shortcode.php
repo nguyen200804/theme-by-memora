@@ -536,9 +536,11 @@ function memora_danh_sach_phong_shortcode( $atts ) {
                 <!-- CỘT PHẢI: SLIDER ẢNH -->
                 <div class="memora-dsp-wide-slider-wrap swiper-custom">
                     
+                    <?php if ( function_exists( 'get_field' ) && get_field( 'phong_chup_anh_noi_bat', $w_room['id'] ) ) : ?>
                     <div class="memora-dsp-badge">
-                        <img src="/wp-content/uploads/2026/10/special-room.png">
+                        <img src="/wp-content/uploads/2026/10/special-room.png" alt="Phòng chụp ảnh nổi bật">
                     </div>
+                    <?php endif; ?>
                     
                     <div class="swiper memora-room-swiper" id="<?php echo esc_attr( $slider_id ); ?>" data-loop="<?php echo count( $w_room['images'] ) >= 2 ? 'true' : 'false'; ?>">
                         <div class="swiper-wrapper">
