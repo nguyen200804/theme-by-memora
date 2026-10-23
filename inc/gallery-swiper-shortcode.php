@@ -608,8 +608,8 @@ function memora_gallery_swiper_shortcode( $atts ) {
                 <?php echo $slides_html; ?>
             </div>
 
-            <!-- Star pagination -->
-            <div class="swiper-pagination memora-star-pagination" id="<?php echo esc_attr( $uid ); ?>-pagination" data-total-slides="<?php echo esc_attr( $total_slides ); ?>"></div>
+            <!-- Star pagination (Swiper dynamicBullets) -->
+            <div class="swiper-pagination memora-star-pagination" id="<?php echo esc_attr( $uid ); ?>-pagination" style="position: absolute !important; left: 0 !important; right: 0 !important; width: 100% !important; display: flex !important; justify-content: center !important; align-items: flex-end !important; margin: 0 auto !important; z-index: 10 !important; text-align: center !important;"></div>
         </div>
 
     </div>
@@ -737,68 +737,72 @@ function memora_gallery_swiper_shortcode( $atts ) {
             }
         }
 
-        /* ===== Star Pagination ===== */
+        /* ===== Star Pagination (Swiper dynamicBullets) =====
+           Kích thước sao giữ nguyên: active 3.6667cqw – kề bên 3.0833cqw – xa 2.5cqw.
+           dynamicBullets yêu cầu mọi bullet cùng khung => dùng transform: scale()
+           (kèm translateX bù trừ để khoảng cách giữa các sao như cũ). */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination {
             position: absolute !important;
             bottom: 2cqw !important;
-            left: 0;
-            right: 0;
-            width: 100%;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            transform: none !important;
             z-index: 10;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: flex-end !important;
             margin: 0 auto !important;
+            overflow: hidden;
+            white-space: nowrap;
+            font-size: 0;
             pointer-events: auto !important;
             box-sizing: border-box !important;
-            text-align: center !important;
         }
 
-        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination.swiper-pagination-bullets-dynamic {
-            left: 50% !important;
-            right: auto !important;
-            transform: translateX(-50%) !important;
-            white-space: nowrap !important;
-            overflow: hidden !important;
-            display: block !important;
-            text-align: center !important;
-            padding: 0.5cqw 0 !important;
-            box-sizing: content-box !important;
-            width: auto;
-        }
-
-        /* Ẩn background tròn mặc định của Swiper bullet */
+        /* Mặc định: bullet nằm ngoài cửa sổ 5 sao => ẩn */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet {
-            width: 2.5cqw;
-            height: 2.5cqw;
+            flex: 0 0 auto;
+            width: 3.66666667cqw;
+            height: 3.66666667cqw;
             background: transparent !important;
-            opacity: 1;
-            margin: 0 0.3333333333333333cqw;
+            margin: 0 0.3333333333cqw;
             border-radius: 0;
             position: relative;
             cursor: pointer;
-            transition: width 0.25s ease, height 0.25s ease, transform 0.25s ease, background-color 0.25s ease;
-            vertical-align: middle;
-            display: inline-block !important;
-            transform: scale(1) !important;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0);
+            transform-origin: 50% 100%;
+            transition: transform 0.25s ease, left 0.25s ease, opacity 0.25s ease;
         }
 
-        /* Bullet kề bên active (trước và sau) */
-        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active + .swiper-pagination-bullet,
-        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet:has(+ .swiper-pagination-bullet-active),
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active-main,
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active-prev,
-        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active-next {
-            width: 3.0833333333cqw;
-            height: 3.0833333333cqw;
-            transform: scale(1) !important;
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active-next,
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active-prev-prev,
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active-next-next {
+            opacity: 1;
+            pointer-events: auto;
         }
 
-        /* Bullet active / active-main */
-        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active,
+        /* Sao active: 3.6667cqw */
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active-main {
-            width: 3.66666667cqw;
-            height: 3.66666667cqw;
-            transform: scale(1) !important;
+            transform: scale(1);
+        }
+        /* Sao kề bên: 3.0833cqw */
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active-prev {
+            transform: translateX(0.29166667cqw) scale(0.84090909);
+        }
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active-next {
+            transform: translateX(-0.29166667cqw) scale(0.84090909);
+        }
+        /* Sao xa: 2.5cqw */
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active-prev-prev {
+            transform: translateX(1.16666667cqw) scale(0.68181818);
+        }
+        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active-next-next {
+            transform: translateX(-1.16666667cqw) scale(0.68181818);
         }
 
         /* Hiển thị ngôi sao qua CSS mask */
@@ -813,14 +817,12 @@ function memora_gallery_swiper_shortcode( $atts ) {
         }
 
         /* Bullet đang active */
-        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active::after,
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active-main::after {
             background-color: rgba(115, 62, 28, 1);
+            animation: memoraStarPulse_<?php echo esc_attr( $uid ); ?> 0.3s ease;
         }
 
         /* Bullet kề bên active (trước và sau) - mờ */
-        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active + .swiper-pagination-bullet::after,
-        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet:has(+ .swiper-pagination-bullet-active)::after,
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active-prev::after,
         #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet-active-next::after {
             background-color: rgba(115, 62, 28, 0.75);
@@ -830,9 +832,6 @@ function memora_gallery_swiper_shortcode( $atts ) {
             0% { transform: scale(1); }
             50% { transform: scale(1.18); }
             100% { transform: scale(1); }
-        }
-        #<?php echo esc_attr( $uid ); ?> .memora-star-pagination .swiper-pagination-bullet.is-pulse {
-            animation: memoraStarPulse_<?php echo esc_attr( $uid ); ?> 0.3s ease;
         }
     </style>
 
@@ -873,10 +872,6 @@ function memora_gallery_swiper_shortcode( $atts ) {
                 return;
             }
 
-            var totalSlides = <?php echo (int) $total_slides; ?>;
-            var isMoreThan5 = totalSlides > 5;
-            var paginationEl = document.getElementById(SWIPER_ID + '-pagination');
-
             var swiperOptions = {
                 effect       : '<?php echo $effect; ?>',
                 speed        : <?php echo $speed; ?>,
@@ -889,8 +884,9 @@ function memora_gallery_swiper_shortcode( $atts ) {
                 watchOverflow: true,
                 grabCursor   : true,
                 pagination   : {
-                    el       : '#' + SWIPER_ID + '-pagination',
+                    el            : '#' + SWIPER_ID + '-pagination',
                     dynamicBullets: true,
+                    clickable     : true,
                 },
                 <?php if ( $show_nav_left || $show_nav_right ) : ?>
                 navigation: {
