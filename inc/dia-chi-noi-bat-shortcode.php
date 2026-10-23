@@ -666,14 +666,17 @@ function memora_dia_chi_noi_bat_shortcode( $atts ) {
         #<?php echo esc_attr( $wrap_uid ); ?> .dcnb-slider-col .memora-star-pagination {
             position: absolute !important;
             bottom: 2cqw !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: flex-end !important;
+            margin: 0 auto !important;
             z-index: 10 !important;
+            text-align: center !important;
             pointer-events: auto !important;
-            padding: 4px 0 !important;
-            box-sizing: content-box !important;
-            overflow: hidden !important;
-            white-space: nowrap !important;
+            box-sizing: border-box !important;
         }
 
         <?php if ( $aspect_ratio !== '' ) : ?>
